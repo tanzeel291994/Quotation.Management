@@ -1,0 +1,36 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace Quotation.Management.Entities.Models
+{
+    public partial class QuotationHeader
+    {
+        public QuotationHeader()
+        {
+            QuotationLines = new HashSet<QuotationLine>();
+        }
+
+        public string QuotationNum { get; set; } = null!;
+        public int RevNum { get; set; }
+        public string CustomerCode { get; set; } = null!;
+        public string CurrencyCode { get; set; } = null!;
+        public int Msp { get; set; }
+        public string? ProjectName { get; set; }
+        public string AreaCode { get; set; } = null!;
+        public DateTime QuotationDate { get; set; }
+        public DateTime? ExpectedDeliveryDate { get; set; }
+        public int DeliveryTermId { get; set; }
+        public int PaymentTermId { get; set; }
+        public int StatusId { get; set; }
+        public int Probability { get; set; }
+
+        public virtual SalesArea AreaCodeNavigation { get; set; } = null!;
+        public virtual CurrencyMaster CurrencyCodeNavigation { get; set; } = null!;
+        public virtual CustomerMaster CustomerCodeNavigation { get; set; } = null!;
+        public virtual DeliveryTermMaster DeliveryTerm { get; set; } = null!;
+        public virtual UserMaster MspNavigation { get; set; } = null!;
+        public virtual PaymentTermMaster PaymentTerm { get; set; } = null!;
+        public virtual QuotationStatusMaster Status { get; set; } = null!;
+        public virtual ICollection<QuotationLine> QuotationLines { get; set; }
+    }
+}

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>QMT_API</RootNamespace>
+    <UserSecretsId>b4a4c1d8-61cd-422d-81f1-91a58321cc1a</UserSecretsId>
+    <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ExcelDataReader" Version="3.6.0" />
+    <PackageReference Include="ExcelDataReader.DataSet" Version="3.6.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
+    <PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Quotation.Management.Contracts\Quotation.Management.Contracts.csproj" />
+    <ProjectReference Include="..\Quotation.Management.Entities\Quotation.Management.Entities.csproj" />
+    <ProjectReference Include="..\Quotation.Management.Repositories\Quotation.Management.Repositories.csproj" />
+    <ProjectReference Include="..\Quotation.Management.Services\Quotation.Management.Services.csproj" />
+  </ItemGroup>
+
+</Project>

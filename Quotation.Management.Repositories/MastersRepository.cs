@@ -1,0 +1,110 @@
+﻿using Quotation.Management.Contracts;
+using Quotation.Management.Contracts.Repositories;
+using Quotation.Management.Entities.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Quotation.Management.Repositories
+{
+    public class MastersRepository : IMastersRepository
+    {
+        public MastersRepository()
+        {
+
+        }
+
+        public List<MasterDC> GetAreas()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.SalesAreas.Select(x=>new
+                MasterDC{
+                    Name = x.AreaName,
+                    Code = x.AreaCode
+                }).ToList();
+            }
+        }
+
+        public List<MasterDC> GetDeliveryTerms()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.DeliveryTermMasters.Select(x => new
+                MasterDC
+                {
+                    Name = x.DeliveryTermName,
+                    Id = x.Id
+                }).ToList();
+            }
+        }
+
+        public List<MasterDC> GetPaymentTerms()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.PaymentTermMasters.Select(x => new
+                MasterDC
+                {
+                    Name = x.PaymentTermName,
+                    Id = x.Id
+                }).ToList();
+            }
+        }
+
+        public List<MasterDC> GetStatuses()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.QuotationStatusMasters.Select(x => new
+                MasterDC
+                {
+                    Name = x.StatusName,
+                    Id = x.StatusId
+                }).ToList();
+            }
+        }
+
+        public List<MasterDC> GetCustomers()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.CustomerMasters.Select(x => new
+                MasterDC
+                {
+                    Name = x.CustomerName,
+                    Code = x.CustomerCode
+                }).ToList();
+            }
+        }
+
+        public List<MasterDC> GetUsers()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.UserMasters.Select(x => new
+                MasterDC
+                {
+                    Name = x.FirstName+' '+x.LastName,
+                    Id = x.Id
+                }).ToList();
+            }
+        }
+
+        public List<MasterDC> GetCurrency()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.CurrencyMasters.Select(x => new
+                MasterDC
+                {
+                    Name = x.CurrencyCode,
+                    Code = x.CurrencyCode
+                }).ToList();
+            }
+        }
+
+    }
+}
