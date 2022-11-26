@@ -19,6 +19,7 @@ namespace Quotation.Management.Entities.Models
         public decimal Mtlp { get; set; }
         public decimal Qty { get; set; }
         public bool ActiveLine { get; set; }
+        public decimal? CostItemLineValue { get; set; }
 
         public virtual ItemMaster? ItemCodeNavigation { get; set; }
         public virtual QuotationHeader QuotationHeader { get; set; } = null!;

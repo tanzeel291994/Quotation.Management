@@ -7,6 +7,7 @@ namespace Quotation.Management.Entities.Models
     {
         public QuotationHeader()
         {
+            QuotationCostItems = new HashSet<QuotationCostItem>();
             QuotationLines = new HashSet<QuotationLine>();
         }
 
@@ -23,6 +24,8 @@ namespace Quotation.Management.Entities.Models
         public int PaymentTermId { get; set; }
         public int StatusId { get; set; }
         public int Probability { get; set; }
+        public bool IsActiveRevision { get; set; }
+        public decimal? ConvFactor { get; set; }
 
         public virtual SalesArea AreaCodeNavigation { get; set; } = null!;
         public virtual CurrencyMaster CurrencyCodeNavigation { get; set; } = null!;
@@ -31,6 +34,7 @@ namespace Quotation.Management.Entities.Models
         public virtual UserMaster MspNavigation { get; set; } = null!;
         public virtual PaymentTermMaster PaymentTerm { get; set; } = null!;
         public virtual QuotationStatusMaster Status { get; set; } = null!;
+        public virtual ICollection<QuotationCostItem> QuotationCostItems { get; set; }
         public virtual ICollection<QuotationLine> QuotationLines { get; set; }
     }
 }

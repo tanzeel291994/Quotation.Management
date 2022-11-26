@@ -18,12 +18,18 @@ namespace Quotation.Management.Contracts
         public decimal Qty { get; set; }
         public bool ActiveLine { get; set; }
         public decimal TtslsPrice { get; set; }
-
+        public string ProdTypeId { get; set; }
         public string? optCodes { get; set; } = null!;
     }
 
-    public class QuotationOptCodeDC
+    public class QuotationCopyOptionDC
     {
-        public string OptCode { get; set; }
+        public List<int> to { get; set; }
+        public int from { get; set; }
+
+        public string QuotationNum { get; set; }
+
+        public int RevNum { get; set; }
     }
+
 }

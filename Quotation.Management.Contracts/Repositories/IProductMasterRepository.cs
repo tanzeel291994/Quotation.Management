@@ -12,5 +12,7 @@ namespace Quotation.Management.Contracts.Repositories
         List<ProductMaster> GetAll();
         ProductMaster InsertProductIfNotExist(ProductMaster _productMaster, QMTContext? _context = null);
         ProductMaster InsertProduct(ProductMaster productMaster);
+
+        List<ProdItemTotal> GetProductsFromItemCodes(List<string> itemCodes);
     }
 }

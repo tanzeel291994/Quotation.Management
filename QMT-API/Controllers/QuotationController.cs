@@ -37,11 +37,11 @@ namespace QMT_API.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetQuotation(string  Id,int revNum)
+        public IActionResult GetQuotation(string  Id,int? revNum=null)
         {
             try
             {
-                var _quotation = _quotationService.GetQuotation(Id, revNum);
+                var _quotation = _quotationService.GetQuotation(Id);
                 return Ok(JsonConvert.SerializeObject(_quotation));
             }
             catch (Exception ex)
@@ -53,7 +53,7 @@ namespace QMT_API.Controllers
         [HttpGet("lines/options")]
         [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult getQuotationLineOptions(string quotationId , int revNum)
+        public IActionResult GetQuotationLineOptions(string quotationId , int revNum)
         {
             try
             {
@@ -78,6 +78,22 @@ namespace QMT_API.Controllers
             {
                 var _quotationLine = _quotationService.InsertQuotationLine(quotationLineDC);
                 return Ok(_quotationLine);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpPost("line/copyoption")]
+        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult CopyOptionLine(QuotationCopyOptionDC quotationCopyOptionDC)
+        {
+            try
+            {
+                var result = _quotationService.CopyOptionLine(quotationCopyOptionDC);
+                return Ok(result);
             }
             catch (Exception ex)
             {

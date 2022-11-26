@@ -38,6 +38,8 @@ namespace Quotation.Management.Services
                 jobject.Add(new JProperty("statuses", JsonConvert.SerializeObject(_mastersRepository.GetStatuses())));
                 jobject.Add(new JProperty("currency", JsonConvert.SerializeObject(_mastersRepository.GetCurrency())));
                 jobject.Add(new JProperty("itemCodes", JsonConvert.SerializeObject(_itemCodeRepository.GetAll())));
+                jobject.Add(new JProperty("products", JsonConvert.SerializeObject(_mastersRepository.GetProducts())));
+                jobject.Add(new JProperty("costItems", JsonConvert.SerializeObject(_mastersRepository.GetCostItems())));
 
                 return jobject;
             }

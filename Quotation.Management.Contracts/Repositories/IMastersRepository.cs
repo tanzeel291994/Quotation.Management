@@ -16,5 +16,7 @@ namespace Quotation.Management.Contracts.Repositories
         List<MasterDC> GetCustomers();
         List<MasterDC> GetUsers();
         List<MasterDC> GetCurrency();
+        List<MasterDC> GetCostItems();
+        List<MasterDC> GetProducts();
     }
 }

@@ -12,5 +12,7 @@ namespace Quotation.Management.Contracts.Services
         List<ProductMaster> GetProducts();
 
         ProductMaster InsertProduct(ProductMaster productMaster);
+
+        List<ProdItemTotal> GetProductTypeFromItemCodes(List<string> itemCodes);
     }
 }

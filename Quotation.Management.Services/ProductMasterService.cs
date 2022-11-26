@@ -1,4 +1,5 @@
-﻿using Quotation.Management.Contracts.Repositories;
+﻿using Quotation.Management.Contracts;
+using Quotation.Management.Contracts.Repositories;
 using Quotation.Management.Contracts.Services;
 using Quotation.Management.Entities.Models;
 using Quotation.Management.Repositories;
@@ -20,6 +21,11 @@ namespace Quotation.Management.Services
         public List<ProductMaster> GetProducts()
         {
             return _productMasterRepository.GetAll();
+        }
+
+        public List<ProdItemTotal> GetProductTypeFromItemCodes(List<string> itemCodes)
+        {
+            return _productMasterRepository.GetProductsFromItemCodes(itemCodes);
         }
         public ProductMaster InsertProduct(ProductMaster productMaster)
         {

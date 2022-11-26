@@ -14,6 +14,8 @@ namespace Quotation.Management.Entities.Models
         public string? SeriesName { get; set; }
         public int? GroupId { get; set; }
         public int? BrandId { get; set; }
+        public string? ParentSeries { get; set; }
+        public string? Frequency { get; set; }
 
         public virtual BrandMaster? Brand { get; set; }
         public virtual ItemGroupMaster? Group { get; set; }

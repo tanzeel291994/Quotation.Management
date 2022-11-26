@@ -93,6 +93,32 @@ namespace Quotation.Management.Repositories
             }
         }
 
+        public List<MasterDC> GetProducts()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.ProductMasters.Select(x => new
+                MasterDC
+                {
+                    Name = x.ProdName,
+                    Code = x.ProdTypeId
+                }).ToList();
+            }
+        }
+
+        public List<MasterDC> GetCostItems()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.CostItemCodes.Select(x => new
+                MasterDC
+                {
+                    Name = x.CostItemName,
+                    Code = x.CostItemId
+                }).ToList();
+            }
+        }
+
         public List<MasterDC> GetCurrency()
         {
             using (var context = new QMTContext())

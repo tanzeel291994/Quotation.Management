@@ -1,4 +1,5 @@
-﻿using Quotation.Management.Contracts.Repositories;
+﻿using Quotation.Management.Contracts;
+using Quotation.Management.Contracts.Repositories;
 using Quotation.Management.Entities.Models;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,22 @@ namespace Quotation.Management.Repositories
             //{
                return _context.ProductMasters.ToList();
             //}
+        }
+
+        public List<ProdItemTotal> GetProductsFromItemCodes(List<string> itemCodes)
+        {
+            using (var context =  new QMTContext())
+            {
+                dynamic productTypeIdList = (from im in context.ItemMasters
+                                               join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
+                                               join ig in context.ItemGroupMasters on sm.GroupId equals ig.GroupId
+                                               where itemCodes.Contains(im.ItemCode)
+                                               select new ProdItemTotal  { ProdTypeId= 
+                                               ig.ProdTypeId, 
+                                                   ItemCode= im.ItemCode,
+                                               TotalValue =0}).ToList();
+                return productTypeIdList;
+            }
         }
 
         public ProductMaster InsertProductIfNotExist(ProductMaster _productMaster, QMTContext? _context = null)
