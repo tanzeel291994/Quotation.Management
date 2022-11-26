@@ -50,6 +50,25 @@ namespace QMT_API.Controllers
             }
         }
 
+        [HttpGet("cost/lines")]
+        [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetQuotationCostLines(string Id, int revNum)
+        {
+            try
+            {
+                var _quotationCostItems = _quotationService.GetQuotationCostLines(Id, revNum);
+                return Ok(JsonConvert.SerializeObject(_quotationCostItems, new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
         [HttpGet("lines/options")]
         [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -93,6 +112,71 @@ namespace QMT_API.Controllers
             try
             {
                 var result = _quotationService.CopyOptionLine(quotationCopyOptionDC);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpPost("costLine/add")]
+        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult AddCostItemLIne(QuotationCostItemDC quotationCostItemDC)
+        {
+            try
+            {
+                var result = _quotationService.InsertQuotationCostItem(quotationCostItemDC);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpPost("costLine/update")]
+        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult UpdateCostItemLIne(QuotationCostItemDC quotationCostItemDC)
+        {
+            try
+            {
+                var result = _quotationService.UpdateQuotationCostItem(quotationCostItemDC);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpPost("costLine/delete")]
+        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult DeleteCostItemLIne(QuotationCostItemDC quotationCostItemDC)
+        {
+            try
+            {
+                var result = _quotationService.DeleteQuotationCostItem(quotationCostItemDC);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+
+        [HttpPost("currency/update")]
+        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult UpdateQuotationCurrency(CurrencyDC currencyDC)
+        {
+            try
+            {
+                var result = _quotationService.UpdateQuotationCurrency(currencyDC);
                 return Ok(result);
             }
             catch (Exception ex)

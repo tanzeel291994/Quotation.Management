@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Quotation.Management.Contracts;
 using Quotation.Management.Contracts.Repositories;
 using Quotation.Management.Contracts.Services;
 using Quotation.Management.Entities.Models;
@@ -47,6 +48,25 @@ namespace Quotation.Management.Services
             {
                 _logger.LogError(ex, ex.Message);
                 return null;
+            }
+        }
+
+        public CurrencyDC GetCurrencyCode(string curencyCode,string oldCurrencyCode)
+        {
+            try
+            {
+                CurrencyMaster? currency = _mastersRepository.GetCurrencyByCode(curencyCode);
+                CurrencyMaster? oldCurrency = _mastersRepository.GetCurrencyByCode(oldCurrencyCode);
+                CurrencyDC currencyDC = new();
+                currencyDC.OldCurrencyCode = oldCurrency!.CurrencyCode;
+                currencyDC.CurrencyCode = currency!.CurrencyCode;
+                currencyDC.ConvFactor = currency!.ConvFactor / oldCurrency.ConvFactor;
+                return currencyDC;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                throw;
             }
         }
 

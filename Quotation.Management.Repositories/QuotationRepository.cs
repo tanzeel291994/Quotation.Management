@@ -27,22 +27,6 @@ namespace Quotation.Management.Repositories
             }
         }
 
-        public QuotationLine? UpdateQuotationLine(QuotationLine _quotationLine)
-        {
-            using (var context = new QMTContext())
-            {
-                var line = context.QuotationLines.Where(x => x.QuotationNum == _quotationLine.QuotationNum.ToUpper() && x.RevNum == _quotationLine.RevNum
-                 && x.LineNum == _quotationLine.LineNum).FirstOrDefault();
-                if(line != null)
-                {
-                    line.Qty = _quotationLine.Qty;
-                    line.Mtlp = _quotationLine.Mtlp;
-                    context.SaveChanges();
-                }
-                return line;
-            }
-        }
-
         public QuotationLine UpdateQuotationLine(QuotationLine _quotationLine, QMTContext? _context = null)
         {
             var context = _context ?? new QMTContext();
@@ -58,13 +42,32 @@ namespace Quotation.Management.Repositories
             return _quotationLine;
         }
 
+        public QuotationHeader UpdateQuotationHeader(QuotationHeader _quotationHeader, QMTContext? _context = null)
+        {
+            var context = _context ?? new QMTContext();
+            context.SaveChanges();
+            return _quotationHeader;
+        }
+        public QuotationCostItem UpdateCostItemLine(QuotationCostItem _quotationCostItem, QMTContext? _context = null)
+        {
+            var context = _context ?? new QMTContext();
+            context.SaveChanges();
+            return _quotationCostItem;
+        }
+        public QuotationCostItem DeleteCostItemLine(QuotationCostItem _quotationCostItem, QMTContext? _context = null)
+        {
+            var context = _context ?? new QMTContext();
+            context.Remove(_quotationCostItem);
+            context.SaveChanges();
+            return _quotationCostItem;
+        }
         public List<QuotationLine> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItem> costItems,Dictionary<string,decimal> prodTotalDict, QMTContext? _context)
         {
 
             bool firstIteration = true;
             foreach (var costItem in costItems)
             {
-                if (prodTotalDict.ContainsKey(costItem.ProdTypeId))
+                if (!prodTotalDict.ContainsKey(costItem.ProdTypeId))
                     continue;
                 decimal totalValueProdwise = prodTotalDict[costItem.ProdTypeId];
                 foreach (var _line in quotationLines)
@@ -120,6 +123,14 @@ namespace Quotation.Management.Repositories
             var costItems = context.QuotationCostItems.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.RevNum == revNum
                  ).ToList();
            return costItems;
+        }
+        public QuotationCostItem? GetQuotationCostItem(string quotationNum, int revNum,string prodTypeId,string costItemId, QMTContext? _context = null)
+        {
+            var context = _context ?? new QMTContext();
+            var costItem = context.QuotationCostItems.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.RevNum == revNum
+                    && x.ProdTypeId == prodTypeId && x.CostItemId == costItemId
+                 ).FirstOrDefault();
+            return costItem;
         }
 
         public void UpdateQuotationOptCodes(string quotationNum, int lineNum, int revNum, QMTContext? _context = null)
@@ -238,6 +249,13 @@ namespace Quotation.Management.Repositories
             }
         }
 
+        public QuotationHeader? GetQuotation(string quotationNum, int revNum ,QMTContext _context)
+        {
+
+            var context = _context ?? new QMTContext();
+            return context.QuotationHeaders.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.RevNum == revNum).FirstOrDefault();
+        }
+
         public decimal? GetSumOfOptPrice (string itemCode ,List<string> optCode)
         {
 
@@ -267,7 +285,8 @@ namespace Quotation.Management.Repositories
                                                    ItemCode = ql.ItemCode ?? "",
                                                    ProdTypeId = ig.ProdTypeId ?? "",
                                                    UnitPrice = ql.UnitPrice,
-                                                   TtslsPrice = ql.Qty * ql.Mtlp * ql.UnitPrice
+                                                   CostItemLineValue = ql.CostItemLineValue ?? 0,
+                                                   TtslsPrice = (ql.Qty * ql.Mtlp * ql.UnitPrice) + (ql.CostItemLineValue ?? 0)
                                                }).ToList();
                 if (selectedLines != null)
                     lines = lines.Where(x => selectedLines.Contains(x.LineNum)).ToList();
@@ -290,6 +309,27 @@ namespace Quotation.Management.Repositories
                 }
                 
                 return quotationLines;
+            }
+        }
+
+        public List<QuotationCostItemDC> GetQuotationCostLines(string quotatioNum , int revNum)
+        {
+            using (var context = new QMTContext())
+            {
+
+                List<QuotationCostItemDC>  quotationCostItems = context.QuotationCostItems.
+                                                Where(x => x.QuotationNum == quotatioNum.ToUpper()  && x.RevNum == revNum)
+                                                .Select( x => new QuotationCostItemDC
+                                                {
+                                                    QuotationNum = x.QuotationNum,
+                                                    CostItemId = x.CostItemId,
+                                                    CostItemType = x.CostItemType,
+                                                    CostItemValue = x.CostItemValue,
+                                                    ProdTypeId = x.ProdTypeId,
+                                                    RevNum = x.RevNum,
+                                                })
+                                               .ToList();
+                return quotationCostItems;
             }
         }
     }

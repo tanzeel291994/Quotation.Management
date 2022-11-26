@@ -13,6 +13,8 @@ namespace Quotation.Management.Contracts
         public int LineNum { get; set; }
         public string ItemCode { get; set; }
         public string? SubItemCode { get; set; }
+
+        public decimal? CostItemLineValue { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal Mtlp { get; set; }
         public decimal Qty { get; set; }

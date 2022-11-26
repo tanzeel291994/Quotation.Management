@@ -18,5 +18,11 @@ namespace Quotation.Management.Contracts.Services
          List<QuotationLineDC>? GetQuotationLinesOptCodes(string Id, int revNum);
 
         QuotationCostItem? InsertQuotationCostItem(QuotationCostItemDC input);
+
+         bool UpdateQuotationCurrency(CurrencyDC currencyDC);
+        QuotationCostItem? UpdateQuotationCostItem(QuotationCostItemDC input);
+
+        QuotationCostItem? DeleteQuotationCostItem(QuotationCostItemDC input);
+        List<QuotationCostItemDC> GetQuotationCostLines(string quotationNum, int revNum);
     }
 }

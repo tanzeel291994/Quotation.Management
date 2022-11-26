@@ -15,7 +15,6 @@ namespace Quotation.Management.Contracts.Repositories
         PricingMaster? GetPricingOptCode(string itemCode, string optCode);
          QuotationLine? GetLatestQuotationLine(string quotationNum);
          QuotationHeader? GetQuotation(string quotationNum, int? revNum=null);
-         QuotationLine? UpdateQuotationLine(QuotationLine _quotationLine);
         List<QuotationLineDC> GetQuotationLines(string quotationNum, int revNum, List<int>? selectedLines = null, string prodTypeId = "");
 
          List<QuotationOptCode> GetQuotationOptCodes(string quotationNum, int lineNum, int revNum);
@@ -38,6 +37,17 @@ namespace Quotation.Management.Contracts.Repositories
 
         List<QuotationLine> GetQuotationLines(string quotationNum, int revNum, QMTContext _context);
 
+        List<QuotationCostItemDC> GetQuotationCostLines(string quotatioNum, int revNum);
+
+        QuotationHeader? GetQuotation(string quotationNum, int revNum, QMTContext _context);
+
+        QuotationHeader UpdateQuotationHeader(QuotationHeader _quotationHeader, QMTContext? _context = null);
+
+        QuotationCostItem UpdateCostItemLine(QuotationCostItem _quotationCostItem, QMTContext? _context = null);
+
+        QuotationCostItem? GetQuotationCostItem(string quotationNum, int revNum, string prodTypeId, string costItemId, QMTContext? _context = null);
+
+        QuotationCostItem DeleteCostItemLine(QuotationCostItem _quotationCostItem, QMTContext? _context = null);
         List<QuotationLine> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItem> costItems, Dictionary<string, decimal> prodTotalDict, QMTContext? _context);
     }
 }

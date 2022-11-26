@@ -132,5 +132,13 @@ namespace Quotation.Management.Repositories
             }
         }
 
+        public CurrencyMaster? GetCurrencyByCode(string currencyCode)
+        {
+            using (var context = new QMTContext())
+            {
+                return context.CurrencyMasters.Where(x => x.CurrencyCode == currencyCode).FirstOrDefault();
+            }
+        }
+
     }
 }
