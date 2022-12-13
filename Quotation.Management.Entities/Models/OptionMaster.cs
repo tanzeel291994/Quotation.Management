@@ -8,13 +8,12 @@ namespace Quotation.Management.Entities.Models
         public OptionMaster()
         {
             PricingMasters = new HashSet<PricingMaster>();
-            QuotationOptCodes = new HashSet<QuotationOptCode>();
         }
 
         public string OptCode { get; set; } = null!;
         public string? OptName { get; set; }
+        public bool? Net { get; set; }
 
         public virtual ICollection<PricingMaster> PricingMasters { get; set; }
-        public virtual ICollection<QuotationOptCode> QuotationOptCodes { get; set; }
     }
 }

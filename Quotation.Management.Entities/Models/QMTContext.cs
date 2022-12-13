@@ -28,6 +28,7 @@ namespace Quotation.Management.Entities.Models
         public virtual DbSet<PricingMaster> PricingMasters { get; set; } = null!;
         public virtual DbSet<ProductMaster> ProductMasters { get; set; } = null!;
         public virtual DbSet<QuotationCostItem> QuotationCostItems { get; set; } = null!;
+        public virtual DbSet<QuotationCostItemLine> QuotationCostItemLines { get; set; } = null!;
         public virtual DbSet<QuotationHeader> QuotationHeaders { get; set; } = null!;
         public virtual DbSet<QuotationLine> QuotationLines { get; set; } = null!;
         public virtual DbSet<QuotationOptCode> QuotationOptCodes { get; set; } = null!;
@@ -66,6 +67,7 @@ namespace Quotation.Management.Entities.Models
                 entity.HasOne(d => d.CurrencyCodeNavigation)
                     .WithMany(p => p.BrandMasters)
                     .HasForeignKey(d => d.CurrencyCode)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__BrandMast__Curre__5CA1C101");
             });
 
@@ -244,17 +246,13 @@ namespace Quotation.Management.Entities.Models
 
             modelBuilder.Entity<QuotationCostItem>(entity =>
             {
-                entity.HasKey(e => new { e.QuotationNum, e.RevNum, e.ProdTypeId, e.CostItemId })
-                    .HasName("PK__Quotatio__39B1847D6C7F5505");
+                entity.HasKey(e => e.QuotationCostItemGroupId)
+                    .HasName("PK__Quotatio__206CF075B6AF2940");
 
                 entity.ToTable("QuotationCostItem");
 
-                entity.Property(e => e.QuotationNum)
+                entity.Property(e => e.QuotationCostItemGroupId)
                     .HasMaxLength(200)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.ProdTypeId)
-                    .HasMaxLength(5)
                     .IsUnicode(false);
 
                 entity.Property(e => e.CostItemId)
@@ -269,23 +267,59 @@ namespace Quotation.Management.Entities.Models
 
                 entity.Property(e => e.FreightRate).HasColumnType("decimal(18, 2)");
 
+                entity.Property(e => e.ProdTypeId)
+                    .HasMaxLength(5)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.QuotationNum)
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
                 entity.HasOne(d => d.CostItem)
                     .WithMany(p => p.QuotationCostItems)
                     .HasForeignKey(d => d.CostItemId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Quotation__CostI__6DCC4D03");
+                    .HasConstraintName("FK__Quotation__CostI__1D7B6025");
 
                 entity.HasOne(d => d.ProdType)
                     .WithMany(p => p.QuotationCostItems)
                     .HasForeignKey(d => d.ProdTypeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Quotation__ProdT__6CD828CA");
+                    .HasConstraintName("FK__Quotation__ProdT__1C873BEC");
 
                 entity.HasOne(d => d.QuotationHeader)
                     .WithMany(p => p.QuotationCostItems)
                     .HasForeignKey(d => new { d.QuotationNum, d.RevNum })
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__QuotationCostIte__6BE40491");
+                    .HasConstraintName("FK__QuotationCostIte__1B9317B3");
+            });
+
+            modelBuilder.Entity<QuotationCostItemLine>(entity =>
+            {
+                entity.HasKey(e => new { e.QuotationCostItemGroupId, e.LineNum })
+                    .HasName("PK__Quotatio__B77E6D82CB74D473");
+
+                entity.Property(e => e.QuotationCostItemGroupId)
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CostItemLineValue).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.QuotationNum)
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.QuotationCostItemGroup)
+                    .WithMany(p => p.QuotationCostItemLines)
+                    .HasForeignKey(d => d.QuotationCostItemGroupId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Quotation__Quota__214BF109");
+
+                entity.HasOne(d => d.QuotationLine)
+                    .WithMany(p => p.QuotationCostItemLines)
+                    .HasForeignKey(d => new { d.QuotationNum, d.RevNum, d.LineNum })
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__QuotationCostIte__2057CCD0");
             });
 
             modelBuilder.Entity<QuotationHeader>(entity =>
@@ -302,6 +336,8 @@ namespace Quotation.Management.Entities.Models
                 entity.Property(e => e.AreaCode)
                     .HasMaxLength(100)
                     .IsUnicode(false);
+
+                entity.Property(e => e.BookingDate).HasColumnType("datetime");
 
                 entity.Property(e => e.ConvFactor).HasColumnType("decimal(6, 2)");
 
@@ -389,11 +425,18 @@ namespace Quotation.Management.Entities.Models
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
+                entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 2)");
+
                 entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Vat)
+                    .HasColumnType("decimal(6, 2)")
+                    .HasColumnName("VAT");
 
                 entity.HasOne(d => d.ItemCodeNavigation)
                     .WithMany(p => p.QuotationLines)
                     .HasForeignKey(d => d.ItemCode)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Quotation__ItemC__2CF2ADDF");
 
                 entity.HasOne(d => d.QuotationHeader)
@@ -418,13 +461,15 @@ namespace Quotation.Management.Entities.Models
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
-                entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.OptName)
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
 
-                entity.HasOne(d => d.OptCodeNavigation)
-                    .WithMany(p => p.QuotationOptCodes)
-                    .HasForeignKey(d => d.OptCode)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Quotation__OptCo__30C33EC3");
+                entity.Property(e => e.OptType)
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
 
                 entity.HasOne(d => d.QuotationLine)
                     .WithMany(p => p.QuotationOptCodes)

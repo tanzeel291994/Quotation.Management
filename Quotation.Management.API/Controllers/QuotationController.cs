@@ -5,6 +5,7 @@ using Newtonsoft.Json.Serialization;
 using Quotation.Management.Contracts;
 using Quotation.Management.Contracts.Services;
 using Quotation.Management.Entities.Models;
+using System.Data;
 
 namespace QMT_API.Controllers
 {
@@ -50,8 +51,27 @@ namespace QMT_API.Controllers
             }
         }
 
-        [HttpGet("cost/lines")]
+        [HttpGet("lines")]
         [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetQuotationLines(string Id, int revNum)
+        {
+            try
+            {
+                var _quotationLines = _quotationService.GetQuotationLines(Id, revNum);
+                return Ok(JsonConvert.SerializeObject(_quotationLines, new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpGet("cost/lines")]
+        [ProducesResponseType(typeof(PriceBreakDownDC), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetQuotationCostLines(string Id, int revNum)
         {
@@ -69,10 +89,26 @@ namespace QMT_API.Controllers
             }
         }
 
-        [HttpGet("lines/options")]
+        [HttpGet("pbd")]
         [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetQuotationLineOptions(string quotationId , int revNum)
+        public IActionResult GetQuotationPBD(string quotationNum, int revNum)
+        {
+            try
+            {
+                PriceBreakDownDC _quotationPBD = _quotationService.GetQuotationPBD(quotationNum, revNum);
+                return Ok(JsonConvert.SerializeObject(_quotationPBD));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpGet("lines/options")]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetQuotationLineOptions(string quotationId, int revNum)
         {
             try
             {
@@ -105,7 +141,7 @@ namespace QMT_API.Controllers
         }
 
         [HttpPost("line/copyoption")]
-        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CopyOptionLine(QuotationCopyOptionDC quotationCopyOptionDC)
         {
@@ -120,15 +156,66 @@ namespace QMT_API.Controllers
             }
         }
 
+        [HttpPost("line/nonstandard/options/add")]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult AddNonStandadOption(QuotationNonStandardOptCodeDC nonStandardOptCodeDC)
+        {
+            try
+            {
+                var result = _quotationService.InsertNonStandardOption(nonStandardOptCodeDC);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpPost("line/nonstandard/options/remove")]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult RemoveNonStandadOption(QuotationNonStandardOptCodeDC nonStandardOptCodeDC)
+        {
+            try
+            {
+                var result = _quotationService.RemoveNonStandardOption(nonStandardOptCodeDC);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpGet("line/nonstandard/options")]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetQuotationLineNonStandadOptions(string quotationId, int revNum)
+        {
+            try
+            {
+                var _optCodes = _quotationService.GetQuotationLinesNonStandardOptCodes(quotationId, revNum);
+                return Ok(JsonConvert.SerializeObject(_optCodes, new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
         [HttpPost("costLine/add")]
-        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(QuotationCostItem), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult AddCostItemLIne(QuotationCostItemDC quotationCostItemDC)
         {
             try
             {
                 var result = _quotationService.InsertQuotationCostItem(quotationCostItemDC);
-                return Ok(result);
+                return Ok(JsonConvert.SerializeObject(result));
             }
             catch (Exception ex)
             {
@@ -137,14 +224,14 @@ namespace QMT_API.Controllers
         }
 
         [HttpPost("costLine/update")]
-        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(QuotationCostItem), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult UpdateCostItemLIne(QuotationCostItemDC quotationCostItemDC)
         {
             try
             {
                 var result = _quotationService.UpdateQuotationCostItem(quotationCostItemDC);
-                return Ok(result);
+                return Ok(JsonConvert.SerializeObject(result));
             }
             catch (Exception ex)
             {
@@ -153,14 +240,14 @@ namespace QMT_API.Controllers
         }
 
         [HttpPost("costLine/delete")]
-        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(QuotationCostItem), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteCostItemLIne(QuotationCostItemDC quotationCostItemDC)
         {
             try
             {
                 var result = _quotationService.DeleteQuotationCostItem(quotationCostItemDC);
-                return Ok(result);
+                return Ok(JsonConvert.SerializeObject(result));
             }
             catch (Exception ex)
             {
@@ -203,7 +290,7 @@ namespace QMT_API.Controllers
 
 
         [HttpPost("line/options")]
-        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetOptions(QuotationLineDC quotationLineDC)
         {
@@ -219,7 +306,7 @@ namespace QMT_API.Controllers
         }
 
         [HttpPost("line/options/add")]
-        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult AddOptions(QuotationLineDC quotationLineDC)
         {
@@ -238,7 +325,7 @@ namespace QMT_API.Controllers
         }
 
         [HttpPost("line/options/remove")]
-        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult RemoveOptions(QuotationLineDC quotationLineDC)
         {

@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using Quotation.Management.Entities.Models;
+using System.Data;
 
 namespace Quotation.Management.Contracts.Services
 {
@@ -15,14 +16,21 @@ namespace Quotation.Management.Contracts.Services
 
          QuotationLineDC? RemoveQuotationOptions(QuotationLineDC inputLine);
 
-         List<QuotationLineDC>? GetQuotationLinesOptCodes(string Id, int revNum);
+        List<QuotationOptCodeDC>? GetQuotationLinesOptCodes(string Id, int revNum);
 
-        QuotationCostItem? InsertQuotationCostItem(QuotationCostItemDC input);
+        List<QuotationOptCodeDC>? GetQuotationLinesNonStandardOptCodes(string Id, int revNum);
+        QuotationCostItemDC InsertQuotationCostItem(QuotationCostItemDC input);
 
          bool UpdateQuotationCurrency(CurrencyDC currencyDC);
-        QuotationCostItem? UpdateQuotationCostItem(QuotationCostItemDC input);
+        QuotationCostItemDC UpdateQuotationCostItem(QuotationCostItemDC input);
 
-        QuotationCostItem? DeleteQuotationCostItem(QuotationCostItemDC input);
+        PriceBreakDownDC GetQuotationPBD(string quotationNum, int revNum);
+        QuotationCostItemDC DeleteQuotationCostItem(QuotationCostItemDC input);
         List<QuotationCostItemDC> GetQuotationCostLines(string quotationNum, int revNum);
+
+        List<QuotationLineDC> GetQuotationLines(string Id, int revNum);
+        QuotationNonStandardOptCodeDC? RemoveNonStandardOption(QuotationNonStandardOptCodeDC optCodeDC);
+        QuotationNonStandardOptCodeDC? InsertNonStandardOption(QuotationNonStandardOptCodeDC optCodeDC);
+        //List<QuotationLine> UpdateUnitPriceFromOptions(string quotatioNum, int revNum, List<int> lineNums, QMTContext context);
     }
 }

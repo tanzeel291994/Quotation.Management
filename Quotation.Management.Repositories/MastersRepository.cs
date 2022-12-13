@@ -140,5 +140,21 @@ namespace Quotation.Management.Repositories
             }
         }
 
+        public CostItemCode GetCostItemByCode(string costItemId)
+        {
+            using (var context = new QMTContext())
+            {
+                return context.CostItemCodes.Where(x => x.CostItemId == costItemId).First();
+            }
+        }
+
+        public UserMaster GetUserByUserId (int userId)
+        {
+            using (var context = new QMTContext())
+            {
+                return context.UserMasters.Where(x => x.Id == userId).First();
+            }
+        }
+
     }
 }

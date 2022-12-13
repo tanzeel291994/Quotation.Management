@@ -12,9 +12,9 @@ namespace Quotation.Management.Entities.Models
 
         public int BrandId { get; set; }
         public string BrandName { get; set; } = null!;
-        public string? CurrencyCode { get; set; }
+        public string CurrencyCode { get; set; } = null!;
 
-        public virtual CurrencyMaster? CurrencyCodeNavigation { get; set; }
+        public virtual CurrencyMaster CurrencyCodeNavigation { get; set; } = null!;
         public virtual ICollection<SeriesMaster> SeriesMasters { get; set; }
     }
 }

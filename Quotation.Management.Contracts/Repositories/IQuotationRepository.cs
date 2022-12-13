@@ -12,42 +12,45 @@ namespace Quotation.Management.Contracts.Repositories
          QuotationHeader InsertQuotation(QuotationHeader _quotationHeader);
          QuotationLine InsertQuotationLine(QuotationLine _quotationLine, QMTContext? _context = null);
          QuotationOptCode InsertQuotationOptCode(QuotationOptCode _quotationOptCode, QMTContext? _context = null);
-        PricingMaster? GetPricingOptCode(string itemCode, string optCode);
+        //PricingMaster? GetPricingOptCode(string itemCode, string optCode);
          QuotationLine? GetLatestQuotationLine(string quotationNum);
          QuotationHeader? GetQuotation(string quotationNum, int? revNum=null);
         List<QuotationLineDC> GetQuotationLines(string quotationNum, int revNum, List<int>? selectedLines = null, string prodTypeId = "");
 
-         List<QuotationOptCode> GetQuotationOptCodes(string quotationNum, int lineNum, int revNum);
+        List<QuotationOptCode> GetQuotationOptCodes(string quotationNum, int revNum, QMTContext? _context, int? lineNum = null);
 
          dynamic GetItemOptions(string itemCode);
 
         List<QuotationCostItem> GetQuotationCostItems(string quotationNum, int revNum, QMTContext? _context = null);
-        decimal? GetSumOfOptPrice(string itemCode, List<string> optCode);
 
-        QuotationLine? GetQuotationLine(string quotationNum, int lineNum, int revNum);
-
-        List<PricingMaster> GetPricingOptCode(string itemCode, List<string> optCode);
-         List<QuotationLineDC> GetQuotationLinesOptions(List<QuotationLineDC> quotationLines);
-         QuotationLine UpdateQuotationLine(QuotationLine _quotationLine, QMTContext? _context = null);
+        QuotationLine GetQuotationLine(string quotationNum, int lineNum, int revNum, QMTContext? _context = null);
+        int GetQuotationLatestNum();
+        List<PricingMasterDC> GetPricingOptCode(string itemCode, List<string> optCode);
+        List<QuotationOptCodeDC> GetQuotationLinesOptions(string quotationNum, int revNum);
+        QuotationLineDC UpdateQuotationLine(QuotationLineDC _quotationLine, QMTContext? _context = null);
 
          void UpdateQuotationOptCodes(string quotationNum, int lineNum, int revNum, QMTContext? _context = null);
          QuotationOptCode? RemoveQuotationOptCode(QuotationOptCode _quotationOptCode, QMTContext? _context = null);
 
-         QuotationCostItem InsertQuotationCostItemLine(QuotationCostItem _quotationCostItem, QMTContext? _context = null);
+        QuotationCostItem InsertQuotationCostItemLine(QuotationCostItem _quotationCostItem, QMTContext? _context = null);
 
-        List<QuotationLine> GetQuotationLines(string quotationNum, int revNum, QMTContext _context);
+        List<QuotationLine> GetQuotationLines(string quotationNum, int revNum, QMTContext? _context);
 
         List<QuotationCostItemDC> GetQuotationCostLines(string quotatioNum, int revNum);
 
         QuotationHeader? GetQuotation(string quotationNum, int revNum, QMTContext _context);
 
+        List<QuotationOptCodeDC> GetQuotationLinesNonStandardOptions(string quotationNum, int revNum);
         QuotationHeader UpdateQuotationHeader(QuotationHeader _quotationHeader, QMTContext? _context = null);
 
-        QuotationCostItem UpdateCostItemLine(QuotationCostItem _quotationCostItem, QMTContext? _context = null);
-
-        QuotationCostItem? GetQuotationCostItem(string quotationNum, int revNum, string prodTypeId, string costItemId, QMTContext? _context = null);
-
-        QuotationCostItem DeleteCostItemLine(QuotationCostItem _quotationCostItem, QMTContext? _context = null);
-        List<QuotationLine> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItem> costItems, Dictionary<string, decimal> prodTotalDict, QMTContext? _context);
+        QuotationCostItem UpdateCostItem(QuotationCostItem _quotationCostItem, QMTContext? _context = null);
+        List<QuotationCostItemLine> GetQuotationCostItemLines(string quotationNum, int revNum, QMTContext? _context = null);
+        //List<QuotationCostItem> GetQuotationCostItems(string quotationNum, int revNum, List<string> groupIds, QMTContext? _context = null);
+        List<QuotationCostItemLine> InUpdDelQuotationCostItemLines(string quotationNum, int revNum, string groupId, List<QuotationCostItemLine> _quotationCostItemLines, QMTContext? _context = null);
+        QuotationHeaderDC? GetQuotationHeader(string quotatioNum, int revNum);
+        List<string> GetQuotationOptions(string quotationNum, int revNum);
+        QuotationCostItem DeleteCostItem(QuotationCostItem _quotationCostItem, QMTContext? _context = null);
+        QuotationCostItem GetQuotationCostItem(string quotationNum, int revNum, string groupId, QMTContext? _context = null);
+        List<QuotationLine> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItemLine> costItemLines, List<QuotationCostItem> costItems, Dictionary<string, decimal> groupIdTotalDict, QMTContext? _context);
     }
 }

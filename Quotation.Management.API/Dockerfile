@@ -10,16 +10,16 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["QMT-API/QMT-API.csproj", "QMT-API/"]
-RUN dotnet restore "QMT-API/QMT-API.csproj"
+COPY ["QMT-API/Quotation.Management.API.csproj.user", "QMT-API/"]
+RUN dotnet restore "QMT-API/Quotation.Management.API.csproj.user"
 COPY . .
 WORKDIR "/src/QMT-API"
-RUN dotnet build "QMT-API.csproj" -c Release -o /app/build
+RUN dotnet build "Quotation.Management.API.csproj.user" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "QMT-API.csproj" -c Release -o /app/publish
+RUN dotnet publish "Quotation.Management.API.csproj.user" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "QMT-API.dll"]
+ENTRYPOINT ["dotnet", "Quotation.Management.API.dll"]

@@ -7,22 +7,26 @@ namespace Quotation.Management.Entities.Models
     {
         public QuotationLine()
         {
+            QuotationCostItemLines = new HashSet<QuotationCostItemLine>();
             QuotationOptCodes = new HashSet<QuotationOptCode>();
         }
 
         public string QuotationNum { get; set; } = null!;
         public int RevNum { get; set; }
         public int LineNum { get; set; }
-        public string? ItemCode { get; set; }
+        public string ItemCode { get; set; } = null!;
         public string? SubItemCode { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal Mtlp { get; set; }
         public decimal Qty { get; set; }
         public bool ActiveLine { get; set; }
         public decimal? CostItemLineValue { get; set; }
+        public decimal Vat { get; set; }
+        public decimal TotalPrice { get; set; }
 
-        public virtual ItemMaster? ItemCodeNavigation { get; set; }
+        public virtual ItemMaster ItemCodeNavigation { get; set; } = null!;
         public virtual QuotationHeader QuotationHeader { get; set; } = null!;
+        public virtual ICollection<QuotationCostItemLine> QuotationCostItemLines { get; set; }
         public virtual ICollection<QuotationOptCode> QuotationOptCodes { get; set; }
     }
 }

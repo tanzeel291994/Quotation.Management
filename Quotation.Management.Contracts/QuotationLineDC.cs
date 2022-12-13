@@ -18,20 +18,56 @@ namespace Quotation.Management.Contracts
         public decimal UnitPrice { get; set; }
         public decimal Mtlp { get; set; }
         public decimal Qty { get; set; }
+        public decimal Vat { get; set; }
         public bool ActiveLine { get; set; }
+        public decimal TtNetPrice { get; set; }
         public decimal TtslsPrice { get; set; }
-        public string ProdTypeId { get; set; }
+        public decimal TtslsPriceWOVat { get; set; }
+        public string? ProdTypeId { get; set; }
+        public string? CurrencyCode { get; set; }
         public string? optCodes { get; set; } = null!;
     }
 
     public class QuotationCopyOptionDC
     {
-        public List<int> to { get; set; }
-        public int from { get; set; }
-
-        public string QuotationNum { get; set; }
-
+        public List<string> FromOptCodes { get; set; } = null!;
+        public List<int> CopyToLines { get; set; } = null!;
+        public string QuotationNum { get; set; } = null!;
         public int RevNum { get; set; }
     }
 
+    public class QuotationOptCodeDC
+    {
+        public string QuotationNum { get; set; } = null!;
+        public int RevNum { get; set; }
+        public int LineNum { get; set; }
+        public string OptCode { get; set; } = null!;
+        public string OptName { get; set; } = null!;
+        public string ItemCode { get; set; } = null!;
+        public bool IsNet { get; set; }
+        public decimal? Price { get; set; }
+        public string OptType { get; set; } = null!;
+    }
+
+    public class QuotationNonStandardOptCodeDC
+    {
+        public string QuotationNum { get; set; } = null!;
+        public int RevNum { get; set; }
+        public int LineNum { get; set; }
+        public string OptCode { get; set; } = null!;
+        public string? OptName { get; set; } 
+        public decimal? Price { get; set; }
+    }
+
+    public class PricingMasterDC
+    {
+        public string ItemCode { get; set; } = null!;
+        public string OptCode { get; set; } = null!;
+        public string CurrencyCode { get; set; } = null!;
+        public decimal Price { get; set; }
+        public decimal ConvFactor { get; set; }
+        public string Version { get; set; } = null!;
+        public string? Status { get; set; }
+        public bool IsNet { get; set; }
+    }
 }

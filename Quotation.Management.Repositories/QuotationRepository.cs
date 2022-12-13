@@ -27,7 +27,7 @@ namespace Quotation.Management.Repositories
             }
         }
 
-        public QuotationLine UpdateQuotationLine(QuotationLine _quotationLine, QMTContext? _context = null)
+        public QuotationLineDC UpdateQuotationLine(QuotationLineDC _quotationLine, QMTContext? _context = null)
         {
             var context = _context ?? new QMTContext();
             var line = context.QuotationLines.Where(x => x.QuotationNum == _quotationLine.QuotationNum.ToUpper() && x.RevNum == _quotationLine.RevNum
@@ -37,7 +37,15 @@ namespace Quotation.Management.Repositories
                 line.UnitPrice = _quotationLine.UnitPrice;
                 line.Mtlp = _quotationLine.Mtlp;
                 line.Qty = _quotationLine.Qty;
+                line.ActiveLine = _quotationLine.ActiveLine;
+                line.CostItemLineValue = _quotationLine.CostItemLineValue;
+                line.Vat = _quotationLine.Vat;
+                line.TotalPrice = _quotationLine.TtNetPrice;
                 context.SaveChanges();
+            }
+            if(_context == null)
+            {
+                context.Dispose();
             }
             return _quotationLine;
         }
@@ -48,49 +56,50 @@ namespace Quotation.Management.Repositories
             context.SaveChanges();
             return _quotationHeader;
         }
-        public QuotationCostItem UpdateCostItemLine(QuotationCostItem _quotationCostItem, QMTContext? _context = null)
+        public QuotationCostItem UpdateCostItem(QuotationCostItem _quotationCostItem, QMTContext? _context = null)
         {
             var context = _context ?? new QMTContext();
             context.SaveChanges();
             return _quotationCostItem;
         }
-        public QuotationCostItem DeleteCostItemLine(QuotationCostItem _quotationCostItem, QMTContext? _context = null)
+        public QuotationCostItem DeleteCostItem(QuotationCostItem _quotationCostItem, QMTContext? _context = null)
         {
             var context = _context ?? new QMTContext();
             context.Remove(_quotationCostItem);
             context.SaveChanges();
             return _quotationCostItem;
         }
-        public List<QuotationLine> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItem> costItems,Dictionary<string,decimal> prodTotalDict, QMTContext? _context)
+        public List<QuotationLine> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItemLine> costItemLines, List<QuotationCostItem> costItems,Dictionary<string,decimal> groupIdTotalDict, QMTContext? _context)
         {
 
-            bool firstIteration = true;
+            //bool firstIteration = true;
             foreach (var costItem in costItems)
             {
-                if (!prodTotalDict.ContainsKey(costItem.ProdTypeId))
+                if (!groupIdTotalDict.ContainsKey(costItem.QuotationCostItemGroupId))
                     continue;
-                decimal totalValueProdwise = prodTotalDict[costItem.ProdTypeId];
-                foreach (var _line in quotationLines)
+                decimal totalValueGroupWise = groupIdTotalDict[costItem.QuotationCostItemGroupId];
+                foreach(var _costItemLine in costItemLines.Where(x =>x.QuotationCostItemGroupId == costItem.QuotationCostItemGroupId))
                 {
-                    decimal ttslsPrice = _line.Qty * _line.Mtlp * _line.UnitPrice;
-                    if (costItem.CostItemType == CostItemType.ByVal.ToString())
+                    QuotationLine? quotationLine = quotationLines.Where(x => x.LineNum == _costItemLine.LineNum).FirstOrDefault();
+                    if (quotationLine != null)
                     {
-                        if (firstIteration)
-                            _line.CostItemLineValue = costItem.CostItemValue * (ttslsPrice / totalValueProdwise);
-                        else
-                            _line.CostItemLineValue += costItem.CostItemValue * (ttslsPrice / totalValueProdwise);
-                    }
-                    if (costItem.CostItemType == CostItemType.ByPercentage.ToString())
-                    {
-                        if (firstIteration)
-                            _line.CostItemLineValue = (costItem.CostItemValue / 100 * ttslsPrice) / totalValueProdwise;
-                        else
-                            _line.CostItemLineValue += (costItem.CostItemValue / 100 * ttslsPrice) / totalValueProdwise;
+                        decimal ttslsPrice = quotationLine.TotalPrice;
+                        if (costItem.CostItemType == CostItemType.ByVal.ToString())
+                        {
+                            _costItemLine.CostItemLineValue = costItem.CostItemValue * (ttslsPrice / totalValueGroupWise);
+                        }
+                        if (costItem.CostItemType == CostItemType.ByPercentage.ToString())
+                        {
+                            _costItemLine.CostItemLineValue = (costItem.CostItemValue / 100 * totalValueGroupWise);
+                        }
                     }
                 }
-                firstIteration = false;
             }
-
+            foreach (var _quotationLine in quotationLines)
+            {
+                List<QuotationCostItemLine> _costItemLines = costItemLines.Where(x => x.LineNum == _quotationLine.LineNum).ToList();
+                _quotationLine.CostItemLineValue = _costItemLines.Select(x => x.CostItemLineValue).Sum();
+            }
             var context = _context ?? new QMTContext();
             
             if (quotationLines.Count > 0)
@@ -100,37 +109,52 @@ namespace Quotation.Management.Repositories
             return quotationLines;
         }
 
-        public List<QuotationLine> GetQuotationLines(string quotationNum, int revNum, QMTContext _context)
+        public List<QuotationLine> GetQuotationLines(string quotationNum, int revNum, QMTContext? _context)
         {
-            var context = _context;
+            var context = _context ?? new QMTContext();
             var lines = context.QuotationLines.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.RevNum == revNum
                  ).ToList();
+            if (_context == null)
+                context.Dispose();
             return lines;
         }
 
-        public List<QuotationOptCode> GetQuotationOptCodes(string quotationNum , int lineNum , int revNum)
+        public List<QuotationOptCode> GetQuotationOptCodes(string quotationNum , int revNum, QMTContext? _context, int? lineNum=null)
         {
-            using (var context = new QMTContext())
-            {
-                var optCodeList = context.QuotationOptCodes.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.RevNum == revNum
-                 && x.LineNum == lineNum).ToList();
-                return optCodeList;
-            }
+            var context = _context ?? new QMTContext();
+            var optCodeList = context.QuotationOptCodes.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.RevNum == revNum).ToList();
+                if (lineNum != null)
+                    optCodeList = optCodeList.Where(x=> x.LineNum == lineNum).ToList();
+            if (_context == null)
+                context.Dispose();
+            return optCodeList;
         }
         public List<QuotationCostItem> GetQuotationCostItems(string quotationNum,int revNum, QMTContext? _context = null)
         {
             var context = _context ?? new QMTContext();
             var costItems = context.QuotationCostItems.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.RevNum == revNum
                  ).ToList();
+            if (_context == null)
+                context.Dispose();
            return costItems;
         }
-        public QuotationCostItem? GetQuotationCostItem(string quotationNum, int revNum,string prodTypeId,string costItemId, QMTContext? _context = null)
+        public QuotationCostItem GetQuotationCostItem(string quotationNum, int revNum,string groupId, QMTContext? _context = null)
         {
             var context = _context ?? new QMTContext();
-            var costItem = context.QuotationCostItems.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.RevNum == revNum
-                    && x.ProdTypeId == prodTypeId && x.CostItemId == costItemId
-                 ).FirstOrDefault();
+            var costItem = context.QuotationCostItems.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.RevNum == revNum 
+                            && x.QuotationCostItemGroupId == groupId).First();
+            if (_context == null)
+                context.Dispose();
             return costItem;
+        }
+        public List<QuotationCostItemLine> GetQuotationCostItemLines(string quotationNum, int revNum, QMTContext? _context = null)
+        {
+            var context = _context ?? new QMTContext();
+            var costItemLines = context.QuotationCostItemLines.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.RevNum == revNum
+                 ).ToList();
+            if (_context == null)
+                context.Dispose();
+            return costItemLines;
         }
 
         public void UpdateQuotationOptCodes(string quotationNum, int lineNum, int revNum, QMTContext? _context = null)
@@ -154,7 +178,7 @@ namespace Quotation.Management.Repositories
                 var optCodeList = (from a in context.PricingMasters
                                    join b in context.OptionMasters on a.OptCode equals b.OptCode
                                    where a.ItemCode == itemCode
-                                   select new { optCode =  a.OptCode, price = a.Price, optName = b.OptName }).ToList();
+                                   select new { optCode =  a.OptCode, price = a.Price, optName = b.OptName ,isNet = b.Net ?? false }).ToList();
                 return optCodeList;
             }
         }
@@ -172,7 +196,27 @@ namespace Quotation.Management.Repositories
             var context = _context ?? new QMTContext();
             context.QuotationCostItems.Add(_quotationCostItem);
             context.SaveChanges();
+            if (_context == null)
+            {
+                context.Dispose();
+            }
             return _quotationCostItem;
+        }
+
+        public List<QuotationCostItemLine> InUpdDelQuotationCostItemLines(string quotationNum , int revNum , string groupId,List<QuotationCostItemLine> _quotationCostItemLines, QMTContext? _context = null)
+        {
+            var context = _context ?? new QMTContext();
+            var costItemLines = context.QuotationCostItemLines.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.RevNum == revNum
+                 && x.QuotationCostItemGroupId == groupId).ToList();
+
+            context.QuotationCostItemLines.RemoveRange(costItemLines);
+            context.QuotationCostItemLines.AddRange(_quotationCostItemLines);
+            context.SaveChanges();
+            if (_context == null)
+            {
+                context.Dispose();
+            }
+            return _quotationCostItemLines;
         }
 
         //insert if not found
@@ -202,20 +246,37 @@ namespace Quotation.Management.Repositories
             return optCode;
         }
 
-        public PricingMaster? GetPricingOptCode(string itemCode, string optCode)
+        /*public PricingMaster? GetPricingOptCode(string itemCode, string optCode)
         {
 
             using (var context = new QMTContext())
             {
                 return context.PricingMasters.Where(x => x.ItemCode == itemCode.ToUpper() && x.OptCode == optCode.ToUpper()).OrderByDescending(x => x.Version).FirstOrDefault();
             }
-        }
+        }*/
 
-        public List<PricingMaster> GetPricingOptCode(string itemCode, List<string> optCode)
+        public List<PricingMasterDC> GetPricingOptCode(string itemCode, List<string> optCode)
         {
             using (var context = new QMTContext())
             {
-                return context.PricingMasters.Where(x => x.ItemCode == itemCode.ToUpper() && optCode.Contains(x.OptCode)).ToList();
+               List<PricingMasterDC> _pricingList = (from pm in context.PricingMasters
+                                                     join im in context.ItemMasters on pm.ItemCode equals im.ItemCode
+                                                     join om in context.OptionMasters on pm.OptCode equals om.OptCode
+                                                     join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
+                                                     join bm in context.BrandMasters on sm.BrandId equals bm.BrandId
+                                                     join cm in context.CurrencyMasters on bm.CurrencyCode equals cm.CurrencyCode
+                                                     where pm.ItemCode == itemCode.ToUpper() && optCode.Contains(pm.OptCode)
+                                                     select new PricingMasterDC
+                                                     {
+                                                        ItemCode=im.ItemCode,
+                                                        OptCode=pm.OptCode,
+                                                        CurrencyCode=bm.CurrencyCode,
+                                                        ConvFactor = cm.ConvFactor,
+                                                        Version=pm.Version,
+                                                        Price= pm.Price ?? 0,
+                                                        IsNet = om.Net ?? false,
+                                                     }).ToList();
+                return _pricingList;
             }
         }
 
@@ -228,13 +289,17 @@ namespace Quotation.Management.Repositories
             }
         }
 
-        public QuotationLine? GetQuotationLine(string quotationNum,int lineNum , int revNum)
+        public QuotationLine GetQuotationLine(string quotationNum,int lineNum , int revNum, QMTContext? _context=null)
         {
 
-            using (var context = new QMTContext())
+            var context = _context ?? new QMTContext();
+            QuotationLine? quotationLine = context.QuotationLines.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.LineNum == lineNum && x.RevNum ==  revNum).First();
+            if(_context == null)
             {
-                return context.QuotationLines.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.LineNum == lineNum && x.RevNum ==  revNum).FirstOrDefault();
+                context.Dispose();
             }
+            return quotationLine;
+            
         }
 
         public QuotationHeader? GetQuotation(string quotationNum,int? revNum=null)
@@ -248,6 +313,14 @@ namespace Quotation.Management.Repositories
                     return context.QuotationHeaders.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.IsActiveRevision == true).FirstOrDefault();
             }
         }
+        public int GetQuotationLatestNum()
+        {
+            using (var context = new QMTContext())
+            {
+               int maxNum= context.QuotationHeaders.Select(x => Convert.ToInt32(x.QuotationNum.Substring(7, x.QuotationNum.Length - 1))).Max();
+                return maxNum + 1;
+            }
+        }
 
         public QuotationHeader? GetQuotation(string quotationNum, int revNum ,QMTContext _context)
         {
@@ -256,23 +329,16 @@ namespace Quotation.Management.Repositories
             return context.QuotationHeaders.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.RevNum == revNum).FirstOrDefault();
         }
 
-        public decimal? GetSumOfOptPrice (string itemCode ,List<string> optCode)
-        {
-
-            using (var context = new QMTContext())
-            {
-                return context.PricingMasters.Where(x => x.ItemCode == itemCode.ToUpper() && optCode.Contains(x.OptCode)).Sum(x => x.Price);
-            }
-        }
-
         public List<QuotationLineDC> GetQuotationLines(string quotationNum,int revNum ,List<int>? selectedLines=null,string prodTypeId="")
         {
             using (var context = new QMTContext())
             {
                 List<QuotationLineDC> lines = (from ql in context.QuotationLines
+                                               join qh in context.QuotationHeaders on new { ql.QuotationNum, ql.RevNum } equals new { qh.QuotationNum, qh.RevNum }
                                                join im in context.ItemMasters on ql.ItemCode equals im.ItemCode
                                                join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
                                                join ig in context.ItemGroupMasters on sm.GroupId equals ig.GroupId
+
                                                where ql.QuotationNum == quotationNum.ToUpper() && ql.RevNum == revNum
                                                select new QuotationLineDC
                                                {
@@ -285,8 +351,11 @@ namespace Quotation.Management.Repositories
                                                    ItemCode = ql.ItemCode ?? "",
                                                    ProdTypeId = ig.ProdTypeId ?? "",
                                                    UnitPrice = ql.UnitPrice,
+                                                   Vat = ql.Vat,
+                                                   CurrencyCode = qh.CurrencyCode,
                                                    CostItemLineValue = ql.CostItemLineValue ?? 0,
-                                                   TtslsPrice = (ql.Qty * ql.Mtlp * ql.UnitPrice) + (ql.CostItemLineValue ?? 0)
+                                                   TtslsPriceWOVat = Math.Round((ql.Qty * ql.Mtlp * ql.UnitPrice) + (ql.CostItemLineValue ?? 0), 2),
+                                                   TtslsPrice = Math.Round((100+(ql.Vat))/100 * ((ql.Qty * ql.Mtlp * ql.UnitPrice) + (ql.CostItemLineValue ?? 0)),2)
                                                }).ToList();
                 if (selectedLines != null)
                     lines = lines.Where(x => selectedLines.Contains(x.LineNum)).ToList();
@@ -296,19 +365,66 @@ namespace Quotation.Management.Repositories
             }
         }
 
-        public List<QuotationLineDC> GetQuotationLinesOptions(List<QuotationLineDC> quotationLines)
+        public List<QuotationOptCodeDC> GetQuotationLinesOptions(string quotationNum, int revNum)
         {
             using (var context = new QMTContext())
             {
-                foreach (var line in quotationLines)
-                {
-                    List<string> optCodes = context.QuotationOptCodes.
-                                               Where(x => x.QuotationNum == line.QuotationNum.ToUpper() && x.LineNum == line.LineNum && x.RevNum == line.RevNum)
-                                               .Select(x => x.OptCode).ToList();
-                    line.optCodes = string.Join(",",optCodes);
-                }
-                
-                return quotationLines;
+                    List<QuotationOptCodeDC> optCodes = (from qoc in context.QuotationOptCodes
+                                                         join om in context.OptionMasters on  qoc.OptCode  equals  om.OptCode
+                                                         join ql in context.QuotationLines on new { qoc.QuotationNum, qoc.LineNum, qoc.RevNum } equals new { ql.QuotationNum, ql.LineNum, ql.RevNum }
+                                                         where qoc.QuotationNum == quotationNum.ToUpper() && qoc.RevNum == revNum 
+                                                         select new QuotationOptCodeDC
+                                                         {
+                                                            QuotationNum = qoc.QuotationNum,
+                                                            RevNum = qoc.RevNum,
+                                                            LineNum = ql.LineNum,
+                                                            ItemCode = ql.ItemCode,
+                                                            OptCode = qoc.OptCode,
+                                                            OptName = qoc.OptName ?? qoc.OptCode,
+                                                            IsNet = qoc.IsNet ?? false,
+                                                            OptType = qoc.OptType ?? "STANDRAD",
+
+                                                         }).ToList();
+                return optCodes;
+            }
+        }
+
+        public List<QuotationOptCodeDC> GetQuotationLinesNonStandardOptions(string quotationNum, int revNum)
+        {
+            using (var context = new QMTContext())
+            {
+                List<QuotationOptCodeDC> optCodes = (from qoc in context.QuotationOptCodes
+                                                     join ql in context.QuotationLines on new { qoc.QuotationNum, qoc.LineNum, qoc.RevNum } equals new { ql.QuotationNum, ql.LineNum, ql.RevNum }
+                                                     where qoc.QuotationNum == quotationNum.ToUpper() && qoc.RevNum == revNum 
+                                                     && qoc.OptType == OptionType.NonStandard.ToString()
+                                                     select new QuotationOptCodeDC
+                                                     {
+                                                         QuotationNum = qoc.QuotationNum,
+                                                         RevNum = qoc.RevNum,
+                                                         LineNum = ql.LineNum,
+                                                         Price = qoc.UnitPrice,
+                                                         ItemCode = ql.ItemCode,
+                                                         OptCode = qoc.OptCode,
+                                                         OptName = qoc.OptName ?? qoc.OptCode,
+                                                         IsNet = qoc.IsNet ?? false,
+                                                         OptType = qoc.OptType ?? OptionType.NonStandard.ToString(),
+
+                                                     }).ToList();
+                return optCodes;
+            }
+        }
+
+        public List<string> GetQuotationOptions(string quotationNum , int revNum)
+        {
+            using (var context = new QMTContext())
+            {
+                List<string> optCodes = (from q in context.QuotationHeaders
+                                         join qc in context.QuotationOptCodes on new { q.QuotationNum, q.RevNum } equals new { qc.QuotationNum, qc.RevNum }
+                                         into result
+                                         from r in result
+                                         where r.OptCode != null
+                                         select r.OptCode).Distinct().ToList();
+                return optCodes;
             }
         }
 
@@ -325,11 +441,53 @@ namespace Quotation.Management.Repositories
                                                     CostItemId = x.CostItemId,
                                                     CostItemType = x.CostItemType,
                                                     CostItemValue = x.CostItemValue,
+                                                    QuotationCostItemGroupId = x.QuotationCostItemGroupId,
                                                     ProdTypeId = x.ProdTypeId,
                                                     RevNum = x.RevNum,
                                                 })
                                                .ToList();
+                foreach(var _costItem in quotationCostItems)
+                {
+                    List<QuotationLineCostItem> quotCostItemLines = (from qc in context.QuotationCostItemLines
+                                                                    join ql in context.QuotationLines on new { qc.QuotationNum, qc.RevNum,qc.LineNum } equals new { ql.QuotationNum, ql.RevNum, ql.LineNum }
+                                                                    where ql.QuotationNum == quotatioNum.ToUpper() && ql.RevNum == revNum 
+                                                                    && qc.QuotationCostItemGroupId == _costItem.QuotationCostItemGroupId
+                                                                    select new QuotationLineCostItem
+                                                                    {
+                                                                        LineNum = ql.LineNum,
+                                                                        ItemCode = ql.ItemCode
+                                                                    }).ToList();
+                    _costItem.quotationLineCostItems = quotCostItemLines.ToArray();
+                }
+
+
                 return quotationCostItems;
+            }
+        }
+
+        public QuotationHeaderDC? GetQuotationHeader(string quotatioNum, int revNum)
+        {
+            using (var context = new QMTContext())
+            {
+
+                var quotationHeaderDC = context.QuotationHeaders.
+                                                Where(x => x.QuotationNum == quotatioNum.ToUpper() && x.RevNum == revNum)
+                                                .Select(x => new QuotationHeaderDC
+                                                {
+                                                    QuotationNum = x.QuotationNum,
+                                                    RevNum= x.RevNum,
+                                                    MspName = x.MspNavigation.FirstName+' '+ x.MspNavigation.LastName,
+                                                    AreaName = x.AreaCodeNavigation.AreaName,
+                                                    StatusName = x.Status.StatusName,
+                                                    ExpectedDeliveryDate = x.ExpectedDeliveryDate,
+                                                    ProjectName = x.ProjectName,
+                                                    Probability = x.Probability,
+                                                    CurrencyCode = x.CurrencyCode,
+                                                    QuotationDate = x.QuotationDate,
+                                                    CustomerName = x.CustomerCodeNavigation.CustomerName
+                                                })
+                                               .FirstOrDefault();
+                return quotationHeaderDC;
             }
         }
     }

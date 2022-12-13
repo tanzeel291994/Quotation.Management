@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quotation.Management.API", "QMT-API\Quotation.Management.API.csproj", "{F3F9749F-0EB6-4976-B544-5DB2062D8933}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quotation.Management.Contracts", "Quotation.Management.Contracts\Quotation.Management.Contracts.csproj", "{BE93ED4E-E168-4268-B75B-278EF190EE67}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quotation.Management.Services", "Quotation.Management.Services\Quotation.Management.Services.csproj", "{AC3A9076-E160-4BCC-8C74-569F4D69CB03}"
@@ -13,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quotation.Management.Reposi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quotation.Management.Entities", "Quotation.Management.Entities\Quotation.Management.Entities.csproj", "{8691A58D-1FA4-4397-A11D-79445DABBFD3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Quotation.Management.ConnectionManager", "Quotation.Management.ConnectionManager\Quotation.Management.ConnectionManager.csproj", "{1147E4E1-95DF-4623-9651-FF4F260AC336}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quotation.Management.ConnectionManager", "Quotation.Management.ConnectionManager\Quotation.Management.ConnectionManager.csproj", "{1147E4E1-95DF-4623-9651-FF4F260AC336}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quotation.Management.API", "Quotation.Management.API\Quotation.Management.API.csproj", "{BD552F8B-715B-46A8-829B-5DAD5961F84A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,10 +21,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F3F9749F-0EB6-4976-B544-5DB2062D8933}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F3F9749F-0EB6-4976-B544-5DB2062D8933}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F3F9749F-0EB6-4976-B544-5DB2062D8933}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F3F9749F-0EB6-4976-B544-5DB2062D8933}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BE93ED4E-E168-4268-B75B-278EF190EE67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BE93ED4E-E168-4268-B75B-278EF190EE67}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE93ED4E-E168-4268-B75B-278EF190EE67}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -45,6 +41,10 @@ Global
 		{1147E4E1-95DF-4623-9651-FF4F260AC336}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1147E4E1-95DF-4623-9651-FF4F260AC336}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1147E4E1-95DF-4623-9651-FF4F260AC336}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD552F8B-715B-46A8-829B-5DAD5961F84A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD552F8B-715B-46A8-829B-5DAD5961F84A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD552F8B-715B-46A8-829B-5DAD5961F84A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD552F8B-715B-46A8-829B-5DAD5961F84A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

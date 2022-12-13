@@ -18,7 +18,8 @@ namespace Quotation.Management.Contracts.Repositories
         List<MasterDC> GetCurrency();
         List<MasterDC> GetCostItems();
         List<MasterDC> GetProducts();
-
+        UserMaster GetUserByUserId(int userId);
         CurrencyMaster? GetCurrencyByCode(string currencyCode);
+        CostItemCode GetCostItemByCode(string costItemId);
     }
 }

@@ -143,6 +143,7 @@ namespace Quotation.Management.Services
                         string? productName = dt.Rows[i].Field<string>("ProductName");
                         string? itemGroupName = dt.Rows[i].Field<string>("ItemGroupName");
                         string? brandName = dt.Rows[i].Field<string>("BrandName");
+                        string? currencyCode = dt.Rows[i].Field<string>("CurrencyCode");
                         string? seriesName = dt.Rows[i].Field<string>("SeriesName");
                         string? parentSeries = dt.Rows[i].Field<string>("ParentSeries");
                         string? model = dt.Rows[i].Field<string>("Model");
@@ -188,7 +189,7 @@ namespace Quotation.Management.Services
 
                         BrandMaster brand = new ();
                         brand.BrandName = brandName;
-
+                        brand.CurrencyCode = currencyCode!;
                      
                         _productRepository.InsertProductIfNotExist(productMaster, context);
                         itemGroup = _itemGroupRepository.InsertItemGroupIfNotExist(itemGroup, context);
@@ -198,6 +199,7 @@ namespace Quotation.Management.Services
                         series.SeriesName = seriesName;
                         series.GroupId = itemGroup.GroupId;
                         series.BrandId = brand.BrandId;
+                        series.ParentSeries = parentSeries;
 
                         series = _seriesRepository.InsertSeriesIfNotExist(series, context);
 
@@ -259,10 +261,10 @@ namespace Quotation.Management.Services
                         }
                         foreach(var itemCode in itemCodes)
                         {
-                            string? pricing = dt.Rows[i].Field<string>(itemCode);
-                            if (pricing == null)
+                            string? pricing = Convert.ToString(dt.Rows[i].Field<object>(itemCode));
+                            if (pricing == null || pricing == "")
                             {
-                                validationMessages.Add("Pricing missing on Row Index " + i);
+                                //validationMessages.Add("Pricing missing on Row Index " + i);
                                 continue;
                             }
 
