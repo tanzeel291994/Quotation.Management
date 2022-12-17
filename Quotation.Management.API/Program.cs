@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Quotation.Management.Contracts.Repositories;
 using Quotation.Management.Contracts.Services;
 using Quotation.Management.Entities.Models;
@@ -24,6 +25,11 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+//builder.Services.AddDbContext<QMTContext>(options =>
+//{
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+//});
 
 #region Services
 builder.Services.AddScoped<IProductMasterService, ProductMasterService>();
@@ -58,10 +64,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
 app.MapControllers();
 app.UseCors(builder => builder
     .AllowAnyOrigin()

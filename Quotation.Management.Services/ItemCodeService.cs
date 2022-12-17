@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Quotation.Management.Contracts;
 using Quotation.Management.Contracts.Repositories;
 using Quotation.Management.Contracts.Services;
 using Quotation.Management.Entities.Models;
@@ -28,10 +29,21 @@ namespace Quotation.Management.Services
         {
             return _itemCodeRepository.GetAll();
         }
+
+        public List<MasterDC> GetItemCodes(string searchString)
+        {
+            return _itemCodeRepository.GetItemCodes(searchString);
+        }
         public ItemMaster? InsertItemCode(ItemMaster itemCode)
         {
             return _itemCodeRepository.InsertItemCode(itemCode);
         }
+
+        //private string CreateItemCode(string baseItemCode , List<string> options)
+        //{
+
+        //}
+
 
         public List<string> ImportData(DataSet ds)
         {

@@ -2,19 +2,21 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.Extensions.Configuration;
 
 namespace Quotation.Management.Entities.Models
 {
     public partial class QMTContext : DbContext
     {
-        public QMTContext()
+        //public QMTContext(DbContextOptions<QMTContext> options)
+        //   : base(options)
+        //{
+        //}
+        public QMTContext():base()
         {
         }
 
-        public QMTContext(DbContextOptions<QMTContext> options)
-            : base(options)
-        {
-        }
+       
 
         public virtual DbSet<BrandMaster> BrandMasters { get; set; } = null!;
         public virtual DbSet<CostItemCode> CostItemCodes { get; set; } = null!;
@@ -38,15 +40,25 @@ namespace Quotation.Management.Entities.Models
         public virtual DbSet<SeriesOption> SeriesOptions { get; set; } = null!;
         public virtual DbSet<UserMaster> UserMasters { get; set; } = null!;
 
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    if (!optionsBuilder.IsConfigured)
+        //    {
+        //        optionsBuilder.UseSqlServer();
+        //    }
+        //}
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=localhost\\SQLEXPRESS;User ID=admin;Password=1234567;Database=QMT;Trusted_Connection=False;");
+                IConfigurationRoot configuration = new ConfigurationBuilder()
+                   .SetBasePath(Directory.GetCurrentDirectory())
+                   .AddJsonFile("appsettings.json")
+                   .Build();
+                var connectionString = configuration.GetConnectionString("DefaultConnection");
+                optionsBuilder.UseSqlServer(connectionString);
             }
         }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<BrandMaster>(entity =>
@@ -425,7 +437,7 @@ namespace Quotation.Management.Entities.Models
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
-                entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.TNetPrice).HasColumnType("decimal(18, 2)");
 
                 entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
 

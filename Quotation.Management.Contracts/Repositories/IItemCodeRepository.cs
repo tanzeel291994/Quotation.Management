@@ -15,10 +15,11 @@ namespace Quotation.Management.Contracts.Repositories
 
         ItemMaster InsertItemCodeIfNotExist(ItemMaster _itemCode, QMTContext? _context = null);
 
-        public List<string> ValidateAllItemCodes(List<string> itemCodes);
+        List<string> ValidateAllItemCodes(List<string> itemCodes, out List<string> validItemCodes);
 
         ItemMaster? GetItemCode(string itemCodeName);
 
+        List<MasterDC> GetItemCodes(string searchString);
         bool MultipleInsertItemCode(List<ItemMaster> itemCodes);
     }
 }

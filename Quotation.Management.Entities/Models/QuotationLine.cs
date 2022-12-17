@@ -22,7 +22,7 @@ namespace Quotation.Management.Entities.Models
         public bool ActiveLine { get; set; }
         public decimal? CostItemLineValue { get; set; }
         public decimal Vat { get; set; }
-        public decimal TotalPrice { get; set; }
+        public decimal TNetPrice { get; set; }
 
         public virtual ItemMaster ItemCodeNavigation { get; set; } = null!;
         public virtual QuotationHeader QuotationHeader { get; set; } = null!;

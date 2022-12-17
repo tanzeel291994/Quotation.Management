@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Quotation.Management.Contracts;
 using Quotation.Management.Contracts.Repositories;
 using Quotation.Management.Entities.Models;
 using System;
@@ -44,6 +45,16 @@ namespace Quotation.Management.Repositories
             }
         }
 
+        public List<MasterDC> GetItemCodes(string searchString)
+        {
+
+            using (var context = new QMTContext())
+            {
+                return context.ItemMasters.Where(x => x.ItemCode.StartsWith(searchString.ToUpper())).Select(x=>
+                        new MasterDC { Code = x.ItemCode ,Name = x.ItemCode }).ToList();
+            }
+        }
+
         public ItemMaster InsertItemCodeIfNotExist(ItemMaster _itemCode, QMTContext? _context = null)
         {
             //using (var context = _context ?? new QMTContext())
@@ -60,16 +71,19 @@ namespace Quotation.Management.Repositories
             //}
         }
 
-        public List<string> ValidateAllItemCodes(List<string> itemCodes)
+        public List<string> ValidateAllItemCodes(List<string> itemCodes ,out List<string> validItemCodes)
         {
             using (var context = new QMTContext())
             {
                 List<string> validationMessages = new();
-                foreach(var itemCode in itemCodes)
+                validItemCodes = new();
+                foreach (var itemCode in itemCodes)
                 {
                     ItemMaster? itemMaster = context.ItemMasters.Where(x => x.ItemCode == itemCode).FirstOrDefault();
                     if (itemMaster == null)
-                        validationMessages.Add("ItemCode "+ itemCode+" doesnt exist in ItemMaster");
+                        validationMessages.Add("ItemCode " + itemCode + " doesnt exist in ItemMaster");
+                    else
+                        validItemCodes.Add(itemCode);
                 }
                 return validationMessages;
             }

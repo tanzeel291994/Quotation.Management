@@ -50,6 +50,7 @@ namespace Quotation.Management.Services
                 header.Probability = inputHeader.Probability;
                 header.StatusId = inputHeader.StatusId;
                 header.ProjectName = inputHeader.ProjectName;
+                header.IsActiveRevision = true;
                 header.QuotationNum = GenerateQuotionNum(header.AreaCode, header.Msp);
 
                 header = _quotationRepository.InsertQuotation(header);
@@ -159,7 +160,7 @@ namespace Quotation.Management.Services
                 QuotationLine line = new();
 
                 line.QuotationNum = inputLine.QuotationNum;
-                line.ActiveLine = inputLine.ActiveLine;
+                line.ActiveLine = true; // BY DEFAULT ALL LINES ARE ACTIVE WHEN INSERTED
                 line.Qty = inputLine.Qty;
                 line.Mtlp = inputLine.Mtlp;
                 line.UnitPrice = inputLine.UnitPrice;
@@ -174,10 +175,12 @@ namespace Quotation.Management.Services
                 string currencyCode = header!.CurrencyCode;
                 line.LineNum = latestLine != null ? latestLine.LineNum + 1 : 1;
                 line.RevNum = header != null ? header.RevNum : 0;
+                line.TNetPrice = line.UnitPrice * line.Mtlp *line.Qty;
                 line = _quotationRepository.InsertQuotationLine(line, context);
                 inputLine.LineNum = line.LineNum;
                 inputLine.UnitPrice = line.UnitPrice;
-
+                inputLine.TtNetPrice = line.TNetPrice;
+                inputLine.ActiveLine = line.ActiveLine;
                 if (pricing.Count > 0)
                 {
                     QuotationOptCode optCode = new();
@@ -192,7 +195,7 @@ namespace Quotation.Management.Services
                 decimal costItemValue = lines.Where(x => x.LineNum == line.LineNum).Select(x => x.CostItemLineValue).FirstOrDefault() ?? 0;
                 inputLine.CostItemLineValue = costItemValue;
                 inputLine.TtslsPrice = CalculateTotalValue(inputLine);
-                inputLine.TtslsPriceWOVat = Math.Round((inputLine.UnitPrice * inputLine.Mtlp * inputLine.Qty) + (inputLine.CostItemLineValue ?? 0), 2);
+                inputLine.TtslsPriceWOVat = Math.Round((inputLine.TtNetPrice) + (inputLine.CostItemLineValue ?? 0), 2);
 
                 _quotationRepository.Commit();
                 return inputLine;
@@ -215,11 +218,14 @@ namespace Quotation.Management.Services
                 QMTContext context = _quotationRepository.BeginTransaction();
                 _quotationRepository.UpdateQuotationLine(inputLine, context);
 
+                List<QuotationLineDC> linesDC = UpdateUnitPriceFromOptions(inputLine.QuotationNum, inputLine.RevNum, new List<int> { inputLine.LineNum }, context);
+                inputLine = linesDC.Where(x => x.LineNum == inputLine.LineNum).First();
+
                 List<QuotationLine> lines = UpdateAllLinesCostItemValue(inputLine.QuotationNum, inputLine.RevNum, context);
                 decimal costItemValue = lines.Where(x => x.LineNum == inputLine.LineNum).Select(x => x.CostItemLineValue).FirstOrDefault() ?? 0;
-                inputLine.CostItemLineValue = costItemValue;
+                inputLine.CostItemLineValue = Math.Round(costItemValue,2);
                 inputLine.TtslsPrice = CalculateTotalValue(inputLine);
-                inputLine.TtslsPriceWOVat = Math.Round((inputLine.UnitPrice * inputLine.Mtlp * inputLine.Qty) + (inputLine.CostItemLineValue ?? 0),2);
+                inputLine.TtslsPriceWOVat = Math.Round(inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0),2);
 
                 _quotationRepository.Commit();
                 return inputLine;
@@ -671,7 +677,7 @@ namespace Quotation.Management.Services
                 {
                     List<QuotationCostItemLine> _costItemLines = costItemLines.Where(x=>x.QuotationCostItemGroupId == _costItem.QuotationCostItemGroupId).ToList();
                     List<int> lineNums = _costItemLines.Select(x => x.LineNum).Distinct().ToList();
-                    decimal ttslsPrice = quotationLines.Where(x => lineNums.Contains(x.LineNum)).Select(x=>x.TotalPrice).Sum();
+                    decimal ttslsPrice = quotationLines.Where(x => lineNums.Contains(x.LineNum)).Select(x=>x.TNetPrice).Sum();
                     if (!groupIdTotalDict.TryAdd(_costItem.QuotationCostItemGroupId, ttslsPrice))
                     {
                         groupIdTotalDict[_costItem.QuotationCostItemGroupId] += ttslsPrice; //prodcut wise total value 
@@ -752,7 +758,7 @@ namespace Quotation.Management.Services
         {
             int num = _quotationRepository.GetQuotationLatestNum();
             UserMaster user = _mastersRepository.GetUserByUserId(userId);
-            return "CHR"+user.FirstName[0]+user.LastName[0]+areaCode+ String.Format("{0:00000}", num);
+            return "CHR"+user.FirstName.ToUpper()[0]+user.LastName.ToUpper()[0]+areaCode+ String.Format("{0:00000}", num);
         }
 
 

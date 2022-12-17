@@ -38,7 +38,7 @@ namespace Quotation.Management.Services
                 jobject.Add(new JProperty("customers", JsonConvert.SerializeObject(_mastersRepository.GetCustomers())));
                 jobject.Add(new JProperty("statuses", JsonConvert.SerializeObject(_mastersRepository.GetStatuses())));
                 jobject.Add(new JProperty("currency", JsonConvert.SerializeObject(_mastersRepository.GetCurrency())));
-                jobject.Add(new JProperty("itemCodes", JsonConvert.SerializeObject(_itemCodeRepository.GetAll())));
+                //jobject.Add(new JProperty("itemCodes", JsonConvert.SerializeObject(_itemCodeRepository.GetAll())));
                 jobject.Add(new JProperty("products", JsonConvert.SerializeObject(_mastersRepository.GetProducts())));
                 jobject.Add(new JProperty("costItems", JsonConvert.SerializeObject(_mastersRepository.GetCostItems())));
 
@@ -60,7 +60,7 @@ namespace Quotation.Management.Services
                 CurrencyDC currencyDC = new();
                 currencyDC.OldCurrencyCode = oldCurrency!.CurrencyCode;
                 currencyDC.CurrencyCode = currency!.CurrencyCode;
-                currencyDC.ConvFactor = currency!.ConvFactor / oldCurrency.ConvFactor;
+                currencyDC.ConvFactor = Math.Round(currency!.ConvFactor / oldCurrency.ConvFactor,2);
                 return currencyDC;
             }
             catch (Exception ex)

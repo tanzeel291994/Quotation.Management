@@ -27,6 +27,15 @@ namespace QMT_API.Controllers
             return Ok(_itemCodeList);
         }
 
+        [HttpGet("filter")]
+        [ProducesResponseType(typeof(BrandMaster), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetItemCodesByFilter(string searchString)
+        {
+            var _itemCodeList = _itemCodeService.GetItemCodes(searchString);
+            return Ok(_itemCodeList);
+        }
+
         [HttpPost]
         [ProducesResponseType(typeof(ItemMaster), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

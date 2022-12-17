@@ -243,12 +243,14 @@ namespace Quotation.Management.Services
                     DataTable dt = ds.Tables[index];
                     string[] columnNames = dt.Columns.Cast<DataColumn>().Select(x => x.ColumnName).ToArray();
                     List<string> itemCodes = new();
+                    List<string> validItemCodes = new();
                     foreach (var columnName in columnNames)
                         if (columnName != "OptCode" && columnName != "OptName")
                             itemCodes.Add(columnName);
-                    List<string> messages= _itemCodeRepository.ValidateAllItemCodes(itemCodes);
-                    if (messages.Count > 0) return messages;
+                    List<string> messages= _itemCodeRepository.ValidateAllItemCodes(itemCodes,out validItemCodes);
+                    //if (messages.Count > 0) return messages;
 
+                    itemCodes = itemCodes.Where(x => validItemCodes.Contains(x)).ToList();
                     QMTContext context = _optCodeRepository.BeginTransaction();
                     for (int i = 0; i < dt.Rows.Count; i++)
                     {
@@ -272,7 +274,7 @@ namespace Quotation.Management.Services
                             bool isPricingDataType = decimal.TryParse(pricing.Replace(",", "."), out decimal pricingValue);
                             if (!isPricingDataType)
                             {
-                                validationMessages.Add("Pricing is not number on row index" + i);
+                                //validationMessages.Add("Pricing is not number on row index " + i +" for itemCode:"+itemCode);
                                 continue;
                             }
                             PricingMaster? pricingMasterExist = _pricingRepository.GetPricing(itemCode, optCode);

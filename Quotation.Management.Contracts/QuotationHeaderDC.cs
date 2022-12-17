@@ -8,7 +8,7 @@ namespace Quotation.Management.Contracts
 {
     public class QuotationHeaderDC
     {
-        public string QuotationNum { get; set; } = null!;
+        public string? QuotationNum { get; set; }
         public int RevNum { get; set; }
         public string CustomerCode { get; set; } = null!;
         public string? CustomerName { get; set; } = null!;

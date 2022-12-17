@@ -40,7 +40,7 @@ namespace Quotation.Management.Repositories
                 line.ActiveLine = _quotationLine.ActiveLine;
                 line.CostItemLineValue = _quotationLine.CostItemLineValue;
                 line.Vat = _quotationLine.Vat;
-                line.TotalPrice = _quotationLine.TtNetPrice;
+                line.TNetPrice = _quotationLine.TtNetPrice;
                 context.SaveChanges();
             }
             if(_context == null)
@@ -83,7 +83,7 @@ namespace Quotation.Management.Repositories
                     QuotationLine? quotationLine = quotationLines.Where(x => x.LineNum == _costItemLine.LineNum).FirstOrDefault();
                     if (quotationLine != null)
                     {
-                        decimal ttslsPrice = quotationLine.TotalPrice;
+                        decimal ttslsPrice = quotationLine.TNetPrice;
                         if (costItem.CostItemType == CostItemType.ByVal.ToString())
                         {
                             _costItemLine.CostItemLineValue = costItem.CostItemValue * (ttslsPrice / totalValueGroupWise);
@@ -317,7 +317,9 @@ namespace Quotation.Management.Repositories
         {
             using (var context = new QMTContext())
             {
-               int maxNum= context.QuotationHeaders.Select(x => Convert.ToInt32(x.QuotationNum.Substring(7, x.QuotationNum.Length - 1))).Max();
+                if (!context.QuotationHeaders.Any())
+                    return 1;
+                int maxNum= context.QuotationHeaders.Select(x => Convert.ToInt32(x.QuotationNum.Substring(7, x.QuotationNum.Length - 1))).Max();
                 return maxNum + 1;
             }
         }
