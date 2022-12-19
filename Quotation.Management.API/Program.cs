@@ -30,7 +30,18 @@ builder.Services.AddSwaggerGen();
 //    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 
 //});
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "_myAllowSpecificOrigins",
+                      policy =>
+                      {
+                          //policy.WithOrigins("http://example.com",
+                          //                    "http://www.contoso.com")
+                          //                        .AllowAnyHeader()
+                          //                        .AllowAnyMethod();
+                          policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+                      });
+});
 #region Services
 builder.Services.AddScoped<IProductMasterService, ProductMasterService>();
 builder.Services.AddScoped<IItemGroupService, ItemGroupService>();

@@ -810,8 +810,8 @@ namespace Quotation.Management.Services
                     decimal totalQty = 0;
                     foreach (var lineDC in lines.Where(x=>x.ProdTypeId == productType))
                     {
-                        totalSalePriceProduct += (lineDC.Qty * lineDC.Mtlp * lineDC.UnitPrice) + (lineDC.CostItemLineValue ?? 0);
-                        totalNetValue += (lineDC.Qty * lineDC.Mtlp * lineDC.UnitPrice);
+                        totalSalePriceProduct += lineDC.TtslsPriceWOVat;
+                        totalNetValue += lineDC.TtNetPrice;
                         totalCostValueProduct += (lineDC.CostItemLineValue ?? 0);
                         totalQty += lineDC.Qty;
                         List <QuotationOptCode> optCodeOfLinePrice = optCodeList.Where(x => x.LineNum == lineDC.LineNum).ToList();
@@ -833,10 +833,10 @@ namespace Quotation.Management.Services
                         dr[dt.Columns.IndexOf("Qty")] = lineDC.Qty;
                         dr[dt.Columns.IndexOf("Mlp")] = lineDC.Mtlp;
                         dr[dt.Columns.IndexOf("CostValue")] = lineDC.CostItemLineValue;
-                        dr[dt.Columns.IndexOf("TtslsPrice")] = Math.Round(((lineDC.Qty * lineDC.Mtlp * lineDC.UnitPrice) + lineDC.CostItemLineValue ?? (decimal)0),2);
+                        dr[dt.Columns.IndexOf("TtslsPrice")] = lineDC.TtslsPriceWOVat;
                         dr[dt.Columns.IndexOf("VAT%")] = lineDC.Vat;
-                        dr[dt.Columns.IndexOf("VAT Amnt")] = lineDC.Vat/100 * Math.Round(((lineDC.Qty * lineDC.Mtlp * lineDC.UnitPrice) + lineDC.CostItemLineValue ?? (decimal)0), 2);
-                        dr[dt.Columns.IndexOf("Total Amnt")] = CalculateTotalValue(lineDC);
+                        dr[dt.Columns.IndexOf("VAT Amnt")] = Math.Round(lineDC.Vat/100 * lineDC.TtslsPriceWOVat,2).ToString("#,##0.##"); 
+                        dr[dt.Columns.IndexOf("Total Amnt")] = Math.Round(lineDC.TtslsPrice,2).ToString("#,##0.##");
                         dt.Rows.Add(dr);
                     }
 
@@ -845,8 +845,8 @@ namespace Quotation.Management.Services
                     dtProdTotals.Columns.Add("TotalSlsPrice");
                     dtProdTotals.Columns.Add("TotalQty");
                     DataRow drProdTotal = dtProdTotals.NewRow();
-                    drProdTotal[dtProdTotals.Columns.IndexOf("TotalCostValue")] = Math.Round(totalCostValueProduct,2);
-                    drProdTotal[dtProdTotals.Columns.IndexOf("TotalSlsPrice")] = Math.Round(totalSalePriceProduct,2);
+                    drProdTotal[dtProdTotals.Columns.IndexOf("TotalCostValue")] = Math.Round(totalCostValueProduct,2).ToString("#,##0.##");
+                    drProdTotal[dtProdTotals.Columns.IndexOf("TotalSlsPrice")] = Math.Round(totalSalePriceProduct,2).ToString("#,##0.##");
                     drProdTotal[dtProdTotals.Columns.IndexOf("TotalQty")] = Math.Round(totalQty, 2);
                     dtProdTotals.Rows.Add(drProdTotal);
 
@@ -873,7 +873,7 @@ namespace Quotation.Management.Services
                         decimal costLineValue = costItemLines.Where(x => x.QuotationCostItemGroupId == _costItem.QuotationCostItemGroupId)
                                             .Select(x=> x.CostItemLineValue).Sum();
                         drCostTotalProd[dtCostProdItems.Columns.IndexOf("CostItemCode")] = _mastersRepository.GetCostItemByCode(_costItem.CostItemId).CostItemName;
-                        drCostTotalProd[dtCostProdItems.Columns.IndexOf("TotCostProv")] = Math.Round(costLineValue, 2);
+                        drCostTotalProd[dtCostProdItems.Columns.IndexOf("TotCostProv")] = Math.Round(costLineValue, 2).ToString("#,##0.##");
                         drCostTotalProd[dtCostProdItems.Columns.IndexOf("Percentage")] = Math.Round(costLineValue / totalSalePriceProduct * 100, 2);
                         dtCostProdItems.Rows.Add(drCostTotalProd);
                     }
@@ -896,7 +896,7 @@ namespace Quotation.Management.Services
                                            .Select(x => x.CostItemLineValue).Sum();
                     DataRow drTotal = dtCostTotals.NewRow();
                     drTotal[dtCostTotals.Columns.IndexOf("CostItemCode")] = _mastersRepository.GetCostItemByCode(_costItemCode).CostItemName;
-                    drTotal[dtCostTotals.Columns.IndexOf("TotCostProv")] = Math.Round(costItemValue, 2);
+                    drTotal[dtCostTotals.Columns.IndexOf("TotCostProv")] = Math.Round(costItemValue, 2).ToString("#,##0.##");
                     drTotal[dtCostTotals.Columns.IndexOf("Percentage")] = Math.Round(costItemValue / totalSalePrice * 100, 2);
                     dtCostTotals.Rows.Add(drTotal);
                 }
