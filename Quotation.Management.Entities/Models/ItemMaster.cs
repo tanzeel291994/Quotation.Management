@@ -13,6 +13,7 @@ namespace Quotation.Management.Entities.Models
         public string ItemCode { get; set; } = null!;
         public string? ItemCodeDescription { get; set; }
         public int? SeriesId { get; set; }
+        public bool? IsCustomized { get; set; }
 
         public virtual SeriesMaster? Series { get; set; }
         public virtual ICollection<QuotationLine> QuotationLines { get; set; }

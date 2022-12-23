@@ -14,6 +14,7 @@ namespace Quotation.Management.Contracts.Services
 
         ItemMaster? InsertItemCode(ItemMaster itemCode);
 
+        string? CreateItemCode(string baseItemCode, string option);
         List<MasterDC> GetItemCodes(string searchString);
         List<string> ImportData(DataSet ds);
     }

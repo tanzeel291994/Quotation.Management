@@ -31,6 +31,8 @@ namespace Quotation.Management.Contracts.Services
         List<QuotationLineDC> GetQuotationLines(string Id, int revNum);
         QuotationNonStandardOptCodeDC? RemoveNonStandardOption(QuotationNonStandardOptCodeDC optCodeDC);
         QuotationNonStandardOptCodeDC? InsertNonStandardOption(QuotationNonStandardOptCodeDC optCodeDC);
+
+        dynamic SearchQuotations(QuotationSearchDC quotationSearch);
         //List<QuotationLine> UpdateUnitPriceFromOptions(string quotatioNum, int revNum, List<int> lineNums, QMTContext context);
     }
 }

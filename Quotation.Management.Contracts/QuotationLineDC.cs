@@ -69,5 +69,6 @@ namespace Quotation.Management.Contracts
         public string Version { get; set; } = null!;
         public string? Status { get; set; }
         public bool IsNet { get; set; }
+        public bool IsItemCodeCreation { get; set; }
     }
 }

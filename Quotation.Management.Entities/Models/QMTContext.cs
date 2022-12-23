@@ -8,15 +8,14 @@ namespace Quotation.Management.Entities.Models
 {
     public partial class QMTContext : DbContext
     {
-        //public QMTContext(DbContextOptions<QMTContext> options)
-        //   : base(options)
-        //{
-        //}
-        public QMTContext():base()
+        public QMTContext()
         {
         }
 
-       
+        public QMTContext(DbContextOptions<QMTContext> options)
+            : base(options)
+        {
+        }
 
         public virtual DbSet<BrandMaster> BrandMasters { get; set; } = null!;
         public virtual DbSet<CostItemCode> CostItemCodes { get; set; } = null!;
@@ -40,13 +39,6 @@ namespace Quotation.Management.Entities.Models
         public virtual DbSet<SeriesOption> SeriesOptions { get; set; } = null!;
         public virtual DbSet<UserMaster> UserMasters { get; set; } = null!;
 
-        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        //{
-        //    if (!optionsBuilder.IsConfigured)
-        //    {
-        //        optionsBuilder.UseSqlServer();
-        //    }
-        //}
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
@@ -59,6 +51,7 @@ namespace Quotation.Management.Entities.Models
                 optionsBuilder.UseSqlServer(connectionString);
             }
         }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<BrandMaster>(entity =>
@@ -437,7 +430,9 @@ namespace Quotation.Management.Entities.Models
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
-                entity.Property(e => e.TNetPrice).HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.TnetPrice)
+                    .HasColumnType("decimal(18, 2)")
+                    .HasColumnName("TNetPrice");
 
                 entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
 
@@ -449,7 +444,7 @@ namespace Quotation.Management.Entities.Models
                     .WithMany(p => p.QuotationLines)
                     .HasForeignKey(d => d.ItemCode)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Quotation__ItemC__2CF2ADDF");
+                    .HasConstraintName("FK_quotaionLine_itemcode");
 
                 entity.HasOne(d => d.QuotationHeader)
                     .WithMany(p => p.QuotationLines)

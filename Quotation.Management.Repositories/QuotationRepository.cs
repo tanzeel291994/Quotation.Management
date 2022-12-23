@@ -40,7 +40,8 @@ namespace Quotation.Management.Repositories
                 line.ActiveLine = _quotationLine.ActiveLine;
                 line.CostItemLineValue = _quotationLine.CostItemLineValue;
                 line.Vat = _quotationLine.Vat;
-                line.TNetPrice = _quotationLine.TtNetPrice;
+                line.TnetPrice = _quotationLine.TtNetPrice;
+                line.SubItemCode = _quotationLine.SubItemCode; //check this 
                 context.SaveChanges();
             }
             if(_context == null)
@@ -83,7 +84,7 @@ namespace Quotation.Management.Repositories
                     QuotationLine? quotationLine = quotationLines.Where(x => x.LineNum == _costItemLine.LineNum).FirstOrDefault();
                     if (quotationLine != null)
                     {
-                        decimal ttslsPrice = quotationLine.TNetPrice;
+                        decimal ttslsPrice = quotationLine.TnetPrice;
                         if (costItem.CostItemType == CostItemType.ByVal.ToString())
                         {
                             _costItemLine.CostItemLineValue = costItem.CostItemValue * (ttslsPrice / totalValueGroupWise);
@@ -259,24 +260,84 @@ namespace Quotation.Management.Repositories
         {
             using (var context = new QMTContext())
             {
-               List<PricingMasterDC> _pricingList = (from pm in context.PricingMasters
-                                                     join im in context.ItemMasters on pm.ItemCode equals im.ItemCode
-                                                     join om in context.OptionMasters on pm.OptCode equals om.OptCode
-                                                     join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
-                                                     join bm in context.BrandMasters on sm.BrandId equals bm.BrandId
-                                                     join cm in context.CurrencyMasters on bm.CurrencyCode equals cm.CurrencyCode
-                                                     where pm.ItemCode == itemCode.ToUpper() && optCode.Contains(pm.OptCode)
-                                                     select new PricingMasterDC
-                                                     {
-                                                        ItemCode=im.ItemCode,
-                                                        OptCode=pm.OptCode,
-                                                        CurrencyCode=bm.CurrencyCode,
-                                                        ConvFactor = cm.ConvFactor,
-                                                        Version=pm.Version,
-                                                        Price= pm.Price ?? 0,
-                                                        IsNet = om.Net ?? false,
-                                                     }).ToList();
+                List<PricingMasterDC> _pricingList = (from pm in context.PricingMasters
+                                                      join im in context.ItemMasters on pm.ItemCode equals im.ItemCode
+                                                      join om in context.OptionMasters on pm.OptCode equals om.OptCode
+                                                      join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
+                                                      join bm in context.BrandMasters on sm.BrandId equals bm.BrandId
+                                                      join cm in context.CurrencyMasters on bm.CurrencyCode equals cm.CurrencyCode
+                                                      where pm.ItemCode == itemCode.ToUpper() && optCode.Contains(pm.OptCode)
+                                                      select new PricingMasterDC
+                                                      {
+                                                          ItemCode = im.ItemCode,
+                                                          OptCode = pm.OptCode,
+                                                          CurrencyCode = bm.CurrencyCode,
+                                                          ConvFactor = cm.ConvFactor,
+                                                          Version = pm.Version,
+                                                          Price = pm.Price ?? 0,
+                                                          IsItemCodeCreation = om.IsItemCodeCreation ?? false,
+                                                         IsNet = om.Net ?? false,
+                                                      }).ToList();
                 return _pricingList;
+            }
+        }
+
+        public dynamic GetQuotationLinesSearch(QuotationSearchDC input)
+        {
+            using (var context = new QMTContext())
+            {
+
+                var _data = (from qh in context.QuotationHeaders
+                             join ql in context.QuotationLines on new { qh.QuotationNum,qh.RevNum } equals new { ql.QuotationNum, ql.RevNum }
+                             join im in context.ItemMasters on ql.ItemCode equals im.ItemCode
+                             join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
+                             join ig in context.ItemGroupMasters on sm.GroupId equals ig.GroupId
+                             join bm in context.BrandMasters on sm.BrandId equals bm.BrandId
+                             join pm in context.ProductMasters on ig.ProdTypeId equals pm.ProdTypeId
+                             where (qh.QuotationNum == input.QuotationNum  || input.QuotationNum ==null) &&
+                            (qh.CustomerCode == input.CustomerCode || input.CustomerCode == null) &&
+                            (qh.ProjectName == input.ProjectName || input.ProjectName == null) &&
+                            (pm.ProdTypeId == input.Product || input.Product == null) &&
+                             (bm.BrandId == input.BrandId || input.BrandId == null) &&
+                            (qh.AreaCode == input.AreaCode || input.AreaCode == null) 
+                            select new 
+                            {
+                                QuotationNum = qh.QuotationNum,
+                                ProjectName = qh.ProjectName,
+                                CustomerName = qh.CustomerCodeNavigation.CustomerName,
+                                AreaName = qh.AreaCodeNavigation.AreaName,
+                                LineNum = ql.LineNum,
+                                BrandName = bm.BrandName,
+                                ProductName = pm.ProdName,
+                                SeriesName = sm.SeriesName,
+                                RevNum = qh.RevNum,
+                                IsActiveRevision = qh.IsActiveRevision
+                            }).ToList();
+                return _data;
+            }
+        }
+
+        
+        public dynamic GetQuotationSearch(QuotationSearchDC input)
+        {
+            using (var context = new QMTContext())
+            {
+
+                var _data = (from qh in context.QuotationHeaders
+                             where (qh.QuotationNum == input.QuotationNum || input.QuotationNum == null) &&
+                             (qh.CustomerCode == input.CustomerCode || input.CustomerCode == null) &&
+                             (qh.ProjectName == input.ProjectName || input.ProjectName == null) &&
+                             (qh.AreaCode == input.AreaCode || input.AreaCode == null)
+                             select new
+                             {
+                                 QuotationNum = qh.QuotationNum,
+                                 ProjectName = qh.ProjectName,
+                                 CustomerName = qh.CustomerCodeNavigation.CustomerName,
+                                 AreaName = qh.AreaCodeNavigation.AreaName,
+                                 RevNum = qh.RevNum,
+                                 IsActiveRevision = qh.IsActiveRevision
+                             }).ToList();
+                return _data;
             }
         }
 
@@ -350,7 +411,7 @@ namespace Quotation.Management.Repositories
                                                    Qty = ql.Qty,
                                                    RevNum = ql.RevNum,
                                                    QuotationNum = ql.QuotationNum,
-                                                   ItemCode = ql.ItemCode ?? "",
+                                                   ItemCode = ql.SubItemCode ?? ql.ItemCode ?? "",
                                                    ProdTypeId = ig.ProdTypeId ?? "",
                                                    UnitPrice = ql.UnitPrice,
                                                    Vat = ql.Vat,

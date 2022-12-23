@@ -51,6 +51,29 @@ namespace Quotation.Management.Services
             }
         }
 
+        public JObject? GetAllMastersForSearch()
+        {
+            JObject jobject = new JObject();
+            try
+            {
+                jobject.Add(new JProperty("users", JsonConvert.SerializeObject(_mastersRepository.GetUsers())));
+                jobject.Add(new JProperty("areas", JsonConvert.SerializeObject(_mastersRepository.GetAreas())));
+                jobject.Add(new JProperty("customers", JsonConvert.SerializeObject(_mastersRepository.GetCustomers())));
+                jobject.Add(new JProperty("quotations", JsonConvert.SerializeObject(_mastersRepository.GetStatuses())));
+                jobject.Add(new JProperty("brands", JsonConvert.SerializeObject(_mastersRepository.GetBrands())));
+                jobject.Add(new JProperty("statuses", JsonConvert.SerializeObject(_mastersRepository.GetStatuses())));
+                jobject.Add(new JProperty("products", JsonConvert.SerializeObject(_mastersRepository.GetProducts())));
+                jobject.Add(new JProperty("projects", JsonConvert.SerializeObject(_mastersRepository.GetProjects())));
+
+                return jobject;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return null;
+            }
+        }
+
         public CurrencyDC GetCurrencyCode(string curencyCode,string oldCurrencyCode)
         {
             try

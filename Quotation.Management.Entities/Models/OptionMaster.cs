@@ -13,6 +13,7 @@ namespace Quotation.Management.Entities.Models
         public string OptCode { get; set; } = null!;
         public string? OptName { get; set; }
         public bool? Net { get; set; }
+        public bool? IsItemCodeCreation { get; set; }
 
         public virtual ICollection<PricingMaster> PricingMasters { get; set; }
     }

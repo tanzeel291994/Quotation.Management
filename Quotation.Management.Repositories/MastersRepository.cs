@@ -66,6 +66,18 @@ namespace Quotation.Management.Repositories
                 }).ToList();
             }
         }
+        public List<MasterDC> GetBrands()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.BrandMasters.Select(x => new
+                MasterDC
+                {
+                    Name = x.BrandName,
+                    Id = x.BrandId
+                }).ToList();
+            }
+        }
 
         public List<MasterDC> GetCustomers()
         {
@@ -76,6 +88,32 @@ namespace Quotation.Management.Repositories
                 {
                     Name = x.CustomerName,
                     Code = x.CustomerCode
+                }).ToList();
+            }
+        }
+
+        public List<MasterDC> GetProjects()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.QuotationHeaders.Select(x => new
+                MasterDC
+                {
+                    Name = x.ProjectName,
+                    Code = x.ProjectName
+                }).Distinct().ToList();
+            }
+        }
+
+        public List<MasterDC> GetQuotations()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.QuotationHeaders.Where(x=>x.IsActiveRevision).Select(x => new
+                MasterDC
+                {
+                    Name = x.QuotationNum,
+                    Code = x.QuotationNum
                 }).ToList();
             }
         }

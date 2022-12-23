@@ -39,10 +39,43 @@ namespace Quotation.Management.Services
             return _itemCodeRepository.InsertItemCode(itemCode);
         }
 
-        //private string CreateItemCode(string baseItemCode , List<string> options)
-        //{
+        public string? CreateItemCode(string baseItemCode, string option)
+        {
+            string[] optionSplit = option.Split("-");
+            if(optionSplit.Length == 2)
+            {
+                int index = Convert.ToInt32(optionSplit[0])-1;
+                string opt = optionSplit[1];
 
-        //}
+                char[] itemCodeArray = baseItemCode.ToArray();
+               
+
+                if (opt.Length == 2)
+                {
+                    if (itemCodeArray.Length  < index || itemCodeArray.Length - 1  < index+1)
+                    {
+                        return null;
+                    }
+                    itemCodeArray[index] = opt[0];
+                    itemCodeArray[index + 1] = opt[1];
+                   
+                    return  new string(itemCodeArray);
+                }
+                else if (opt.Length == 1)
+                {
+                    if (itemCodeArray.Length  < index)
+                    {
+                        return null;
+                    }
+                    itemCodeArray[index] = opt[0];
+                    return new string(itemCodeArray);
+                }
+                else
+                    return null;
+            }
+            else
+                return null;
+        }
 
 
         public List<string> ImportData(DataSet ds)

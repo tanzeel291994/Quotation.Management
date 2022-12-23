@@ -20,13 +20,15 @@ namespace Quotation.Management.Services
     {
         private readonly IQuotationRepository _quotationRepository;
         private readonly IMastersRepository _mastersRepository;
+        private readonly IItemCodeService _itemCodeService;
         private readonly IProductMasterRepository<ProductMaster> _productMasterRepository;
         private readonly ILogger<QuotationService> _logger;
-        public QuotationService(IMastersRepository mastersRepository, IProductMasterRepository<ProductMaster> productMasterRepository, IQuotationRepository quotationRepository, ILogger<QuotationService> logger)
+        public QuotationService(IItemCodeService itemCodeService, IMastersRepository mastersRepository, IProductMasterRepository<ProductMaster> productMasterRepository, IQuotationRepository quotationRepository, ILogger<QuotationService> logger)
         {
             _quotationRepository = quotationRepository ?? throw new ArgumentNullException(nameof(quotationRepository));
             _mastersRepository = mastersRepository ?? throw new ArgumentNullException(nameof(mastersRepository));
             _productMasterRepository = productMasterRepository ?? throw new ArgumentNullException(nameof(productMasterRepository));
+            _itemCodeService = itemCodeService ?? throw new ArgumentNullException(nameof(itemCodeService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -91,6 +93,32 @@ namespace Quotation.Management.Services
                 return null;
             }
         }
+
+        public dynamic SearchQuotations(QuotationSearchDC quotationSearch)
+        {
+            JObject jobject = new();
+            try
+            {
+                dynamic result;
+                if(!quotationSearch.ItemCodeWise)
+                {
+                     result = _quotationRepository.GetQuotationSearch(quotationSearch);
+                }
+                else
+                {
+                    result = _quotationRepository.GetQuotationLinesSearch(quotationSearch);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                throw ex;
+            }
+        }
+
+
         public List<QuotationLineDC> GetQuotationLines(string Id, int revNum)
         {
             JObject jobject = new();
@@ -172,14 +200,16 @@ namespace Quotation.Management.Services
 
                 QuotationLine? latestLine = _quotationRepository.GetLatestQuotationLine(inputLine.QuotationNum);
                 QuotationHeader? header = _quotationRepository.GetQuotation(inputLine.QuotationNum, inputLine.RevNum);
+                
                 string currencyCode = header!.CurrencyCode;
+                CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(currencyCode);
                 line.LineNum = latestLine != null ? latestLine.LineNum + 1 : 1;
                 line.RevNum = header != null ? header.RevNum : 0;
-                line.TNetPrice = line.UnitPrice * line.Mtlp *line.Qty;
+                line.TnetPrice = line.UnitPrice * line.Mtlp *line.Qty;
                 line = _quotationRepository.InsertQuotationLine(line, context);
                 inputLine.LineNum = line.LineNum;
                 inputLine.UnitPrice = line.UnitPrice;
-                inputLine.TtNetPrice = line.TNetPrice;
+                inputLine.TtNetPrice = line.TnetPrice;
                 inputLine.ActiveLine = line.ActiveLine;
                 if (pricing.Count > 0)
                 {
@@ -187,7 +217,7 @@ namespace Quotation.Management.Services
                     optCode.QuotationNum = inputLine.QuotationNum;
                     optCode.RevNum = line.RevNum;
                     optCode.LineNum = line.LineNum;
-                    optCode.UnitPrice = currencyCode == pricing[0].CurrencyCode ? pricing[0].Price : CalculatePriceOnCurrency(currencyCode, pricing[0]);
+                    optCode.UnitPrice = currencyCode == pricing[0].CurrencyCode ? pricing[0].Price : CalculatePriceOnCurrency(quotationCurrency!, pricing[0]);
                     optCode.OptCode = pricing[0].OptCode;
                     optCode = _quotationRepository.InsertQuotationOptCode(optCode, context);
                 }
@@ -253,7 +283,8 @@ namespace Quotation.Management.Services
                 List<QuotationLineDC> copyToLines = _quotationRepository.GetQuotationLines(input.QuotationNum, input.RevNum, selectedLines: input.CopyToLines);
                 QuotationHeader? quotationHeader = _quotationRepository.GetQuotation(input.QuotationNum, input.RevNum);
                 string currencyCode = quotationHeader!.CurrencyCode;
-
+                CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(currencyCode);
+                List<PricingMasterDC> pricingList = new List<PricingMasterDC>();
                 foreach (var line in copyToLines)
                 {
                     List<PricingMasterDC> pricingMasters = _quotationRepository.GetPricingOptCode(line.ItemCode, copyOptions);
@@ -265,14 +296,15 @@ namespace Quotation.Management.Services
                             optCode.QuotationNum = input.QuotationNum;
                             optCode.RevNum = line.RevNum;
                             optCode.LineNum = line.LineNum;
-                            optCode.UnitPrice = currencyCode == pricing.CurrencyCode ? pricing.Price : CalculatePriceOnCurrency(currencyCode, pricing);
+                            optCode.UnitPrice = currencyCode == pricing.CurrencyCode ? pricing.Price : CalculatePriceOnCurrency(quotationCurrency!, pricing);
                             optCode.OptCode = pricing.OptCode;
                             optCode = _quotationRepository.InsertQuotationOptCode(optCode, context);
                         }
+                        pricingList.AddRange(pricingMasters);
                     }
                 }
 
-                UpdateUnitPriceFromOptions(input.QuotationNum, input.RevNum, input.CopyToLines, context);
+                UpdateUnitPriceFromOptions(input.QuotationNum, input.RevNum, input.CopyToLines, context, pricingList);
                 UpdateAllLinesCostItemValue(input.QuotationNum, input.RevNum, context);
 
                 _quotationRepository.Commit();
@@ -298,24 +330,25 @@ namespace Quotation.Management.Services
                 QMTContext context = _quotationRepository.BeginTransaction();
                 List<string> optCodes = inputLine.optCodes!.Split(',').ToList();
                 QuotationHeader? quotationHeader = _quotationRepository.GetQuotation(inputLine.QuotationNum,inputLine.RevNum);
-                List<PricingMasterDC> pricingList = _quotationRepository.GetPricingOptCode(inputLine.ItemCode, optCodes);
+                QuotationLine quotationLine = _quotationRepository.GetQuotationLine(inputLine.QuotationNum, inputLine.LineNum, inputLine.RevNum);
+                List<PricingMasterDC> pricingList = _quotationRepository.GetPricingOptCode(quotationLine.ItemCode, optCodes);
                 string currencyCode = quotationHeader!.CurrencyCode;
-
+                CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(currencyCode);
                 foreach (var item in pricingList)
                 {
                     QuotationOptCode optCode = new();
                     optCode.QuotationNum = inputLine.QuotationNum;
                     optCode.RevNum = inputLine.RevNum;
                     optCode.LineNum = inputLine.LineNum;
-                    optCode.UnitPrice = currencyCode == item.CurrencyCode ? item.Price : CalculatePriceOnCurrency(currencyCode, item);
+                    optCode.UnitPrice = currencyCode == item.CurrencyCode ? item.Price : CalculatePriceOnCurrency(quotationCurrency!, item);
                     optCode.OptCode = item.OptCode;
                     optCode.IsNet = item.IsNet;
                     optCode = _quotationRepository.InsertQuotationOptCode(optCode, context);
                 }
 
-                List<QuotationLineDC> linesDC = UpdateUnitPriceFromOptions(inputLine.QuotationNum, inputLine.RevNum, new List<int> { inputLine.LineNum }, context);
+                List<QuotationLineDC> linesDC = UpdateUnitPriceFromOptions(inputLine.QuotationNum, inputLine.RevNum, new List<int> { inputLine.LineNum }, context, pricingList);
                 QuotationLineDC lineDC = linesDC.Where(x => x.LineNum == inputLine.LineNum).First();
-                //UpdateAllLinesCostItemValue(inputLine.QuotationNum, inputLine.RevNum, context);
+                
                 List<QuotationLine> lines = UpdateAllLinesCostItemValue(inputLine.QuotationNum, inputLine.RevNum, context);
                 inputLine.CostItemLineValue = lines.Where(x => x.LineNum == inputLine.LineNum).Select(x => x.CostItemLineValue).FirstOrDefault() ?? 0;
                 inputLine.UnitPrice = lineDC.UnitPrice;
@@ -330,7 +363,7 @@ namespace Quotation.Management.Services
             {
                 _logger.LogError(ex, ex.Message);
                 _quotationRepository.RollBack();
-                return null;
+                throw ex;
             }
             finally
             {
@@ -343,7 +376,8 @@ namespace Quotation.Management.Services
             {
                 QMTContext context = _quotationRepository.BeginTransaction();
                 List<string> optCodes = inputLine.optCodes!.Split(',').ToList();
-                List<PricingMasterDC> pricingList = _quotationRepository.GetPricingOptCode(inputLine.ItemCode, optCodes);
+                QuotationLine quotationLine = _quotationRepository.GetQuotationLine(inputLine.QuotationNum, inputLine.LineNum, inputLine.RevNum);
+                List<PricingMasterDC> pricingList = _quotationRepository.GetPricingOptCode(quotationLine.ItemCode, optCodes);
 
                 foreach (var item in pricingList)
                 {
@@ -355,7 +389,7 @@ namespace Quotation.Management.Services
                     optCode.OptCode = item.OptCode;
                     _quotationRepository.RemoveQuotationOptCode(optCode, context);
                 }
-                List<QuotationLineDC> linesDC = UpdateUnitPriceFromOptions(inputLine.QuotationNum, inputLine.RevNum, new List<int> { inputLine.LineNum }, context);
+                List<QuotationLineDC> linesDC = UpdateUnitPriceFromOptions(inputLine.QuotationNum, inputLine.RevNum, new List<int> { inputLine.LineNum }, context, pricingList);
                 QuotationLineDC lineDC = linesDC.Where(x => x.LineNum == inputLine.LineNum).First();
                 //UpdateAllLinesCostItemValue(inputLine.QuotationNum, inputLine.RevNum, context);
                 List<QuotationLine> lines = UpdateAllLinesCostItemValue(inputLine.QuotationNum, inputLine.RevNum, context);
@@ -494,15 +528,16 @@ namespace Quotation.Management.Services
             try
             {
                 List<QuotationOptCode> optCodeList = _quotationRepository.GetQuotationOptCodes(quotationLineDC.QuotationNum, quotationLineDC.RevNum,null ,quotationLineDC.LineNum);
+                QuotationLine quotationLine = _quotationRepository.GetQuotationLine(quotationLineDC.QuotationNum, quotationLineDC.LineNum, quotationLineDC.RevNum);
                 jobject.Add("selectedOptons", JsonConvert.SerializeObject(optCodeList));
-                jobject.Add("allOptions", JsonConvert.SerializeObject(_quotationRepository.GetItemOptions(quotationLineDC.ItemCode)));
+                jobject.Add("allOptions", JsonConvert.SerializeObject(_quotationRepository.GetItemOptions(quotationLine.ItemCode)));
 
                 return jobject;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return null;
+                throw ex;
             }
         }
         public QuotationCostItemDC InsertQuotationCostItem(QuotationCostItemDC input)
@@ -661,15 +696,11 @@ namespace Quotation.Management.Services
             try
             {
                 List<QuotationCostItem> costItems = _quotationRepository.GetQuotationCostItems(quotationNum, revNum, context);
-                /*if (groupIds != null)
-                {
-                    costItems = costItems.Where(x => groupIds.Contains(x.QuotationCostItemGroupId)).ToList();
-                }*/
+
                 List<QuotationCostItemLine> costItemLines = _quotationRepository.GetQuotationCostItemLines(quotationNum, revNum, context);
-                ///List<int> lineNums = costItemLines.Select(x => x.LineNum).Distinct().ToList();
+
                 List<QuotationLine> quotationLines = _quotationRepository.GetQuotationLines(quotationNum, revNum, context)
                                                     .Where(x => x.ActiveLine == true).ToList();
-                                                    //.Where(x=> lineNums.Contains(x.LineNum)).ToList();
 
                
                 Dictionary<string, decimal> groupIdTotalDict = new Dictionary<string, decimal>();
@@ -677,7 +708,7 @@ namespace Quotation.Management.Services
                 {
                     List<QuotationCostItemLine> _costItemLines = costItemLines.Where(x=>x.QuotationCostItemGroupId == _costItem.QuotationCostItemGroupId).ToList();
                     List<int> lineNums = _costItemLines.Select(x => x.LineNum).Distinct().ToList();
-                    decimal ttslsPrice = quotationLines.Where(x => lineNums.Contains(x.LineNum)).Select(x=>x.TNetPrice).Sum();
+                    decimal ttslsPrice = quotationLines.Where(x => lineNums.Contains(x.LineNum)).Select(x=>x.TnetPrice).Sum();
                     if (!groupIdTotalDict.TryAdd(_costItem.QuotationCostItemGroupId, ttslsPrice))
                     {
                         groupIdTotalDict[_costItem.QuotationCostItemGroupId] += ttslsPrice; //prodcut wise total value 
@@ -694,7 +725,7 @@ namespace Quotation.Management.Services
                 
             }
         }
-        private List<QuotationLineDC> UpdateUnitPriceFromOptions(string quotatioNum, int revNum,List<int> lineNums, QMTContext context)
+        private List<QuotationLineDC> UpdateUnitPriceFromOptions(string quotatioNum, int revNum,List<int> lineNums,QMTContext context, List<PricingMasterDC>? pricingList = null)
         {
             try
             {
@@ -705,8 +736,10 @@ namespace Quotation.Management.Services
                     decimal totalNetPrice = 0;
                     QuotationLine quotationLine = _quotationRepository.GetQuotationLine(quotatioNum, _lineNum, revNum, context);
                     List<QuotationOptCode> quotationOptCodes = _quotationRepository.GetQuotationOptCodes(quotatioNum, revNum, context, _lineNum );
-                    foreach(var _quoteOption in quotationOptCodes)
+                    string? itemCode = null;
+                    foreach (var _quoteOption in quotationOptCodes)
                     {
+                        
                         unitPrice += (_quoteOption.UnitPrice ?? 0);
                         if(_quoteOption.IsNet.HasValue)
                         {
@@ -715,9 +748,20 @@ namespace Quotation.Management.Services
                         }
                         else
                             totalNetPrice += quotationLine.Mtlp * quotationLine.Qty * (_quoteOption.UnitPrice ?? 0);
+
+                        if(pricingList != null)
+                        if(pricingList.Any(x=>x.OptCode == _quoteOption.OptCode))
+                        {
+                            PricingMasterDC pricingMaster = pricingList.Where(x => x.OptCode == _quoteOption.OptCode).First();
+                           if(pricingMaster.IsItemCodeCreation)
+                           {
+                             itemCode = _itemCodeService.CreateItemCode(itemCode ?? quotationLine.SubItemCode ?? quotationLine.ItemCode, _quoteOption.OptCode);
+                           } 
+                        }
                     }
                     QuotationLineDC lineDC = new();
                     lineDC.QuotationNum = quotatioNum;
+                    lineDC.SubItemCode = itemCode;
                     lineDC.RevNum = revNum;
                     lineDC.LineNum = _lineNum;
                     lineDC.UnitPrice = unitPrice;
@@ -748,10 +792,10 @@ namespace Quotation.Management.Services
             return Math.Round(ttslsPriceWithoutVat + (ttslsPriceWithoutVat * inputLine.Vat / 100),2);
         }
 
-        private decimal CalculatePriceOnCurrency(string quotationCurrencyCode , PricingMasterDC pricing)
+        private decimal CalculatePriceOnCurrency(CurrencyMaster quotationCurrency, PricingMasterDC pricing)
         {
-            CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(quotationCurrencyCode);
-            return pricing.Price * (quotationCurrency!.ConvFactor/pricing.ConvFactor);
+            //CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(quotationCurrencyCode);
+            return pricing.Price * (quotationCurrency.ConvFactor/pricing.ConvFactor);
         }
 
         private string GenerateQuotionNum(string areaCode ,int userId)
@@ -768,7 +812,6 @@ namespace Quotation.Management.Services
             {
                 QuotationHeader? header = _quotationRepository.GetQuotation(quotationNum, revNum);
                 List<QuotationLineDC> lines = _quotationRepository.GetQuotationLines(quotationNum, header!.RevNum);
-                //lines = _quotationRepository.GetQuotationLinesOptions(lines);
                 List<QuotationOptCode> optCodeList = _quotationRepository.GetQuotationOptCodes(quotationNum, revNum,null);
                 List<string> productTypes = lines.Select(x => x.ProdTypeId).Distinct().ToList();
                 List<QuotationCostItemLine> costItemLines = _quotationRepository.GetQuotationCostItemLines(quotationNum, revNum);

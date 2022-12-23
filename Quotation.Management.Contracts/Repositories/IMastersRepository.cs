@@ -9,6 +9,9 @@ namespace Quotation.Management.Contracts.Repositories
 {
     public interface IMastersRepository
     {
+        List<MasterDC> GetProjects();
+        List<MasterDC> GetQuotations();
+        List<MasterDC> GetBrands();
         List<MasterDC> GetAreas();
         List<MasterDC> GetDeliveryTerms();
         List<MasterDC> GetPaymentTerms();

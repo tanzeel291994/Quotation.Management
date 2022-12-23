@@ -31,6 +31,22 @@ namespace QMT_API.Controllers
             }
         }
 
+        [HttpGet("Search/GetAll")]
+        [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetAllForSearch()
+        {
+            try
+            {
+                var _masterList = _mastersService.GetAllMastersForSearch();
+                return Ok(Newtonsoft.Json.JsonConvert.SerializeObject(_masterList));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
         [HttpGet("currency/convfactor")]
         [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
