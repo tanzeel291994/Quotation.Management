@@ -28,7 +28,7 @@ namespace QMT_API.Controllers
             {
                 var _quoatation = _quotationService.InsertQuotationHeader(quotationHeaderDC);
                 return Ok(_quoatation);
-            }
+            }          
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
@@ -153,6 +153,10 @@ namespace QMT_API.Controllers
                 var _quotationLine = _quotationService.InsertQuotationLine(quotationLineDC);
                 return Ok(_quotationLine);
             }
+            catch (ValidationException ex)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity,JsonConvert.SerializeObject(ex._messages));
+            }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
@@ -175,6 +179,22 @@ namespace QMT_API.Controllers
             }
         }
 
+        [HttpPost("line/delete")]
+        [ProducesResponseType(typeof(QuotationCostItem), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult DeleteCostItemLIne(QuotationLineDC input)
+        {
+            try
+            {
+                _quotationService.DeleteQuotationLine(input);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
         [HttpPost("line/nonstandard/options/add")]
         [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -184,6 +204,10 @@ namespace QMT_API.Controllers
             {
                 var result = _quotationService.InsertNonStandardOption(nonStandardOptCodeDC);
                 return Ok(result);
+            }
+            catch (ValidationException ex)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, JsonConvert.SerializeObject(ex._messages));
             }
             catch (Exception ex)
             {

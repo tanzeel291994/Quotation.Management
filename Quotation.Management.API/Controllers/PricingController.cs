@@ -19,7 +19,7 @@ namespace QMT_API.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(BrandMaster), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(BrandMaster), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetPricings()
         {

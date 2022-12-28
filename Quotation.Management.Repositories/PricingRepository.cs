@@ -16,21 +16,40 @@ namespace Quotation.Management.Repositories
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public  List<PricingMaster> GetAll ()
+        public dynamic GetAll ()
         {
 
             using (var context = new QMTContext())
             {
-                return context.PricingMasters.ToList();
+                return (from pm in context.PricingMasters
+                        join im in context.ItemMasters on pm.ItemCode equals im.ItemCode
+                        join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
+                        join ig in context.ItemGroupMasters on sm.GroupId equals ig.GroupId
+                        join bm in context.BrandMasters on sm.BrandId equals bm.BrandId
+                        join pmo in context.ProductMasters on ig.ProdTypeId equals pmo.ProdTypeId
+                        select new
+                        {
+                            pmo.ProdName,
+                            ig.GroupName,
+                            bm.BrandName,
+                            sm.SeriesName,
+                            pm.ItemCode,
+                            pm.OptCode,
+                            pm.Price
+
+                        }).ToList();
+
             }
         }
-        public PricingMaster? GetPricing(string itemCode,string optCode)
+
+        public PricingMaster? GetPricing(string itemCode,string optCode, QMTContext? _context =null)
         {
 
-            using (var context = new QMTContext())
-            {
-                return context.PricingMasters.Where(x=>x.ItemCode == itemCode.ToUpper() && x.OptCode == optCode.ToUpper()).OrderByDescending(x => x.Version).FirstOrDefault();
-            }
+            var context = _context ?? new QMTContext();
+            var _data = context.PricingMasters.Where(x=>x.ItemCode == itemCode.ToUpper() && x.OptCode == optCode.ToUpper()).OrderByDescending(x => x.Version).FirstOrDefault();
+            if (_context == null)
+                context.Dispose();
+            return _data;
         }
 
         public PricingMaster InsertPricing(PricingMaster pricing)

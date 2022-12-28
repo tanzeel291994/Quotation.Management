@@ -35,7 +35,7 @@ namespace Quotation.Management.Services
             _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-        public List<PricingMaster> GetPricings()
+        public dynamic GetPricings()
         {
             return _pricingRepository.GetAll();
         }
@@ -277,7 +277,7 @@ namespace Quotation.Management.Services
                                 //validationMessages.Add("Pricing is not number on row index " + i +" for itemCode:"+itemCode);
                                 continue;
                             }
-                            PricingMaster? pricingMasterExist = _pricingRepository.GetPricing(itemCode, optCode);
+                            PricingMaster? pricingMasterExist = _pricingRepository.GetPricing(itemCode, optCode, context);
                             if (pricingMasterExist != null && pricingMasterExist.Price != pricingValue)
                                 version = "V" + (Convert.ToInt32(pricingMasterExist.Version.Replace("V", "")) + 1); // if pricing is differnt then only make versions
                             else if (pricingMasterExist != null && pricingMasterExist!.Price == pricingValue)

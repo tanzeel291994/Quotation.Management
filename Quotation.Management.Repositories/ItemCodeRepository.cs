@@ -45,6 +45,21 @@ namespace Quotation.Management.Repositories
             }
         }
 
+        public CurrencyMaster? GetItemCodeCurrency(string itemCodeName)
+        {
+
+            using (var context = new QMTContext())
+            {
+                return (from im in context.ItemMasters
+                        join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
+                        join bm in context.BrandMasters on sm.BrandId equals bm.BrandId
+                        join cm in context.CurrencyMasters on bm.CurrencyCode equals cm.CurrencyCode
+                        where im.ItemCode == itemCodeName
+                        select cm).FirstOrDefault();
+                      
+            }
+        }
+
         public List<MasterDC> GetItemCodes(string searchString)
         {
 
@@ -67,6 +82,8 @@ namespace Quotation.Management.Repositories
                     context.SaveChanges();
                     return _itemCode;
                 }
+                if (_context == null)
+                    context.Dispose();
                 return itemMaster;
             //}
         }

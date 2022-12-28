@@ -15,11 +15,12 @@ namespace Quotation.Management.Contracts.Repositories
         //PricingMaster? GetPricingOptCode(string itemCode, string optCode);
          QuotationLine? GetLatestQuotationLine(string quotationNum);
          QuotationHeader? GetQuotation(string quotationNum, int? revNum=null);
-        List<QuotationLineDC> GetQuotationLines(string quotationNum, int revNum, List<int>? selectedLines = null, string prodTypeId = "");
+        List<QuotationLineDC> GetQuotationLinesDC(string quotationNum, int revNum, List<int>? selectedLines = null, string prodTypeId = "", QMTContext? _context = null);
 
+        QuotationOptCode? GetQuotationOptCode(string quotationNum, int revNum, int lineNum, string optCode, QMTContext? _context);
         List<QuotationOptCode> GetQuotationOptCodes(string quotationNum, int revNum, QMTContext? _context, int? lineNum = null);
 
-         dynamic GetItemOptions(string itemCode);
+        dynamic GetItemOptions(string itemCode, decimal convFactor);
 
         List<QuotationCostItem> GetQuotationCostItems(string quotationNum, int revNum, QMTContext? _context = null);
 
@@ -29,7 +30,7 @@ namespace Quotation.Management.Contracts.Repositories
         List<QuotationOptCodeDC> GetQuotationLinesOptions(string quotationNum, int revNum);
         QuotationLineDC UpdateQuotationLine(QuotationLineDC _quotationLine, QMTContext? _context = null);
 
-         void UpdateQuotationOptCodes(string quotationNum, int lineNum, int revNum, QMTContext? _context = null);
+        void UpdateQuotationOptCodes(QuotationOptCode quotationOptCode, QMTContext? _context = null);
          QuotationOptCode? RemoveQuotationOptCode(QuotationOptCode _quotationOptCode, QMTContext? _context = null);
 
         QuotationCostItem InsertQuotationCostItemLine(QuotationCostItem _quotationCostItem, QMTContext? _context = null);
@@ -56,5 +57,14 @@ namespace Quotation.Management.Contracts.Repositories
         dynamic GetQuotationSearch(QuotationSearchDC input);
 
         dynamic GetQuotationLinesSearch(QuotationSearchDC input);
+
+        void DeleteQuotationLine(QuotationLine _quotationLine, QMTContext? _context = null);
+        void DeleteQuotationOptions(string quotationNum, int linenum, int revNum, QMTContext? _context = null);
+
+        void DeleteCostItemLines(string quotationNum, int linenum, int revNum, QMTContext? _context = null);
+
+        List<QuotationCostItemLine> GetQuotationCostItemLines(string quotationNum, int lineNum, int revNum, QMTContext? _context = null);
+
+        void DeleteCostItemGroup(string quotationNum, int linenum, int revNum, List<string> costItemGroupIds, QMTContext? _context = null);
     }
 }

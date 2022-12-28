@@ -10,7 +10,7 @@ namespace Quotation.Management.Contracts.Services
 {
     public interface IPricingService
     {
-        List<PricingMaster> GetPricings();
+        dynamic GetPricings();
 
         PricingMaster InsertPricing(PricingMaster pricing);
         List<string> ImportPricingData(DataSet ds);

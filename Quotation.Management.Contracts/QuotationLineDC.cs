@@ -66,6 +66,7 @@ namespace Quotation.Management.Contracts
         public string CurrencyCode { get; set; } = null!;
         public decimal Price { get; set; }
         public decimal ConvFactor { get; set; }
+        public decimal? ConvFactorByBrand { get; set; }
         public string Version { get; set; } = null!;
         public string? Status { get; set; }
         public bool IsNet { get; set; }

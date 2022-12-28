@@ -9,11 +9,11 @@ namespace Quotation.Management.Contracts.Repositories
 {
     public interface IPricingRepository<T> where T :class
     {
-        List<PricingMaster> GetAll();
+        dynamic GetAll();
 
         PricingMaster InsertPricing(PricingMaster pricing);
 
-        PricingMaster? GetPricing(string itemCode, string optCode);
+        PricingMaster? GetPricing(string itemCode, string optCode, QMTContext? _context = null);
 
         PricingMaster InsertPricingIfNotExist(PricingMaster _pricingMaster, QMTContext? _context = null);
 

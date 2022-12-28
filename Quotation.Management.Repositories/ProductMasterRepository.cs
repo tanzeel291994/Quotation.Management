@@ -40,6 +40,25 @@ namespace Quotation.Management.Repositories
             }
         }
 
+        public List<MasterDC> GetProductsofQuotations(string quotationNum, int revNum)
+        {
+            using (var context = new QMTContext())
+            {
+                dynamic productTypeIdList = (from im in context.ItemMasters
+                                             join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
+                                             join ig in context.ItemGroupMasters on sm.GroupId equals ig.GroupId
+                                             join pm in context.ProductMasters on ig.ProdTypeId equals pm.ProdTypeId
+                                             join ql in context.QuotationLines on im.ItemCode equals ql.ItemCode
+                                             where ql.QuotationNum == quotationNum && ql.RevNum == revNum
+                                             select new MasterDC
+                                             {
+                                                 Code = pm.ProdTypeId,
+                                                 Name = pm.ProdName,
+                                             }).Distinct().ToList();
+                return productTypeIdList;
+            }
+        }
+
         public ProductMaster InsertProductIfNotExist(ProductMaster _productMaster, QMTContext? _context = null)
         {
             //using (var context = _context ?? base._context ?? new QMTContext())

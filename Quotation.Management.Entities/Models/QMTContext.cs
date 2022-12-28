@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Configuration;
-
 namespace Quotation.Management.Entities.Models
 {
     public partial class QMTContext : DbContext
@@ -64,6 +63,8 @@ namespace Quotation.Management.Entities.Models
                 entity.Property(e => e.BrandName)
                     .HasMaxLength(500)
                     .IsUnicode(false);
+
+                entity.Property(e => e.ConvFactor).HasColumnType("decimal(18, 2)");
 
                 entity.Property(e => e.CurrencyCode)
                     .HasMaxLength(10)
@@ -430,9 +431,7 @@ namespace Quotation.Management.Entities.Models
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
-                entity.Property(e => e.TnetPrice)
-                    .HasColumnType("decimal(18, 2)")
-                    .HasColumnName("TNetPrice");
+                entity.Property(e => e.TtNetPrice).HasColumnType("decimal(18, 2)");
 
                 entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
 

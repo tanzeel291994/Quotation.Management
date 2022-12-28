@@ -33,6 +33,7 @@ namespace Quotation.Management.Contracts.Services
         QuotationNonStandardOptCodeDC? InsertNonStandardOption(QuotationNonStandardOptCodeDC optCodeDC);
 
         dynamic SearchQuotations(QuotationSearchDC quotationSearch);
+        void DeleteQuotationLine(QuotationLineDC input);
         //List<QuotationLine> UpdateUnitPriceFromOptions(string quotatioNum, int revNum, List<int> lineNums, QMTContext context);
     }
 }
