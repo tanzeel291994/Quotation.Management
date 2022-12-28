@@ -41,6 +41,7 @@ namespace Quotation.Management.Repositories
                 line.CostItemLineValue = _quotationLine.CostItemLineValue;
                 line.Vat = _quotationLine.Vat;
                 line.TtNetPrice = _quotationLine.TtNetPrice;
+                line.Margin = _quotationLine.Margin;
                 line.SubItemCode = _quotationLine.SubItemCode; //check this 
                 context.SaveChanges();
             }
@@ -488,10 +489,12 @@ namespace Quotation.Management.Repositories
                                                    ProdTypeId = ig.ProdTypeId ?? "",
                                                    UnitPrice = ql.UnitPrice,
                                                    Vat = ql.Vat,
+                                                   Margin = ql.Margin ?? 0,
                                                    CurrencyCode = qh.CurrencyCode,
                                                    TtNetPrice = ql.TtNetPrice,
                                                    CostItemLineValue = ql.CostItemLineValue ?? 0,
                                                    TtslsPriceWOVat = Math.Round(ql.TtNetPrice + (ql.CostItemLineValue ?? 0), 2),
+                                                   TtslsPriceWMargin = Math.Round((100 + (ql.Margin ?? 0)) / 100 * (ql.TtNetPrice + (ql.CostItemLineValue ?? 0)), 2),
                                                    TtslsPrice = Math.Round((100+(ql.Vat))/100 * (ql.TtNetPrice + (ql.CostItemLineValue ?? 0)),2)
                                                }).ToList();
                 if (selectedLines != null)

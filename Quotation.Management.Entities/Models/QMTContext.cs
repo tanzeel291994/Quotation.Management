@@ -423,6 +423,8 @@ namespace Quotation.Management.Entities.Models
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
+                entity.Property(e => e.Margin).HasColumnType("decimal(18, 2)");
+
                 entity.Property(e => e.Mtlp).HasColumnType("decimal(18, 4)");
 
                 entity.Property(e => e.Qty).HasColumnType("decimal(18, 2)");

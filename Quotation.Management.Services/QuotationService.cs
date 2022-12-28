@@ -211,6 +211,7 @@ namespace Quotation.Management.Services
                 line.UnitPrice = inputLine.UnitPrice;
                 line.ItemCode = inputLine.ItemCode;
                 line.Vat = inputLine.Vat;
+                line.Margin = inputLine.Margin;
 
                 List<PricingMasterDC> pricing = _quotationRepository.GetPricingOptCode(inputLine.ItemCode, new List<string>() { "BASIC" });
                 if (pricing.Count == 0)
@@ -244,10 +245,12 @@ namespace Quotation.Management.Services
                 inputLine.LineNum = line.LineNum;
                 inputLine.UnitPrice = line.UnitPrice;
                 inputLine.TtNetPrice = line.TtNetPrice;
+                inputLine.Margin = line.Margin;
                 inputLine.ActiveLine = line.ActiveLine;
                 inputLine.CostItemLineValue = costItemValue;
-                inputLine.TtslsPrice = CalculateTotalValue(inputLine);
                 inputLine.TtslsPriceWOVat = Math.Round((inputLine.TtNetPrice) + (inputLine.CostItemLineValue ?? 0), 2);
+                inputLine.TtslsPriceWMargin = CalculateMarginValue(line.Margin, inputLine.TtslsPriceWOVat);
+                inputLine.TtslsPrice = CalculateTotalValue(inputLine);
 
                 _quotationRepository.Commit();
                 return inputLine;
@@ -281,8 +284,10 @@ namespace Quotation.Management.Services
                 List<QuotationLine> lines = UpdateAllLinesCostItemValue(inputLine.QuotationNum, inputLine.RevNum, context);
                 decimal costItemValue = lines.Where(x => x.LineNum == inputLine.LineNum).Select(x => x.CostItemLineValue).FirstOrDefault() ?? 0;
                 inputLine.CostItemLineValue = Math.Round(costItemValue,2);
-                inputLine.TtslsPrice = CalculateTotalValue(inputLine);
+                
                 inputLine.TtslsPriceWOVat = Math.Round(inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0),2);
+                inputLine.TtslsPriceWMargin =  CalculateMarginValue(inputLine.Margin, inputLine.TtslsPriceWOVat);
+                inputLine.TtslsPrice = CalculateTotalValue(inputLine);
 
                 _quotationRepository.Commit();
                 return inputLine;
@@ -383,9 +388,11 @@ namespace Quotation.Management.Services
                 List<QuotationLine> lines = UpdateAllLinesCostItemValue(inputLine.QuotationNum, inputLine.RevNum, context);
                 inputLine.CostItemLineValue = lines.Where(x => x.LineNum == inputLine.LineNum).Select(x => x.CostItemLineValue).FirstOrDefault() ?? 0;
                 inputLine.UnitPrice = lineDC.UnitPrice;
-                inputLine.TtslsPriceWOVat = Math.Round((inputLine.UnitPrice * inputLine.Mtlp * inputLine.Qty) + (inputLine.CostItemLineValue ?? 0), 2);
-                inputLine.TtslsPrice = Math.Round(CalculateTotalValue(lineDC),2);
                 inputLine.TtNetPrice = linesDC.First().TtNetPrice;
+                inputLine.TtslsPriceWOVat = Math.Round(inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0), 2);
+                inputLine.TtslsPriceWMargin =  CalculateMarginValue(inputLine.Margin, inputLine.TtslsPriceWOVat);
+                inputLine.TtslsPrice = Math.Round(CalculateTotalValue(lineDC),2);
+                
 
                _quotationRepository.Commit();
                 return inputLine;
@@ -426,9 +433,11 @@ namespace Quotation.Management.Services
                 List<QuotationLine> lines = UpdateAllLinesCostItemValue(inputLine.QuotationNum, inputLine.RevNum, context);
                 inputLine.CostItemLineValue = lines.Where(x => x.LineNum == inputLine.LineNum).Select(x => x.CostItemLineValue).FirstOrDefault() ?? 0;
                 inputLine.UnitPrice = lineDC.UnitPrice;
-                inputLine.TtslsPriceWOVat = Math.Round((inputLine.UnitPrice * inputLine.Mtlp * inputLine.Qty) + (inputLine.CostItemLineValue ?? 0), 2);
-                inputLine.TtslsPrice = Math.Round(CalculateTotalValue(lineDC), 2); // with VAT
+                               
                 inputLine.TtNetPrice = linesDC.First().TtNetPrice;
+                inputLine.TtslsPriceWOVat = Math.Round(inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0), 2);
+                inputLine.TtslsPriceWMargin = CalculateMarginValue(inputLine.Margin, inputLine.TtslsPriceWOVat);
+                inputLine.TtslsPrice = Math.Round(CalculateTotalValue(lineDC), 2); // with VAT
 
                 _quotationRepository.Commit();
                 return inputLine;
@@ -854,9 +863,14 @@ namespace Quotation.Management.Services
                     lineDC.Mtlp = quotationLine.Mtlp;
                     lineDC.Qty = quotationLine.Qty;
                     lineDC.CostItemLineValue = quotationLine.CostItemLineValue;
+                    lineDC.Margin = quotationLine.Margin;
                     lineDC.Vat = quotationLine.Vat;
                     lineDC.TtNetPrice = totalNetPrice;
                     lineDC.TtslsPrice = CalculateTotalValue(lineDC);
+
+                    lineDC.TtslsPriceWOVat = Math.Round(lineDC.TtNetPrice + (lineDC.CostItemLineValue ?? 0), 2);
+                    lineDC.TtslsPriceWMargin = CalculateMarginValue(quotationLine.Margin, lineDC.TtslsPriceWOVat);
+
                     lineDC = _quotationRepository.UpdateQuotationLine(lineDC, context);
                     quotationLinesDC.Add(lineDC);
                 }
@@ -875,6 +889,13 @@ namespace Quotation.Management.Services
         {
             decimal ttslsPriceWithoutVat = inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0);
             return Math.Round(ttslsPriceWithoutVat + (ttslsPriceWithoutVat * inputLine.Vat / 100),2);
+        }
+
+        private decimal CalculateMarginValue(decimal? margin , decimal totalPrice )
+        {
+            decimal marginValue = margin ?? 0;
+            marginValue = (1 + marginValue / 100) * totalPrice;
+            return marginValue;
         }
 
         private decimal CalculatePriceOnCurrency(CurrencyMaster quotationCurrency, PricingMasterDC pricing)
