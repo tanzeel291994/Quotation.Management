@@ -27,6 +27,7 @@ namespace Quotation.Management.Contracts
         public decimal TtslsPriceWMargin { get; set; }
         public string? ProdTypeId { get; set; }
         public string? CurrencyCode { get; set; }
+        public string? UnitTag { get; set; }
         public string? optCodes { get; set; } = null!;
     }
 

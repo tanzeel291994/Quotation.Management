@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using Quotation.Management.Contracts.Services;
+using Quotation.Management.Entities.Models;
 
 namespace QMT_API.Controllers
 {
@@ -29,6 +30,15 @@ namespace QMT_API.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
+        }
+
+        [HttpPost]
+        [ProducesResponseType(typeof(CustomerMaster), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult InsertCustomer(CustomerMaster customerMaster)
+        {
+            var _productList = _mastersService.InsertCustomer(customerMaster);
+            return Ok(_productList);
         }
 
         [HttpGet("Search/GetAll")]

@@ -51,6 +51,10 @@ namespace Quotation.Management.Services
             }
         }
 
+        public CustomerMaster InsertCustomer(CustomerMaster customerMaster)
+        {
+            return _mastersRepository.InsertCustomer(customerMaster);
+        }
         public JObject? GetAllMastersForSearch()
         {
             JObject jobject = new JObject();

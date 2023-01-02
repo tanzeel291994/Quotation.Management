@@ -212,6 +212,7 @@ namespace Quotation.Management.Services
                 line.ItemCode = inputLine.ItemCode;
                 line.Vat = inputLine.Vat;
                 line.Margin = inputLine.Margin;
+                line.UnitTag = inputLine.UnitTag;
 
                 List<PricingMasterDC> pricing = _quotationRepository.GetPricingOptCode(inputLine.ItemCode, new List<string>() { "BASIC" });
                 if (pricing.Count == 0)
@@ -247,6 +248,7 @@ namespace Quotation.Management.Services
                 inputLine.TtNetPrice = line.TtNetPrice;
                 inputLine.Margin = line.Margin;
                 inputLine.ActiveLine = line.ActiveLine;
+                inputLine.UnitTag = line.UnitTag ?? "";
                 inputLine.CostItemLineValue = costItemValue;
                 inputLine.TtslsPriceWOVat = Math.Round((inputLine.TtNetPrice) + (inputLine.CostItemLineValue ?? 0), 2);
                 inputLine.TtslsPriceWMargin = CalculateMarginValue(line.Margin, inputLine.TtslsPriceWOVat);

@@ -8,5 +8,7 @@ namespace Quotation.Management.Contracts.Services
         JObject? GetAllMasters();
         JObject? GetAllMastersForSearch();
         CurrencyDC GetCurrencyCode(string curencyCode, string oldCurrencyCode);
+
+        CustomerMaster InsertCustomer(CustomerMaster customerMaster);
     }
 }

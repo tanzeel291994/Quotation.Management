@@ -42,6 +42,7 @@ namespace Quotation.Management.Repositories
                 line.Vat = _quotationLine.Vat;
                 line.TtNetPrice = _quotationLine.TtNetPrice;
                 line.Margin = _quotationLine.Margin;
+                line.UnitTag = _quotationLine.UnitTag;
                 line.SubItemCode = _quotationLine.SubItemCode; //check this 
                 context.SaveChanges();
             }

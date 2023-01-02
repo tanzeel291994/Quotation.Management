@@ -21,6 +21,7 @@ namespace Quotation.Management.Entities.Models
         public virtual DbSet<CurrencyMaster> CurrencyMasters { get; set; } = null!;
         public virtual DbSet<CustomerMaster> CustomerMasters { get; set; } = null!;
         public virtual DbSet<DeliveryTermMaster> DeliveryTermMasters { get; set; } = null!;
+        public virtual DbSet<IndustryMaster> IndustryMasters { get; set; } = null!;
         public virtual DbSet<ItemGroupMaster> ItemGroupMasters { get; set; } = null!;
         public virtual DbSet<ItemMaster> ItemMasters { get; set; } = null!;
         public virtual DbSet<OptionMaster> OptionMasters { get; set; } = null!;
@@ -29,6 +30,7 @@ namespace Quotation.Management.Entities.Models
         public virtual DbSet<ProductMaster> ProductMasters { get; set; } = null!;
         public virtual DbSet<QuotationCostItem> QuotationCostItems { get; set; } = null!;
         public virtual DbSet<QuotationCostItemLine> QuotationCostItemLines { get; set; } = null!;
+        public virtual DbSet<QuotationDefaultMultiplier> QuotationDefaultMultipliers { get; set; } = null!;
         public virtual DbSet<QuotationHeader> QuotationHeaders { get; set; } = null!;
         public virtual DbSet<QuotationLine> QuotationLines { get; set; } = null!;
         public virtual DbSet<QuotationOptCode> QuotationOptCodes { get; set; } = null!;
@@ -128,6 +130,19 @@ namespace Quotation.Management.Entities.Models
                 entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.DeliveryTermName)
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<IndustryMaster>(entity =>
+            {
+                entity.ToTable("IndustryMaster");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Name)
                     .HasMaxLength(500)
                     .IsUnicode(false);
             });
@@ -328,6 +343,25 @@ namespace Quotation.Management.Entities.Models
                     .HasConstraintName("FK__QuotationCostIte__2057CCD0");
             });
 
+            modelBuilder.Entity<QuotationDefaultMultiplier>(entity =>
+            {
+                entity.ToTable("QuotationDefaultMultiplier");
+
+                entity.Property(e => e.BrandName)
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ItemCode)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Mtlp).HasColumnType("decimal(18, 4)");
+
+                entity.Property(e => e.ProdName)
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+            });
+
             modelBuilder.Entity<QuotationHeader>(entity =>
             {
                 entity.HasKey(e => new { e.QuotationNum, e.RevNum })
@@ -437,9 +471,23 @@ namespace Quotation.Management.Entities.Models
 
                 entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
 
+                entity.Property(e => e.UnitTag)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.Vat)
                     .HasColumnType("decimal(6, 2)")
                     .HasColumnName("VAT");
+
+                entity.HasOne(d => d.ApplEngineerNavigation)
+                    .WithMany(p => p.QuotationLines)
+                    .HasForeignKey(d => d.ApplEngineer)
+                    .HasConstraintName("fk_QuotationLines_ApplEngineer");
+
+                entity.HasOne(d => d.Industry)
+                    .WithMany(p => p.QuotationLines)
+                    .HasForeignKey(d => d.IndustryId)
+                    .HasConstraintName("fk_QuotationLines_Industry");
 
                 entity.HasOne(d => d.ItemCodeNavigation)
                     .WithMany(p => p.QuotationLines)

@@ -131,6 +131,16 @@ namespace Quotation.Management.Repositories
             }
         }
 
+        public CustomerMaster InsertCustomer(CustomerMaster customerMaster)
+        {
+
+            using (var context = new QMTContext())
+            {
+                context.CustomerMasters.Add(customerMaster);
+                context.SaveChanges();
+                return customerMaster;
+            }
+        }
         public List<MasterDC> GetProducts()
         {
             using (var context = new QMTContext())
