@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Quotation.Management.Contracts;
 using Quotation.Management.Contracts.Services;
 using Quotation.Management.Entities.Models;
 
@@ -24,7 +26,7 @@ namespace QMT_API.Controllers
             try
             {
                 var _masterList = _mastersService.GetAllMasters();
-                return Ok(Newtonsoft.Json.JsonConvert.SerializeObject(_masterList));
+                return Ok(JsonConvert.SerializeObject(_masterList));
             }
             catch(Exception ex)
             {
@@ -32,14 +34,38 @@ namespace QMT_API.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("Customer/add")]
         [ProducesResponseType(typeof(CustomerMaster), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult InsertCustomer(CustomerMaster customerMaster)
         {
-            var _productList = _mastersService.InsertCustomer(customerMaster);
-            return Ok(_productList);
+            try
+            {
+                var _customer = _mastersService.InsertCustomer(customerMaster);
+                return Ok(_customer);
+            }
+            catch (ValidationException ex)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, JsonConvert.SerializeObject(ex._messages));
+            }
+
         }
+        [HttpGet("master/customer/all")]
+        [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetCustomers()
+        {
+            try
+            {
+                var _customerList = _mastersService.GetAllCustomers();
+                return Ok(JsonConvert.SerializeObject(_customerList));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
 
         [HttpGet("Search/GetAll")]
         [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]

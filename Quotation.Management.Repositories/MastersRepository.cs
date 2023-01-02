@@ -28,6 +28,19 @@ namespace Quotation.Management.Repositories
             }
         }
 
+        public List<MasterDC> GetIndustrys()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.IndustryMasters.Select(x => new
+                MasterDC
+                {
+                    Name = x.Name,
+                    Id = x.Id
+                }).ToList();
+            }
+        }
+
         public List<MasterDC> GetDeliveryTerms()
         {
             using (var context = new QMTContext())
@@ -136,6 +149,12 @@ namespace Quotation.Management.Repositories
 
             using (var context = new QMTContext())
             {
+                var _customer = context.CustomerMasters.Where(x => x.CustomerCode == customerMaster.CustomerCode).FirstOrDefault();
+                if(_customer != null)
+                {
+                    throw new ValidationException(new List<string> { "Customer code already exists"});
+                }
+
                 context.CustomerMasters.Add(customerMaster);
                 context.SaveChanges();
                 return customerMaster;

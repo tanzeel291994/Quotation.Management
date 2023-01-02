@@ -377,6 +377,8 @@ namespace Quotation.Management.Entities.Models
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
+                entity.Property(e => e.Asp).HasColumnName("asp");
+
                 entity.Property(e => e.BookingDate).HasColumnType("datetime");
 
                 entity.Property(e => e.ConvFactor).HasColumnType("decimal(6, 2)");
@@ -405,6 +407,11 @@ namespace Quotation.Management.Entities.Models
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Quotation__AreaC__2645B050");
 
+                entity.HasOne(d => d.AspNavigation)
+                    .WithMany(p => p.QuotationHeaderAspNavigations)
+                    .HasForeignKey(d => d.Asp)
+                    .HasConstraintName("fk_QuotationHeader_asp");
+
                 entity.HasOne(d => d.CurrencyCodeNavigation)
                     .WithMany(p => p.QuotationHeaders)
                     .HasForeignKey(d => d.CurrencyCode)
@@ -423,8 +430,13 @@ namespace Quotation.Management.Entities.Models
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Quotation__Deliv__2739D489");
 
-                entity.HasOne(d => d.MspNavigation)
+                entity.HasOne(d => d.Industry)
                     .WithMany(p => p.QuotationHeaders)
+                    .HasForeignKey(d => d.IndustryId)
+                    .HasConstraintName("fk_QuotationHeader_Industry");
+
+                entity.HasOne(d => d.MspNavigation)
+                    .WithMany(p => p.QuotationHeaderMspNavigations)
                     .HasForeignKey(d => d.Msp)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__QuotationHe__MSP__25518C17");
@@ -478,16 +490,6 @@ namespace Quotation.Management.Entities.Models
                 entity.Property(e => e.Vat)
                     .HasColumnType("decimal(6, 2)")
                     .HasColumnName("VAT");
-
-                entity.HasOne(d => d.ApplEngineerNavigation)
-                    .WithMany(p => p.QuotationLines)
-                    .HasForeignKey(d => d.ApplEngineer)
-                    .HasConstraintName("fk_QuotationLines_ApplEngineer");
-
-                entity.HasOne(d => d.Industry)
-                    .WithMany(p => p.QuotationLines)
-                    .HasForeignKey(d => d.IndustryId)
-                    .HasConstraintName("fk_QuotationLines_Industry");
 
                 entity.HasOne(d => d.ItemCodeNavigation)
                     .WithMany(p => p.QuotationLines)

@@ -25,6 +25,7 @@ namespace Quotation.Management.Contracts.Repositories
         CurrencyMaster? GetCurrencyByCode(string currencyCode);
         CostItemCode GetCostItemByCode(string costItemId);
 
+        List<MasterDC> GetIndustrys();
         CustomerMaster InsertCustomer(CustomerMaster customerMaster);
     }
 }

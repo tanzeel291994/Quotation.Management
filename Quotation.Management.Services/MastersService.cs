@@ -38,6 +38,7 @@ namespace Quotation.Management.Services
                 jobject.Add(new JProperty("customers", JsonConvert.SerializeObject(_mastersRepository.GetCustomers())));
                 jobject.Add(new JProperty("statuses", JsonConvert.SerializeObject(_mastersRepository.GetStatuses())));
                 jobject.Add(new JProperty("currency", JsonConvert.SerializeObject(_mastersRepository.GetCurrency())));
+                jobject.Add(new JProperty("industries", JsonConvert.SerializeObject(_mastersRepository.GetIndustrys())));
                 //jobject.Add(new JProperty("itemCodes", JsonConvert.SerializeObject(_itemCodeRepository.GetAll())));
                 //jobject.Add(new JProperty("products", JsonConvert.SerializeObject(_mastersRepository.GetProducts())));
                 jobject.Add(new JProperty("costItems", JsonConvert.SerializeObject(_mastersRepository.GetCostItems())));
@@ -53,7 +54,18 @@ namespace Quotation.Management.Services
 
         public CustomerMaster InsertCustomer(CustomerMaster customerMaster)
         {
-            return _mastersRepository.InsertCustomer(customerMaster);
+            try
+            {
+                return _mastersRepository.InsertCustomer(customerMaster);
+            }
+            catch(ValidationException ex)
+            {
+                throw;
+            }
+        }
+        public List<MasterDC> GetAllCustomers()
+        {
+            return _mastersRepository.GetCustomers();
         }
         public JObject? GetAllMastersForSearch()
         {

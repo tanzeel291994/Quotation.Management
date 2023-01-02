@@ -7,8 +7,8 @@ namespace Quotation.Management.Entities.Models
     {
         public UserMaster()
         {
-            QuotationHeaders = new HashSet<QuotationHeader>();
-            QuotationLines = new HashSet<QuotationLine>();
+            QuotationHeaderAspNavigations = new HashSet<QuotationHeader>();
+            QuotationHeaderMspNavigations = new HashSet<QuotationHeader>();
         }
 
         public int Id { get; set; }
@@ -16,7 +16,7 @@ namespace Quotation.Management.Entities.Models
         public string LastName { get; set; } = null!;
         public string Email { get; set; } = null!;
 
-        public virtual ICollection<QuotationHeader> QuotationHeaders { get; set; }
-        public virtual ICollection<QuotationLine> QuotationLines { get; set; }
+        public virtual ICollection<QuotationHeader> QuotationHeaderAspNavigations { get; set; }
+        public virtual ICollection<QuotationHeader> QuotationHeaderMspNavigations { get; set; }
     }
 }

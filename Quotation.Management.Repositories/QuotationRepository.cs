@@ -16,12 +16,27 @@ namespace Quotation.Management.Repositories
 
         }
 
-        public  QuotationHeader InsertQuotation (QuotationHeader _quotationHeader)
+        public  QuotationHeader InsertUpdateQuotation(QuotationHeader _quotationHeader)
         {
 
             using (var context = new QMTContext())
             {
-                context.QuotationHeaders.Add(_quotationHeader);
+                var header = context.QuotationHeaders.Where(x => x.QuotationNum == _quotationHeader.QuotationNum.ToUpper() && x.RevNum == _quotationHeader.RevNum).FirstOrDefault();
+                if (header != null)
+                {
+                    header.ProjectName = _quotationHeader.ProjectName;
+                    header.BookingDate = _quotationHeader.BookingDate;
+                    header.DeliveryTermId = _quotationHeader.DeliveryTermId;
+                    header.PaymentTermId = _quotationHeader.PaymentTermId;
+                    header.PaymentTermId = _quotationHeader.PaymentTermId;
+                    header.Probability = _quotationHeader.Probability;
+                    header.StatusId = _quotationHeader.StatusId;
+                    header.IndustryId = _quotationHeader.IndustryId;
+                    header.Msp = _quotationHeader.Msp;
+                    header.Asp = _quotationHeader.Asp;
+                }
+                else
+                    context.QuotationHeaders.Add(_quotationHeader);
                 context.SaveChanges();
                 return _quotationHeader;
             }

@@ -7,12 +7,12 @@ namespace Quotation.Management.Entities.Models
     {
         public IndustryMaster()
         {
-            QuotationLines = new HashSet<QuotationLine>();
+            QuotationHeaders = new HashSet<QuotationHeader>();
         }
 
         public int Id { get; set; }
         public string Name { get; set; } = null!;
 
-        public virtual ICollection<QuotationLine> QuotationLines { get; set; }
+        public virtual ICollection<QuotationHeader> QuotationHeaders { get; set; }
     }
 }

@@ -14,6 +14,7 @@ namespace Quotation.Management.Contracts
         public string? CustomerName { get; set; } = null!;
         public string CurrencyCode { get; set; } = null!;
         public int Msp { get; set; }
+        public int Asp { get; set; }
         public string? ProjectName { get; set; }
         public string AreaCode { get; set; } = null!;
         public DateTime? ExpectedDeliveryDate { get; set; }
@@ -21,6 +22,7 @@ namespace Quotation.Management.Contracts
         public DateTime? BookingDate { get; set; }
         public int DeliveryTermId { get; set; }
         public int PaymentTermId { get; set; }
+        public int? IndustryId { get; set; }
         public int StatusId { get; set; }
         public string? StatusName { get; set; } = null!;
          public string? AreaName { get; set; } = null!;

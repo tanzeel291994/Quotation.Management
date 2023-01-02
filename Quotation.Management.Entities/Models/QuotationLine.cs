@@ -25,11 +25,7 @@ namespace Quotation.Management.Entities.Models
         public decimal TtNetPrice { get; set; }
         public decimal? Margin { get; set; }
         public string? UnitTag { get; set; }
-        public int? ApplEngineer { get; set; }
-        public int? IndustryId { get; set; }
 
-        public virtual UserMaster? ApplEngineerNavigation { get; set; }
-        public virtual IndustryMaster? Industry { get; set; }
         public virtual ItemMaster ItemCodeNavigation { get; set; } = null!;
         public virtual QuotationHeader QuotationHeader { get; set; } = null!;
         public virtual ICollection<QuotationCostItemLine> QuotationCostItemLines { get; set; }

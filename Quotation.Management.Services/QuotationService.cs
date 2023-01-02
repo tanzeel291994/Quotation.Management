@@ -55,9 +55,11 @@ namespace Quotation.Management.Services
                 header.StatusId = inputHeader.StatusId;
                 header.ProjectName = inputHeader.ProjectName;
                 header.IsActiveRevision = true;
-                header.QuotationNum = GenerateQuotionNum(header.AreaCode, header.Msp);
+                header.Asp = inputHeader.Asp;
+                header.IndustryId = inputHeader.IndustryId;
+                header.QuotationNum = inputHeader.QuotationNum ?? GenerateQuotionNum(header.AreaCode, header.Msp);
 
-                header = _quotationRepository.InsertQuotation(header);
+                header = _quotationRepository.InsertUpdateQuotation(header);
                 return header;
             }
             catch (Exception ex)

@@ -10,5 +10,7 @@ namespace Quotation.Management.Contracts.Services
         CurrencyDC GetCurrencyCode(string curencyCode, string oldCurrencyCode);
 
         CustomerMaster InsertCustomer(CustomerMaster customerMaster);
+
+        List<MasterDC> GetAllCustomers();
     }
 }

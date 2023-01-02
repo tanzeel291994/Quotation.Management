@@ -27,11 +27,15 @@ namespace Quotation.Management.Entities.Models
         public bool IsActiveRevision { get; set; }
         public decimal? ConvFactor { get; set; }
         public DateTime? BookingDate { get; set; }
+        public int? IndustryId { get; set; }
+        public int? Asp { get; set; }
 
         public virtual SalesArea AreaCodeNavigation { get; set; } = null!;
+        public virtual UserMaster? AspNavigation { get; set; }
         public virtual CurrencyMaster CurrencyCodeNavigation { get; set; } = null!;
         public virtual CustomerMaster CustomerCodeNavigation { get; set; } = null!;
         public virtual DeliveryTermMaster DeliveryTerm { get; set; } = null!;
+        public virtual IndustryMaster? Industry { get; set; }
         public virtual UserMaster MspNavigation { get; set; } = null!;
         public virtual PaymentTermMaster PaymentTerm { get; set; } = null!;
         public virtual QuotationStatusMaster Status { get; set; } = null!;
