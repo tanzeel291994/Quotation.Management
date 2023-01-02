@@ -13,8 +13,9 @@ namespace Quotation.Management.Contracts
         public int LineNum { get; set; }
         public string ItemCode { get; set; }
         public string? SubItemCode { get; set; }
-
+        public decimal CAF { get; set; }
         public decimal? CostItemLineValue { get; set; }
+        public decimal? IndexValue { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal Mtlp { get; set; }
         public decimal Qty { get; set; }
@@ -64,15 +65,27 @@ namespace Quotation.Management.Contracts
 
     public class PricingMasterDC
     {
+        //public decimal? QuotationMultiplier { get; set; }
         public string ItemCode { get; set; } = null!;
         public string OptCode { get; set; } = null!;
-        public string CurrencyCode { get; set; } = null!;
+       // public string CurrencyCode { get; set; } = null!;
         public decimal Price { get; set; }
-        public decimal ConvFactor { get; set; }
-        public decimal? ConvFactorByBrand { get; set; }
+       // public decimal ConvFactor { get; set; }
+        //public decimal? ConvFactorByBrand { get; set; }
         public string Version { get; set; } = null!;
         public string? Status { get; set; }
         public bool IsNet { get; set; }
         public bool IsItemCodeCreation { get; set; }
+    }
+
+    public class ItemCodeDetailsDC
+    {
+        public string ItemCode { get; set; } = null!;
+        public string BrandName { get; set; } = null!;
+        public string ProdName { get; set; } = null!;
+        public string CurrencyCode { get; set; } = null!;
+        public decimal CAF { get; set; }
+        public decimal? IndexConvFactor { get; set; }
+        public decimal? Mtlp { get; set; }
     }
 }

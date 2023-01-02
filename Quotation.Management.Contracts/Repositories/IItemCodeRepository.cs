@@ -23,5 +23,7 @@ namespace Quotation.Management.Contracts.Repositories
         bool MultipleInsertItemCode(List<ItemMaster> itemCodes);
 
         CurrencyMaster? GetItemCodeCurrency(string itemCodeName);
+
+        List<ItemCodeDetailsDC> GetItemCodeDetails(List<string> itemCodes, QMTContext context);
     }
 }

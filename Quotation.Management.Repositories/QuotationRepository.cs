@@ -338,17 +338,17 @@ namespace Quotation.Management.Repositories
                 List<PricingMasterDC> _pricingList = (from pm in context.PricingMasters
                                                       join im in context.ItemMasters on pm.ItemCode equals im.ItemCode
                                                       join om in context.OptionMasters on pm.OptCode equals om.OptCode
-                                                      join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
-                                                      join bm in context.BrandMasters on sm.BrandId equals bm.BrandId
-                                                      join cm in context.CurrencyMasters on bm.CurrencyCode equals cm.CurrencyCode
+                                                      //join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
+                                                      //join bm in context.BrandMasters on sm.BrandId equals bm.BrandId
+                                                     // join cm in context.CurrencyMasters on bm.CurrencyCode equals cm.CurrencyCode
                                                       where pm.ItemCode == itemCode.ToUpper() && optCode.Contains(pm.OptCode)
                                                       select new PricingMasterDC
                                                       {
                                                           ItemCode = im.ItemCode,
                                                           OptCode = pm.OptCode,
-                                                          CurrencyCode = bm.CurrencyCode,
-                                                          ConvFactor = cm.ConvFactor,
-                                                          ConvFactorByBrand = bm.ConvFactor,
+                                                          //CurrencyCode = bm.CurrencyCode,
+                                                          //ConvFactor = cm.ConvFactor,
+                                                          //ConvFactorByBrand = bm.ConvFactor,
                                                           Version = pm.Version,
                                                           Price = pm.Price ?? 0,
                                                           IsItemCodeCreation = om.IsItemCodeCreation ?? false,

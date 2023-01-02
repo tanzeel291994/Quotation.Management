@@ -1,9 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Quotation.Management.Contracts;
 using Quotation.Management.Contracts.Repositories;
 using Quotation.Management.Entities.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -151,5 +154,38 @@ namespace Quotation.Management.Repositories
                 return false;
             }
         }
+
+        public List<ItemCodeDetailsDC> GetItemCodeDetails(List<string> itemCodes,QMTContext context)
+        {
+            var connectionString = context.Database.GetConnectionString();
+            var result = new List<ItemCodeDetailsDC>();
+            using (var conn = new SqlConnection(connectionString))
+            {
+                using (var command = conn.CreateCommand())
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "GetItemCodeDetails";
+                    command.Parameters.AddWithValue("@ItemCode", string.Join(",",itemCodes));
+
+                    var rdr = command.ExecuteReader();
+                  
+                    while (rdr.Read())
+                    {
+                        ItemCodeDetailsDC detailsDC = new();
+                        detailsDC.BrandName = rdr["BrandName"].ToString();
+                        detailsDC.ProdName = rdr["ProdName"].ToString();
+                        detailsDC.IndexConvFactor = (decimal?)rdr["IndexConvFactor"];
+                        detailsDC.Mtlp = (decimal?)rdr["Mtlp"];
+                        detailsDC.CurrencyCode = rdr["CurrencyCode"].ToString();
+                        detailsDC.CAF = (decimal)rdr["CAF"];
+                        result.Add(detailsDC);
+                    }
+                    
+                }
+
+            }
+            return result;
+        }
+
     }
 }

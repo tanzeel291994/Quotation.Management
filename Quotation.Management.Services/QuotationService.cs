@@ -202,12 +202,13 @@ namespace Quotation.Management.Services
             try
             {
                 QMTContext context = _quotationRepository.BeginTransaction();
+                ItemCodeDetailsDC itemDetails = _itemCodeRepository.GetItemCodeDetails(new List<string> { inputLine.ItemCode }, context).First();
                 QuotationLine line = new();
 
                 line.QuotationNum = inputLine.QuotationNum;
                 line.ActiveLine = true; // BY DEFAULT ALL LINES ARE ACTIVE WHEN INSERTED
                 line.Qty = inputLine.Qty;
-                line.Mtlp = inputLine.Mtlp;
+                line.Mtlp = itemDetails.Mtlp ?? inputLine.Mtlp;
                 line.UnitPrice = inputLine.UnitPrice;
                 line.ItemCode = inputLine.ItemCode;
                 line.Vat = inputLine.Vat;
@@ -215,17 +216,19 @@ namespace Quotation.Management.Services
                 line.UnitTag = inputLine.UnitTag;
 
                 List<PricingMasterDC> pricing = _quotationRepository.GetPricingOptCode(inputLine.ItemCode, new List<string>() { "BASIC" });
+
                 if (pricing.Count == 0)
                     throw new ValidationException(new List<string> { "BASIC option not present for ItemCode:" + inputLine.ItemCode });
 
+               
                 QuotationLine? latestLine = _quotationRepository.GetLatestQuotationLine(inputLine.QuotationNum);
                 QuotationHeader? header = _quotationRepository.GetQuotation(inputLine.QuotationNum, inputLine.RevNum);
 
                 string currencyCode = header!.CurrencyCode;
                 CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(currencyCode);
 
-                line.UnitPrice = currencyCode == pricing[0].CurrencyCode ? pricing[0].Price : CalculatePriceOnCurrency(quotationCurrency!, pricing[0]);
-                if (pricing[0].ConvFactorByBrand != null) line.UnitPrice = line.UnitPrice * pricing[0].ConvFactorByBrand!.Value;
+                line.UnitPrice = currencyCode == itemDetails.CurrencyCode ? pricing.First().Price : CalculatePriceOnCurrency(quotationCurrency!, pricing.First(), itemDetails);
+                if (itemDetails.IndexConvFactor != null) line.UnitPrice = line.UnitPrice * itemDetails.IndexConvFactor!.Value;
                 
                 line.LineNum = latestLine != null ? latestLine.LineNum + 1 : 1;
                 line.RevNum = header != null ? header.RevNum : 0;
@@ -248,6 +251,8 @@ namespace Quotation.Management.Services
                 inputLine.TtNetPrice = line.TtNetPrice;
                 inputLine.Margin = line.Margin;
                 inputLine.ActiveLine = line.ActiveLine;
+                inputLine.CAF = itemDetails.CAF;
+                inputLine.IndexValue = itemDetails.IndexConvFactor;
                 inputLine.UnitTag = line.UnitTag ?? "";
                 inputLine.CostItemLineValue = costItemValue;
                 inputLine.TtslsPriceWOVat = Math.Round((inputLine.TtNetPrice) + (inputLine.CostItemLineValue ?? 0), 2);
@@ -319,9 +324,12 @@ namespace Quotation.Management.Services
                 string currencyCode = quotationHeader!.CurrencyCode;
                 CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(currencyCode);
                 List<PricingMasterDC> pricingList = new List<PricingMasterDC>();
+                List<string> itemCodes = copyToLines.Select(x => x.ItemCode).Distinct().ToList();
+                List<ItemCodeDetailsDC> itemCodesDetails = _itemCodeRepository.GetItemCodeDetails(itemCodes, context);
                 foreach (var line in copyToLines)
                 {
                     List<PricingMasterDC> pricingMasters = _quotationRepository.GetPricingOptCode(line.ItemCode, copyOptions);
+                    ItemCodeDetailsDC itemCodeDetail = itemCodesDetails.Where(x => x.ItemCode == line.ItemCode).First();
                     if (pricingMasters.Count > 0)
                     {
                         foreach (var pricing in pricingMasters)
@@ -330,8 +338,8 @@ namespace Quotation.Management.Services
                             optCode.QuotationNum = input.QuotationNum;
                             optCode.RevNum = line.RevNum;
                             optCode.LineNum = line.LineNum;
-                            optCode.UnitPrice = currencyCode == pricing.CurrencyCode ? pricing.Price : CalculatePriceOnCurrency(quotationCurrency!, pricing);
-                            if (pricing.ConvFactorByBrand != null) optCode.UnitPrice = optCode.UnitPrice * pricing.ConvFactorByBrand.Value;
+                            optCode.UnitPrice = currencyCode == itemCodeDetail.CurrencyCode ? pricing.Price : CalculatePriceOnCurrency(quotationCurrency!, pricing, itemCodeDetail);
+                            if (itemCodeDetail.IndexConvFactor != null) optCode.UnitPrice = optCode.UnitPrice * itemCodeDetail.IndexConvFactor.Value;
                             
                             optCode.OptCode = pricing.OptCode;
                             optCode = _quotationRepository.InsertQuotationOptCode(optCode, context);
@@ -370,14 +378,15 @@ namespace Quotation.Management.Services
                 List<PricingMasterDC> pricingList = _quotationRepository.GetPricingOptCode(quotationLine.ItemCode, optCodes);
                 string currencyCode = quotationHeader!.CurrencyCode;
                 CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(currencyCode);
+                ItemCodeDetailsDC itemCodeDetails = _itemCodeRepository.GetItemCodeDetails(new List<string> { inputLine.ItemCode }, context).First();
                 foreach (var item in pricingList)
                 {
                     QuotationOptCode optCode = new();
                     optCode.QuotationNum = inputLine.QuotationNum;
                     optCode.RevNum = inputLine.RevNum;
                     optCode.LineNum = inputLine.LineNum;
-                    optCode.UnitPrice = currencyCode == item.CurrencyCode ? item.Price : CalculatePriceOnCurrency(quotationCurrency!, item);
-                    if (item.ConvFactorByBrand != null) optCode.UnitPrice = optCode.UnitPrice * item.ConvFactorByBrand.Value;
+                    optCode.UnitPrice = currencyCode == itemCodeDetails.CurrencyCode ? item.Price : CalculatePriceOnCurrency(quotationCurrency!, item, itemCodeDetails);
+                    if (itemCodeDetails.IndexConvFactor != null) optCode.UnitPrice = optCode.UnitPrice * itemCodeDetails.IndexConvFactor.Value;
 
                     optCode.OptCode = item.OptCode;
                     optCode.IsNet = item.IsNet;
@@ -900,10 +909,10 @@ namespace Quotation.Management.Services
             return marginValue;
         }
 
-        private decimal CalculatePriceOnCurrency(CurrencyMaster quotationCurrency, PricingMasterDC pricing)
+        private decimal CalculatePriceOnCurrency(CurrencyMaster quotationCurrency, PricingMasterDC pricing,ItemCodeDetailsDC item)
         {
             //CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(quotationCurrencyCode);
-            return pricing.Price * (quotationCurrency.ConvFactor/pricing.ConvFactor);
+            return pricing.Price * (quotationCurrency.ConvFactor/ item.CAF);
         }
 
         private string GenerateQuotionNum(string areaCode ,int userId)
