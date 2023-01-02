@@ -84,10 +84,6 @@ namespace Quotation.Management.Services
                     ContractResolver = new CamelCasePropertyNamesContractResolver()
                 })));
                 jobject.Add(new JProperty("products", JsonConvert.SerializeObject(products)));
-               /* jobject.Add(new JProperty("costItems", JsonConvert.SerializeObject(costItems, new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                })));*/
 
                 return jobject;
             }
@@ -129,12 +125,21 @@ namespace Quotation.Management.Services
             try
             {
                 List<QuotationLineDC> lines = _quotationRepository.GetQuotationLinesDC(Id, revNum);
+                List<string> itemCodes = lines.Select(x => x.ItemCode).Distinct().ToList();
+                List<ItemCodeDetailsDC> itemCodeDetails = _itemCodeRepository.GetItemCodeDetails(itemCodes,new QMTContext());
+                foreach(var _line in lines)
+                {
+                    ItemCodeDetailsDC itemCodeDetail = itemCodeDetails.Where(x => x.ItemCode == _line.ItemCode).FirstOrDefault();
+                    _line.CAF = itemCodeDetail != null ? itemCodeDetail.CAF : 1;
+                    _line.IndexValue = itemCodeDetail != null ? itemCodeDetail.IndexConvFactor : 1;
+                }
+
                 return lines;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return null;
+                throw;
             }
         }
         public bool UpdateQuotationCurrency(CurrencyDC currencyDC)
@@ -159,14 +164,6 @@ namespace Quotation.Management.Services
                 }
 
                 UpdateUnitPriceFromOptions(currencyDC.QuotationNum, currencyDC.RevNum, quotationLines.Select(x => x.LineNum).ToList(), context);
-
-               /* foreach (var _line in quotationLines)
-                {
-                    _line.UnitPrice = (decimal)(currencyDC.NewConvFactor ?? currencyDC.ConvFactor) * _line.UnitPrice;
-                    _line.CostItemLineValue = (decimal)(currencyDC.NewConvFactor ?? currencyDC.ConvFactor) * _line.CostItemLineValue;
-                    _line.TtNetPrice = (decimal)(currencyDC.NewConvFactor ?? currencyDC.ConvFactor) * _line.TtNetPrice;
-                     _quotationRepository.UpdateQuotationLine(_line,context);
-                }*/
                 
                 List<QuotationCostItem> costItems = _quotationRepository.GetQuotationCostItems(currencyDC.QuotationNum, currencyDC.RevNum, context);
                 foreach (var _costItem in costItems)

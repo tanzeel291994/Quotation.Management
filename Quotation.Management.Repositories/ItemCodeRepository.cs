@@ -161,11 +161,12 @@ namespace Quotation.Management.Repositories
             var result = new List<ItemCodeDetailsDC>();
             using (var conn = new SqlConnection(connectionString))
             {
+                conn.Open();
                 using (var command = conn.CreateCommand())
                 {
                     command.CommandType = CommandType.StoredProcedure;
                     command.CommandText = "GetItemCodeDetails";
-                    command.Parameters.AddWithValue("@ItemCode", string.Join(",",itemCodes));
+                    command.Parameters.AddWithValue("@ItemCodes", string.Join(",",itemCodes));
 
                     var rdr = command.ExecuteReader();
                   
@@ -174,14 +175,15 @@ namespace Quotation.Management.Repositories
                         ItemCodeDetailsDC detailsDC = new();
                         detailsDC.BrandName = rdr["BrandName"].ToString();
                         detailsDC.ProdName = rdr["ProdName"].ToString();
-                        detailsDC.IndexConvFactor = (decimal?)rdr["IndexConvFactor"];
-                        detailsDC.Mtlp = (decimal?)rdr["Mtlp"];
+                        detailsDC.IndexConvFactor = !rdr.IsDBNull("IndexConvFactor") ? (decimal)rdr["IndexConvFactor"] : null;
+                        detailsDC.Mtlp = !rdr.IsDBNull("Mtlp") ? (decimal)rdr["Mtlp"] :null;
                         detailsDC.CurrencyCode = rdr["CurrencyCode"].ToString();
                         detailsDC.CAF = (decimal)rdr["CAF"];
                         result.Add(detailsDC);
                     }
                     
                 }
+                conn.Close();
 
             }
             return result;
