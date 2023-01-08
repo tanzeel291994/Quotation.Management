@@ -14,5 +14,7 @@ namespace Quotation.Management.Contracts.Services
         List<MasterDC> GetAllCustomers();
 
         List<MasterDC> GetCostItems();
+
+        UserMaster? GetCurrentUserDetails(string email);
     }
 }

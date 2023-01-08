@@ -20,6 +20,7 @@ namespace Quotation.Management.Contracts
         public decimal Mtlp { get; set; }
         public decimal Qty { get; set; }
         public decimal Vat { get; set; }
+        public int? UserId { get; set; }
         public decimal? Margin { get; set; }
         public bool ActiveLine { get; set; }
         public decimal TtNetPrice { get; set; }
@@ -83,6 +84,7 @@ namespace Quotation.Management.Contracts
         public string ItemCode { get; set; } = null!;
         public string BrandName { get; set; } = null!;
         public string ProdName { get; set; } = null!;
+        public string ProdTypeId { get; set; } = null!;
         public string CurrencyCode { get; set; } = null!;
         public decimal CAF { get; set; }
         public decimal? IndexConvFactor { get; set; }

@@ -19,10 +19,14 @@ namespace Quotation.Management.Entities.Models
         public decimal CostItemValue { get; set; }
         public decimal? FreightRate { get; set; }
         public int? NoOfContainers { get; set; }
+        public int? CreatedBy { get; set; }
+        public int? UpdatedBy { get; set; }
 
         public virtual CostItemCode CostItem { get; set; } = null!;
+        public virtual UserMaster? CreatedByNavigation { get; set; }
         public virtual ProductMaster ProdType { get; set; } = null!;
         public virtual QuotationHeader QuotationHeader { get; set; } = null!;
+        public virtual UserMaster? UpdatedByNavigation { get; set; }
         public virtual ICollection<QuotationCostItemLine> QuotationCostItemLines { get; set; }
     }
 }

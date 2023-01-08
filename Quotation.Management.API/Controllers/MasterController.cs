@@ -66,6 +66,26 @@ namespace QMT_API.Controllers
             }
         }
 
+        [HttpGet("getCurrentUser")]
+        [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetCurrentUserDetails(string email)
+        {
+            try
+            {
+                var _user = _mastersService.GetCurrentUserDetails(email);
+                return Ok(JsonConvert.SerializeObject(_user));
+            }
+            catch (ValidationException ex)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, JsonConvert.SerializeObject(ex._messages));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
         [HttpGet("costItems")]
         [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

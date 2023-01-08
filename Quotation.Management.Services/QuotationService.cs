@@ -57,9 +57,10 @@ namespace Quotation.Management.Services
                 header.IsActiveRevision = true;
                 header.Asp = inputHeader.Asp;
                 header.IndustryId = inputHeader.IndustryId;
+                header.CreatedBy = inputHeader.UserId;
                 header.QuotationNum = inputHeader.QuotationNum ?? GenerateQuotionNum(header.AreaCode, header.Msp);
 
-                header = _quotationRepository.InsertUpdateQuotation(header);
+                header = _quotationRepository.InsertUpdateQuotation(header, inputHeader.UserId);
                 return header;
             }
             catch (Exception ex)
@@ -217,7 +218,8 @@ namespace Quotation.Management.Services
                 QMTContext context = _quotationRepository.BeginTransaction();
                 ItemCodeDetailsDC itemDetails = _itemCodeRepository.GetItemCodeDetails(new List<string> { inputLine.ItemCode }, context).First();
                 QuotationLine line = new();
-
+                QuotationLine? latestLine = _quotationRepository.GetLatestQuotationLine(inputLine.QuotationNum);
+                decimal costItemValue = 0;
                 line.QuotationNum = inputLine.QuotationNum;
                 line.ActiveLine = true; // BY DEFAULT ALL LINES ARE ACTIVE WHEN INSERTED
                 line.Qty = inputLine.Qty;
@@ -227,37 +229,46 @@ namespace Quotation.Management.Services
                 line.Vat = inputLine.Vat;
                 line.Margin = inputLine.Margin;
                 line.UnitTag = inputLine.UnitTag;
-
-                List<PricingMasterDC> pricing = _quotationRepository.GetPricingOptCode(inputLine.ItemCode, new List<string>() { "BASIC" });
-
-                if (pricing.Count == 0)
-                    throw new ValidationException(new List<string> { "BASIC option not present for ItemCode:" + inputLine.ItemCode });
-
-               
-                QuotationLine? latestLine = _quotationRepository.GetLatestQuotationLine(inputLine.QuotationNum);
-                QuotationHeader? header = _quotationRepository.GetQuotation(inputLine.QuotationNum, inputLine.RevNum);
-
-                string currencyCode = header!.CurrencyCode;
-                CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(currencyCode);
-
-                line.UnitPrice = currencyCode == itemDetails.CurrencyCode ? pricing.First().Price : CalculatePriceOnCurrency(quotationCurrency!, pricing.First(), itemDetails);
-                if (itemDetails.IndexConvFactor != null) line.UnitPrice = line.UnitPrice * itemDetails.IndexConvFactor!.Value;
-                
                 line.LineNum = latestLine != null ? latestLine.LineNum + 1 : 1;
-                line.RevNum = header != null ? header.RevNum : 0;
-                line.TtNetPrice = line.UnitPrice * line.Mtlp * line.Qty; // BE DEFAULT NO NET IS TAKEN ON LINE INSERT
-                line = _quotationRepository.InsertQuotationLine(line, context);
-   
-                QuotationOptCode optCode = new(); 
-                optCode.QuotationNum = inputLine.QuotationNum;
-                optCode.RevNum = line.RevNum;
-                optCode.LineNum = line.LineNum;
-                optCode.UnitPrice = line.UnitPrice;
-                optCode.OptCode = pricing[0].OptCode;
-                optCode = _quotationRepository.InsertQuotationOptCode(optCode, context);
-                List<QuotationLine> lines = UpdateAllLinesCostItemValue(inputLine.QuotationNum, inputLine.RevNum, context);
-                
-                decimal costItemValue = lines.Where(x => x.LineNum == line.LineNum).Select(x => x.CostItemLineValue).FirstOrDefault() ?? 0;
+                line.RevNum = inputLine.RevNum;
+                line.UnitPrice = 0;
+                line.TtNetPrice = 0;
+                if (itemDetails.ProdTypeId == "AHU")
+                {
+                    if (line.UnitTag == "")
+                        throw new ValidationException(new List<string> { "UnitTag cannot be empty for AHUs" + inputLine.ItemCode });
+                    line.SubItemCode = _quotationRepository.GenerateItemCode(inputLine, context);
+                    line = _quotationRepository.InsertQuotationLine(line, context);
+                }
+                else
+                {
+                    List<PricingMasterDC> pricing = _quotationRepository.GetPricingOptCode(inputLine.ItemCode, new List<string>() { "BASIC" });
+
+                    if (pricing.Count == 0)
+                        throw new ValidationException(new List<string> { "BASIC option not present for ItemCode:" + inputLine.ItemCode });
+
+                    QuotationHeader? header = _quotationRepository.GetQuotation(inputLine.QuotationNum, inputLine.RevNum);
+
+                    string currencyCode = header!.CurrencyCode;
+                    CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(currencyCode);
+
+                    line.UnitPrice = currencyCode == itemDetails.CurrencyCode ? pricing.First().Price : CalculatePriceOnCurrency(quotationCurrency!, pricing.First(), itemDetails);
+                    if (itemDetails.IndexConvFactor != null) line.UnitPrice = line.UnitPrice * itemDetails.IndexConvFactor!.Value;
+                    
+                    line.TtNetPrice = line.UnitPrice * line.Mtlp * line.Qty; // BE DEFAULT NO NET IS TAKEN ON LINE INSERT
+                    line = _quotationRepository.InsertQuotationLine(line, context);
+
+                    QuotationOptCode optCode = new();
+                    optCode.QuotationNum = inputLine.QuotationNum;
+                    optCode.RevNum = line.RevNum;
+                    optCode.LineNum = line.LineNum;
+                    optCode.UnitPrice = line.UnitPrice;
+                    optCode.OptCode = pricing[0].OptCode;
+                    optCode = _quotationRepository.InsertQuotationOptCode(optCode, context);
+                    List<QuotationLine> lines = UpdateAllLinesCostItemValue(inputLine.QuotationNum, inputLine.RevNum, context);
+
+                    costItemValue = lines.Where(x => x.LineNum == line.LineNum).Select(x => x.CostItemLineValue).FirstOrDefault() ?? 0;
+                }
 
                 inputLine.LineNum = line.LineNum;
                 inputLine.UnitPrice = line.UnitPrice;

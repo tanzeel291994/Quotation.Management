@@ -302,11 +302,21 @@ namespace Quotation.Management.Entities.Models
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Quotation__CostI__1D7B6025");
 
+                entity.HasOne(d => d.CreatedByNavigation)
+                    .WithMany(p => p.QuotationCostItemCreatedByNavigations)
+                    .HasForeignKey(d => d.CreatedBy)
+                    .HasConstraintName("fk_QuotationCostItem_CreatedBy");
+
                 entity.HasOne(d => d.ProdType)
                     .WithMany(p => p.QuotationCostItems)
                     .HasForeignKey(d => d.ProdTypeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Quotation__ProdT__1C873BEC");
+
+                entity.HasOne(d => d.UpdatedByNavigation)
+                    .WithMany(p => p.QuotationCostItemUpdatedByNavigations)
+                    .HasForeignKey(d => d.UpdatedBy)
+                    .HasConstraintName("fk_QuotationCostItem_UpdatedBy");
 
                 entity.HasOne(d => d.QuotationHeader)
                     .WithMany(p => p.QuotationCostItems)
@@ -412,6 +422,11 @@ namespace Quotation.Management.Entities.Models
                     .HasForeignKey(d => d.Asp)
                     .HasConstraintName("fk_QuotationHeader_asp");
 
+                entity.HasOne(d => d.CreatedByNavigation)
+                    .WithMany(p => p.QuotationHeaderCreatedByNavigations)
+                    .HasForeignKey(d => d.CreatedBy)
+                    .HasConstraintName("fk_QuotationHeader_CreatedBy");
+
                 entity.HasOne(d => d.CurrencyCodeNavigation)
                     .WithMany(p => p.QuotationHeaders)
                     .HasForeignKey(d => d.CurrencyCode)
@@ -452,6 +467,11 @@ namespace Quotation.Management.Entities.Models
                     .HasForeignKey(d => d.StatusId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Quotation__Statu__29221CFB");
+
+                entity.HasOne(d => d.UpdatedByNavigation)
+                    .WithMany(p => p.QuotationHeaderUpdatedByNavigations)
+                    .HasForeignKey(d => d.UpdatedBy)
+                    .HasConstraintName("fk_QuotationHeader_UpdatedBy");
             });
 
             modelBuilder.Entity<QuotationLine>(entity =>
@@ -491,11 +511,21 @@ namespace Quotation.Management.Entities.Models
                     .HasColumnType("decimal(6, 2)")
                     .HasColumnName("VAT");
 
+                entity.HasOne(d => d.CreatedByNavigation)
+                    .WithMany(p => p.QuotationLineCreatedByNavigations)
+                    .HasForeignKey(d => d.CreatedBy)
+                    .HasConstraintName("fk_Quotationlines_CreatedBy");
+
                 entity.HasOne(d => d.ItemCodeNavigation)
                     .WithMany(p => p.QuotationLines)
                     .HasForeignKey(d => d.ItemCode)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_quotaionLine_itemcode");
+
+                entity.HasOne(d => d.UpdatedByNavigation)
+                    .WithMany(p => p.QuotationLineUpdatedByNavigations)
+                    .HasForeignKey(d => d.UpdatedBy)
+                    .HasConstraintName("fk_Quotationlines_UpdatedBy");
 
                 entity.HasOne(d => d.QuotationHeader)
                     .WithMany(p => p.QuotationLines)

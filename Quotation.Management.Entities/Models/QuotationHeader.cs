@@ -29,9 +29,12 @@ namespace Quotation.Management.Entities.Models
         public DateTime? BookingDate { get; set; }
         public int? IndustryId { get; set; }
         public int? Asp { get; set; }
+        public int? CreatedBy { get; set; }
+        public int? UpdatedBy { get; set; }
 
         public virtual SalesArea AreaCodeNavigation { get; set; } = null!;
         public virtual UserMaster? AspNavigation { get; set; }
+        public virtual UserMaster? CreatedByNavigation { get; set; }
         public virtual CurrencyMaster CurrencyCodeNavigation { get; set; } = null!;
         public virtual CustomerMaster CustomerCodeNavigation { get; set; } = null!;
         public virtual DeliveryTermMaster DeliveryTerm { get; set; } = null!;
@@ -39,6 +42,7 @@ namespace Quotation.Management.Entities.Models
         public virtual UserMaster MspNavigation { get; set; } = null!;
         public virtual PaymentTermMaster PaymentTerm { get; set; } = null!;
         public virtual QuotationStatusMaster Status { get; set; } = null!;
+        public virtual UserMaster? UpdatedByNavigation { get; set; }
         public virtual ICollection<QuotationCostItem> QuotationCostItems { get; set; }
         public virtual ICollection<QuotationLine> QuotationLines { get; set; }
     }

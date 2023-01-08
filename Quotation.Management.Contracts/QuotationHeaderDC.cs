@@ -24,8 +24,9 @@ namespace Quotation.Management.Contracts
         public int PaymentTermId { get; set; }
         public int? IndustryId { get; set; }
         public int StatusId { get; set; }
+        public int? UserId { get; set; }
         public string? StatusName { get; set; } = null!;
-         public string? AreaName { get; set; } = null!;
+        public string? AreaName { get; set; } = null!;
         public string? MspName { get; set; } = null!;
         public int Probability { get; set; }
     }

@@ -9,7 +9,7 @@ namespace Quotation.Management.Contracts.Repositories
 {
     public interface IQuotationRepository : ITransactional
     {
-         QuotationHeader InsertUpdateQuotation(QuotationHeader _quotationHeader);
+         QuotationHeader InsertUpdateQuotation(QuotationHeader _quotationHeader, int? updatedBy);
          QuotationLine InsertQuotationLine(QuotationLine _quotationLine, QMTContext? _context = null);
          QuotationOptCode InsertQuotationOptCode(QuotationOptCode _quotationOptCode, QMTContext? _context = null);
         //PricingMaster? GetPricingOptCode(string itemCode, string optCode);
@@ -17,6 +17,7 @@ namespace Quotation.Management.Contracts.Repositories
          QuotationHeader? GetQuotation(string quotationNum, int? revNum=null);
         List<QuotationLineDC> GetQuotationLinesDC(string quotationNum, int revNum, List<int>? selectedLines = null, string prodTypeId = "", QMTContext? _context = null);
 
+        string GenerateItemCode(QuotationLineDC _quotationLine, QMTContext? _context = null);
         QuotationOptCode? GetQuotationOptCode(string quotationNum, int revNum, int lineNum, string optCode, QMTContext? _context);
         List<QuotationOptCode> GetQuotationOptCodes(string quotationNum, int revNum, QMTContext? _context, int? lineNum = null);
 

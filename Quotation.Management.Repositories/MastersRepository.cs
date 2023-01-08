@@ -144,6 +144,14 @@ namespace Quotation.Management.Repositories
             }
         }
 
+        public UserMaster? GetCurrentUserDetails(string email)
+        {
+            using (var context = new QMTContext())
+            {
+                return context.UserMasters.Where(x => x.Email.ToLower() == email.ToLower()).FirstOrDefault();
+            }
+        }
+
         public CustomerMaster InsertCustomer(CustomerMaster customerMaster)
         {
 

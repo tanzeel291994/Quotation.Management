@@ -16,7 +16,7 @@ namespace Quotation.Management.Repositories
 
         }
 
-        public  QuotationHeader InsertUpdateQuotation(QuotationHeader _quotationHeader)
+        public  QuotationHeader InsertUpdateQuotation(QuotationHeader _quotationHeader,int? updatedBy)
         {
 
             using (var context = new QMTContext())
@@ -34,6 +34,7 @@ namespace Quotation.Management.Repositories
                     header.IndustryId = _quotationHeader.IndustryId;
                     header.Msp = _quotationHeader.Msp;
                     header.Asp = _quotationHeader.Asp;
+                    header.UpdatedBy = updatedBy;
                 }
                 else
                     context.QuotationHeaders.Add(_quotationHeader);
@@ -66,6 +67,24 @@ namespace Quotation.Management.Repositories
                 context.Dispose();
             }
             return _quotationLine;
+        }
+
+        public string GenerateItemCode(QuotationLineDC _quotationLine, QMTContext? _context=null)
+        {
+            try
+            {
+                var context = _context ?? new QMTContext();
+                int count = context.QuotationLines.Where(x => x.QuotationNum == _quotationLine.QuotationNum.ToUpper() && x.RevNum == _quotationLine.RevNum
+                && x.ItemCode == _quotationLine.ItemCode).Count();
+                char suffix = (char)(count + 65);
+                string itemCode = _quotationLine.QuotationNum + _quotationLine.ItemCode + _quotationLine.UnitTag+ suffix;
+                return itemCode;
+            }
+            catch (Exception ex)
+            {
+                //_logger.LogError(ex, ex.Message);
+                throw;
+            }
         }
 
         public QuotationHeader UpdateQuotationHeader(QuotationHeader _quotationHeader, QMTContext? _context = null)
@@ -505,6 +524,7 @@ namespace Quotation.Management.Repositories
                                                    ProdTypeId = ig.ProdTypeId ?? "",
                                                    UnitPrice = ql.UnitPrice,
                                                    Vat = ql.Vat,
+                                                   UnitTag = ql.UnitTag,
                                                    Margin = ql.Margin ?? 0,
                                                    CurrencyCode = qh.CurrencyCode,
                                                    TtNetPrice = ql.TtNetPrice,

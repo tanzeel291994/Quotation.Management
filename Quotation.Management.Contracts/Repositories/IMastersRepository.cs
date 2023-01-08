@@ -26,6 +26,8 @@ namespace Quotation.Management.Contracts.Repositories
         CostItemCode GetCostItemByCode(string costItemId);
 
         List<MasterDC> GetIndustrys();
+
+        UserMaster? GetCurrentUserDetails(string email);
         CustomerMaster InsertCustomer(CustomerMaster customerMaster);
     }
 }

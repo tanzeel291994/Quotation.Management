@@ -67,6 +67,16 @@ namespace Quotation.Management.Services
         {
             return _mastersRepository.GetCustomers();
         }
+        public UserMaster? GetCurrentUserDetails(string email)
+        {
+            UserMaster? userMaster = _mastersRepository.GetCurrentUserDetails(email);
+            if (userMaster == null)
+            {
+                throw new ValidationException(new List<string> { "User not found" });
+            }
+            else
+                return userMaster;
+        }
         public List<MasterDC> GetCostItems()
         {
             return _mastersRepository.GetCostItems();
