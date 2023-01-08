@@ -50,7 +50,7 @@ namespace QMT_API.Controllers
             }
 
         }
-        [HttpGet("master/customer/all")]
+        [HttpGet("customer/all")]
         [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetCustomers()
@@ -66,6 +66,22 @@ namespace QMT_API.Controllers
             }
         }
 
+        [HttpGet("costItems")]
+        [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetCostItems()
+        {
+            try
+            {
+                var _costItemList = _mastersService.GetCostItems();
+                return Ok(JsonConvert.SerializeObject(_costItemList));
+            }
+
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
 
         [HttpGet("Search/GetAll")]
         [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]

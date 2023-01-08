@@ -81,18 +81,32 @@ namespace Quotation.Management.Services
                 {
                     ContractResolver = new CamelCasePropertyNamesContractResolver()
                 })));
-                jobject.Add(new JProperty("lines", JsonConvert.SerializeObject(lines, new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                })));
-                jobject.Add(new JProperty("products", JsonConvert.SerializeObject(products)));
+                //jobject.Add(new JProperty("lines", JsonConvert.SerializeObject(lines, new JsonSerializerSettings
+                //{
+                //    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                //})));
+                //jobject.Add(new JProperty("products", JsonConvert.SerializeObject(products)));
 
                 return jobject;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return null;
+                throw;
+            }
+        }
+
+        public dynamic GetProductsFromQuotation(string Id, int revNum)
+        {
+            try
+            {
+                dynamic products = _productMasterRepository.GetProductsofQuotations(Id, revNum);
+                return products;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                throw;
             }
         }
 

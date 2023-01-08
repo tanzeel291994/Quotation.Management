@@ -12,5 +12,7 @@ namespace Quotation.Management.Contracts.Services
         CustomerMaster InsertCustomer(CustomerMaster customerMaster);
 
         List<MasterDC> GetAllCustomers();
+
+        List<MasterDC> GetCostItems();
     }
 }

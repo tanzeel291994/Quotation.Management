@@ -640,6 +640,11 @@ namespace Quotation.Management.Entities.Models
                     .HasMaxLength(500)
                     .IsUnicode(false)
                     .HasColumnName("lastName");
+
+                entity.Property(e => e.Role)
+                    .HasMaxLength(500)
+                    .IsUnicode(false)
+                    .HasColumnName("role");
             });
 
             OnModelCreatingPartial(modelBuilder);

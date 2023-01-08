@@ -41,7 +41,7 @@ namespace Quotation.Management.Services
                 jobject.Add(new JProperty("industries", JsonConvert.SerializeObject(_mastersRepository.GetIndustrys())));
                 //jobject.Add(new JProperty("itemCodes", JsonConvert.SerializeObject(_itemCodeRepository.GetAll())));
                 //jobject.Add(new JProperty("products", JsonConvert.SerializeObject(_mastersRepository.GetProducts())));
-                jobject.Add(new JProperty("costItems", JsonConvert.SerializeObject(_mastersRepository.GetCostItems())));
+                //jobject.Add(new JProperty("costItems", JsonConvert.SerializeObject(_mastersRepository.GetCostItems())));
 
                 return jobject;
             }
@@ -66,6 +66,10 @@ namespace Quotation.Management.Services
         public List<MasterDC> GetAllCustomers()
         {
             return _mastersRepository.GetCustomers();
+        }
+        public List<MasterDC> GetCostItems()
+        {
+            return _mastersRepository.GetCostItems();
         }
         public JObject? GetAllMastersForSearch()
         {

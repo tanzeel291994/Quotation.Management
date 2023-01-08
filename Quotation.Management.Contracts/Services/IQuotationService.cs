@@ -34,6 +34,8 @@ namespace Quotation.Management.Contracts.Services
 
         dynamic SearchQuotations(QuotationSearchDC quotationSearch);
         void DeleteQuotationLine(QuotationLineDC input);
+
+        dynamic GetProductsFromQuotation(string Id, int revNum);
         //List<QuotationLine> UpdateUnitPriceFromOptions(string quotatioNum, int revNum, List<int> lineNums, QMTContext context);
     }
 }

@@ -15,6 +15,7 @@ namespace Quotation.Management.Entities.Models
         public string FirstName { get; set; } = null!;
         public string LastName { get; set; } = null!;
         public string Email { get; set; } = null!;
+        public string? Role { get; set; }
 
         public virtual ICollection<QuotationHeader> QuotationHeaderAspNavigations { get; set; }
         public virtual ICollection<QuotationHeader> QuotationHeaderMspNavigations { get; set; }
