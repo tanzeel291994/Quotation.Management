@@ -565,14 +565,14 @@ namespace Quotation.Management.Repositories
             }
         }
 
-        public List<QuotationOptCodeDC> GetQuotationLinesNonStandardOptions(string quotationNum, int revNum)
+        public List<QuotationOptCodeDC> GetQuotationLinesNonStandardOptions(string quotationNum, int revNum,int lineNum)
         {
             using (var context = new QMTContext())
             {
                 List<QuotationOptCodeDC> optCodes = (from qoc in context.QuotationOptCodes
                                                      join ql in context.QuotationLines on new { qoc.QuotationNum, qoc.LineNum, qoc.RevNum } equals new { ql.QuotationNum, ql.LineNum, ql.RevNum }
                                                      where qoc.QuotationNum == quotationNum.ToUpper() && qoc.RevNum == revNum 
-                                                     && qoc.OptType == OptionType.NonStandard.ToString()
+                                                     && qoc.OptType == OptionType.NonStandard.ToString() && ql.LineNum == lineNum
                                                      select new QuotationOptCodeDC
                                                      {
                                                          QuotationNum = qoc.QuotationNum,

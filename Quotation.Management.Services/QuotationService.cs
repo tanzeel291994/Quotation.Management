@@ -235,10 +235,11 @@ namespace Quotation.Management.Services
                 line.TtNetPrice = 0;
                 if (itemDetails.ProdTypeId == "AHU")
                 {
-                    if (line.UnitTag == "")
+                    if (line.UnitTag == null || line.UnitTag == "")
                         throw new ValidationException(new List<string> { "UnitTag cannot be empty for AHUs" + inputLine.ItemCode });
                     line.SubItemCode = _quotationRepository.GenerateItemCode(inputLine, context);
                     line = _quotationRepository.InsertQuotationLine(line, context);
+                    inputLine.ItemCode = line.SubItemCode;
                 }
                 else
                 {
@@ -563,12 +564,12 @@ namespace Quotation.Management.Services
             }
         }
 
-        public List<QuotationOptCodeDC>? GetQuotationLinesNonStandardOptCodes(string Id, int revNum)
+        public List<QuotationOptCodeDC>? GetQuotationLinesNonStandardOptCodes(string Id, int revNum,int lineNum)
         {
             try
             {
                 //QuotationHeader? header = _quotationRepository.GetQuotation(Id, revNum);
-                var quotationOptCodes = _quotationRepository.GetQuotationLinesNonStandardOptions(Id, revNum);
+                var quotationOptCodes = _quotationRepository.GetQuotationLinesNonStandardOptions(Id, revNum, lineNum);
                 return quotationOptCodes;
             }
             catch (Exception ex)
@@ -863,6 +864,7 @@ namespace Quotation.Management.Services
                     decimal totalNetPrice = 0;
                     QuotationLine quotationLine = _quotationRepository.GetQuotationLine(quotatioNum, _lineNum, revNum, context);
                     List<QuotationOptCode> quotationOptCodes = _quotationRepository.GetQuotationOptCodes(quotatioNum, revNum, context, _lineNum );
+                    ItemCodeDetailsDC itemCodeDetailsDC = _itemCodeRepository.GetItemCodeDetails(new List<string> { quotationLine.ItemCode },context).First();
                     string? itemCode = null;
                     foreach (var _quoteOption in quotationOptCodes)
                     {
@@ -878,19 +880,26 @@ namespace Quotation.Management.Services
                         else
                             totalNetPrice += quotationLine.Mtlp * quotationLine.Qty * (_quoteOption.UnitPrice ?? 0);
 
-                        if(pricingList != null)
-                        if(pricingList.Any(x=>x.OptCode == _quoteOption.OptCode))
+                        if (pricingList != null)
                         {
-                            PricingMasterDC pricingMaster = pricingList.Where(x => x.OptCode == _quoteOption.OptCode).First();
-                           if(pricingMaster.IsItemCodeCreation)
-                           {
-                             itemCode = _itemCodeService.CreateItemCode(itemCode ?? quotationLine.SubItemCode ?? quotationLine.ItemCode, _quoteOption.OptCode);
-                           } 
+                            if (pricingList.Any(x => x.OptCode == _quoteOption.OptCode))
+                            {
+                                PricingMasterDC pricingMaster = pricingList.Where(x => x.OptCode == _quoteOption.OptCode).First();
+                                if (pricingMaster.IsItemCodeCreation)
+                                {
+                                    itemCode = _itemCodeService.CreateItemCode(itemCode ?? quotationLine.SubItemCode ?? quotationLine.ItemCode, _quoteOption.OptCode);
+                                }
+                            }
                         }
+                        else
+                        {
+
+                        }
+                        
                     }
                     QuotationLineDC lineDC = new();
                     lineDC.QuotationNum = quotatioNum;
-                    lineDC.SubItemCode = itemCode;
+                    lineDC.SubItemCode = itemCodeDetailsDC.ProdTypeId != "AHU" ? itemCode : quotationLine.SubItemCode;
                     lineDC.RevNum = revNum;
                     lineDC.LineNum = _lineNum;
                     lineDC.UnitPrice = unitPrice;

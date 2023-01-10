@@ -42,7 +42,7 @@ namespace Quotation.Management.Contracts.Repositories
 
         QuotationHeader? GetQuotation(string quotationNum, int revNum, QMTContext _context);
 
-        List<QuotationOptCodeDC> GetQuotationLinesNonStandardOptions(string quotationNum, int revNum);
+        List<QuotationOptCodeDC> GetQuotationLinesNonStandardOptions(string quotationNum, int revNum, int lineNum);
         QuotationHeader UpdateQuotationHeader(QuotationHeader _quotationHeader, QMTContext? _context = null);
 
         QuotationCostItem UpdateCostItem(QuotationCostItem _quotationCostItem, QMTContext? _context = null);

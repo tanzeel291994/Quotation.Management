@@ -250,11 +250,11 @@ namespace QMT_API.Controllers
         [HttpGet("line/nonstandard/options")]
         [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetQuotationLineNonStandadOptions(string quotationId, int revNum)
+        public IActionResult GetQuotationLineNonStandadOptions(string quotationId, int revNum,int lineNum)
         {
             try
             {
-                var _optCodes = _quotationService.GetQuotationLinesNonStandardOptCodes(quotationId, revNum);
+                var _optCodes = _quotationService.GetQuotationLinesNonStandardOptCodes(quotationId, revNum,lineNum);
                 return Ok(JsonConvert.SerializeObject(_optCodes, new JsonSerializerSettings
                 {
                     ContractResolver = new CamelCasePropertyNamesContractResolver()
