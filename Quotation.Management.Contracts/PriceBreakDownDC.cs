@@ -14,6 +14,7 @@ namespace Quotation.Management.Contracts
         public QuotationHeaderDC quotationHeader;
         public List<ProductPrice> productPrices = new();
         public DataTable costItemBreakDownDCs = new();
+        public DataTable totalValueDCs = new();
 
     }
 

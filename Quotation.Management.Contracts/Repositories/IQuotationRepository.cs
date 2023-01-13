@@ -13,7 +13,7 @@ namespace Quotation.Management.Contracts.Repositories
          QuotationLine InsertQuotationLine(QuotationLine _quotationLine, QMTContext? _context = null);
          QuotationOptCode InsertQuotationOptCode(QuotationOptCode _quotationOptCode, QMTContext? _context = null);
         //PricingMaster? GetPricingOptCode(string itemCode, string optCode);
-         QuotationLine? GetLatestQuotationLine(string quotationNum);
+        QuotationLine? GetLatestQuotationLine(string quotationNum, QMTContext? _context = null);
          QuotationHeader? GetQuotation(string quotationNum, int? revNum=null);
         List<QuotationLineDC> GetQuotationLinesDC(string quotationNum, int revNum, List<int>? selectedLines = null, string prodTypeId = "", QMTContext? _context = null);
 

@@ -11,7 +11,8 @@ namespace Quotation.Management.Contracts
         public string QuotationNum { get; set; } = null!;
         public int RevNum { get; set; }
         public int LineNum { get; set; }
-        public string ItemCode { get; set; }
+        public string ItemCode { get; set; } = null!;
+        public string? BaseItemCode { get; set; }
         public string? SubItemCode { get; set; }
         public decimal CAF { get; set; }
         public decimal? CostItemLineValue { get; set; }

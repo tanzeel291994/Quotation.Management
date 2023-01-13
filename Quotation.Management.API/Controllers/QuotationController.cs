@@ -404,8 +404,10 @@ namespace QMT_API.Controllers
             }
         }
 
-        [HttpPost("import/excel")]
-        [ProducesResponseType(typeof(ItemMaster), StatusCodes.Status200OK)]
+        [HttpPost("lines/import/excel")]
+        [ProducesResponseType(typeof(void), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(void), StatusCodes.Status422UnprocessableEntity)]
+        [ProducesResponseType(typeof(void), StatusCodes.Status500InternalServerError)]
         public IActionResult ReadQuotationlinesFromExcelFile()
         {
             try
@@ -424,7 +426,7 @@ namespace QMT_API.Controllers
                         else if (inputFile.FileName.EndsWith(".xlsx"))
                             reader = ExcelReaderFactory.CreateOpenXmlReader(fileStream);
                         else
-                            validationMessages.Add("File format not supported");
+                            throw new ValidationException(new List<string> { "File format not supported" });
 
                         ds = reader.AsDataSet(new ExcelDataSetConfiguration()
                         {
@@ -436,11 +438,10 @@ namespace QMT_API.Controllers
                     }
                     if (ds != null && ds.Tables.Count > 0 && validationMessages.Count == 0)
                     {
-                        validationMessages.AddRange(_quotationService.ImportQuotationLines(ds));
+                        _quotationService.ImportQuotationLines(ds);
                     }
-
                 }
-                return Ok(JsonConvert.SerializeObject(validationMessages));
+                return Ok();
             }
             catch (ValidationException ex)
             {

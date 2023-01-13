@@ -174,6 +174,7 @@ namespace Quotation.Management.Repositories
                     {
                         ItemCodeDetailsDC detailsDC = new();
                         detailsDC.BrandName = rdr["BrandName"].ToString();
+                        detailsDC.ItemCode = rdr["ItemCode"].ToString();
                         detailsDC.ProdName = rdr["ProdName"].ToString();
                         detailsDC.ProdTypeId = rdr["ProdTypeId"].ToString();
                         detailsDC.IndexConvFactor = !rdr.IsDBNull("IndexConvFactor") ? (decimal)rdr["IndexConvFactor"] : null;

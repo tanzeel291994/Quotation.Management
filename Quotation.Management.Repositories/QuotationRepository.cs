@@ -451,13 +451,16 @@ namespace Quotation.Management.Repositories
             }
         }
 
-        public QuotationLine? GetLatestQuotationLine(string quotationNum)
+        public QuotationLine? GetLatestQuotationLine(string quotationNum, QMTContext? _context = null)
         {
 
-            using (var context = new QMTContext())
+            var context = _context ?? new QMTContext();
+            QuotationLine? quotationLine = context.QuotationLines.Where(x => x.QuotationNum == quotationNum.ToUpper()).OrderByDescending(x => x.RevNum).OrderByDescending(x => x.LineNum).FirstOrDefault();
+            if (_context == null)
             {
-                return context.QuotationLines.Where(x => x.QuotationNum == quotationNum.ToUpper()).OrderByDescending(x => x.RevNum).OrderByDescending(x => x.LineNum).FirstOrDefault();
+                context.Dispose();
             }
+            return quotationLine;
         }
 
         public QuotationLine GetQuotationLine(string quotationNum,int lineNum , int revNum, QMTContext? _context=null)
@@ -521,6 +524,8 @@ namespace Quotation.Management.Repositories
                                                    RevNum = ql.RevNum,
                                                    QuotationNum = ql.QuotationNum,
                                                    ItemCode = ql.SubItemCode ?? ql.ItemCode ?? "",
+                                                   SubItemCode = ql.SubItemCode,
+                                                   BaseItemCode = ql.ItemCode,
                                                    ProdTypeId = ig.ProdTypeId ?? "",
                                                    UnitPrice = ql.UnitPrice,
                                                    Vat = ql.Vat,
@@ -618,6 +623,8 @@ namespace Quotation.Management.Repositories
                                                     CostItemType = x.CostItemType,
                                                     CostItemValue = x.CostItemValue,
                                                     QuotationCostItemGroupId = x.QuotationCostItemGroupId,
+                                                    FreightRate = x.FreightRate,
+                                                    NoOfContainers = x.NoOfContainers,
                                                     ProdTypeId = x.ProdTypeId,
                                                     RevNum = x.RevNum,
                                                 })
@@ -631,7 +638,7 @@ namespace Quotation.Management.Repositories
                                                                     select new QuotationLineCostItem
                                                                     {
                                                                         LineNum = ql.LineNum,
-                                                                        ItemCode = ql.ItemCode
+                                                                        ItemCode = ql.SubItemCode ?? ql.ItemCode
                                                                     }).ToList();
                     _costItem.quotationLineCostItems = quotCostItemLines.ToArray();
                 }
