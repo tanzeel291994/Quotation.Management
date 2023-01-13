@@ -5,7 +5,9 @@ using Newtonsoft.Json.Serialization;
 using Quotation.Management.Contracts;
 using Quotation.Management.Contracts.Services;
 using Quotation.Management.Entities.Models;
+using Quotation.Management.Services;
 using System.Data;
+using ExcelDataReader;
 
 namespace QMT_API.Controllers
 {
@@ -401,5 +403,54 @@ namespace QMT_API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+        [HttpPost("import/excel")]
+        [ProducesResponseType(typeof(ItemMaster), StatusCodes.Status200OK)]
+        public IActionResult ReadQuotationlinesFromExcelFile()
+        {
+            try
+            {
+                var httpRequest = HttpContext.Request;
+                List<string> validationMessages = new List<string>();
+                IExcelDataReader? reader = null;
+                DataSet ds = new();
+                if (httpRequest.Form.Files.Count > 0)
+                {
+                    var inputFile = httpRequest.Form.Files[0];
+                    using (var fileStream = inputFile.OpenReadStream())
+                    {
+                        if (inputFile.FileName.EndsWith(".xls"))
+                            reader = ExcelReaderFactory.CreateBinaryReader(fileStream);
+                        else if (inputFile.FileName.EndsWith(".xlsx"))
+                            reader = ExcelReaderFactory.CreateOpenXmlReader(fileStream);
+                        else
+                            validationMessages.Add("File format not supported");
+
+                        ds = reader.AsDataSet(new ExcelDataSetConfiguration()
+                        {
+                            ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
+                            {
+                                UseHeaderRow = true
+                            }
+                        });
+                    }
+                    if (ds != null && ds.Tables.Count > 0 && validationMessages.Count == 0)
+                    {
+                        validationMessages.AddRange(_quotationService.ImportQuotationLines(ds));
+                    }
+
+                }
+                return Ok(JsonConvert.SerializeObject(validationMessages));
+            }
+            catch (ValidationException ex)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, JsonConvert.SerializeObject(ex._messages));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
     }
 }

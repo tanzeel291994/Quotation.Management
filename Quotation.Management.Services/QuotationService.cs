@@ -449,23 +449,24 @@ namespace Quotation.Management.Services
             try
             {
                 QMTContext context = _quotationRepository.BeginTransaction();
-                List<string> optCodes = inputLine.optCodes!.Split(',').ToList();
+                List<string> optCodesToBeRemoved = inputLine.optCodes!.Split(',').ToList();
                 QuotationLine quotationLine = _quotationRepository.GetQuotationLine(inputLine.QuotationNum, inputLine.LineNum, inputLine.RevNum);
-                List<PricingMasterDC> pricingList = _quotationRepository.GetPricingOptCode(quotationLine.ItemCode, optCodes);
-
-                foreach (var item in pricingList)
+               
+                foreach (var item in optCodesToBeRemoved)
                 {
                     QuotationOptCode optCode = new();
                     optCode.QuotationNum = inputLine.QuotationNum;
                     optCode.RevNum = inputLine.RevNum;
                     optCode.LineNum = inputLine.LineNum;
-                    //optCode.UnitPrice = CalculatePriceOnCurrency(currencyCode, item)
-                    optCode.OptCode = item.OptCode;
+                    optCode.OptCode = item;
                     _quotationRepository.RemoveQuotationOptCode(optCode, context);
                 }
+                List<string> optCodesExisting = _quotationRepository.GetQuotationOptCodes(inputLine.QuotationNum, inputLine.RevNum, context, inputLine.LineNum)
+                                                            .Select(x=>x.OptCode).ToList();
+                List<PricingMasterDC> pricingList = _quotationRepository.GetPricingOptCode(quotationLine.ItemCode, optCodesExisting);
                 List<QuotationLineDC> linesDC = UpdateUnitPriceFromOptions(inputLine.QuotationNum, inputLine.RevNum, new List<int> { inputLine.LineNum }, context, pricingList);
                 QuotationLineDC lineDC = linesDC.Where(x => x.LineNum == inputLine.LineNum).First();
-                //UpdateAllLinesCostItemValue(inputLine.QuotationNum, inputLine.RevNum, context);
+
                 List<QuotationLine> lines = UpdateAllLinesCostItemValue(inputLine.QuotationNum, inputLine.RevNum, context);
                 inputLine.CostItemLineValue = lines.Where(x => x.LineNum == inputLine.LineNum).Select(x => x.CostItemLineValue).FirstOrDefault() ?? 0;
                 inputLine.UnitPrice = lineDC.UnitPrice;
@@ -891,10 +892,6 @@ namespace Quotation.Management.Services
                                 }
                             }
                         }
-                        else
-                        {
-
-                        }
                         
                     }
                     QuotationLineDC lineDC = new();
@@ -1112,5 +1109,145 @@ namespace Quotation.Management.Services
                 throw;
             }
         }
+
+        public List<string> ImportQuotationLines(DataSet ds)
+        {
+            List<string> validationMessages = new List<string>();
+            try
+            {
+                int index = ds.Tables.IndexOf("Lines");
+                List<QuotationLineDC> quotationLineDCList = new();
+                if (index != -1)
+                {
+                    DataTable dt = ds.Tables[index];
+                    var columnNames = dt.Columns.Cast<DataColumn>().Select(x => x.ColumnName).ToArray().ToList();
+                    List<string> validItemCodes = new();
+                    List<string?> allItemCodes = dt.Rows.Cast<DataRow>().Select(x => x.Field<string>("ItemCode")).ToArray().ToList();
+                    List<string> requiredColumns = new List<string>() { "ItemCode", "UnitTag","Qty", "Mtlp", "Margin", "Vat%" };
+                    foreach(var col in requiredColumns)
+                    {
+                        if (!columnNames.Contains(col)) validationMessages.Add(col+" column is not existing in the file");
+                    }
+
+                    validationMessages.AddRange(_itemCodeRepository.ValidateAllItemCodes(allItemCodes, out validItemCodes));
+                    if (validationMessages.Count > 0) throw new ValidationException(validationMessages);
+                    
+                    QMTContext context = _quotationRepository.BeginTransaction();
+                    List<ItemCodeDetailsDC> itemCodeDetails = _itemCodeRepository.GetItemCodeDetails(allItemCodes, context);
+                    for (int i = 0; i < dt.Rows.Count; i++)
+                    {
+                        string? itemCode = dt.Rows[i].Field<string>("ItemCode");
+                        string? quotatationNum = dt.Rows[i].Field<string>("QuotationNum");
+                        string? revNum = dt.Rows[i].Field<string>("RevNum");
+                        string? unitTag = dt.Rows[i].Field<string>("UnitTag");
+                        string? qty = dt.Rows[i].Field<string>("Qty");
+                        string? mtlp = dt.Rows[i].Field<string>("Mtlp");
+                        string? vat = dt.Rows[i].Field<string>("Vat%");
+                        
+
+                        ValidateCellValue(itemCode, "ItemCode",i,false,out string? message);
+                        if (message != null) validationMessages.Add(message);
+                        ItemCodeDetailsDC? detailsDC = itemCodeDetails.Where(x => x.ItemCode == itemCode).FirstOrDefault();
+                        if (detailsDC == null) validationMessages.Add(itemCode + " ItemCode on Index " + i + " is missing.");
+                        
+                        ValidateCellValue(itemCode, "Qty", i, true, out string? message1);
+                        if (message1 != null) validationMessages.Add(message1);
+
+                        ValidateCellValue(quotatationNum, "QuotationNum", i, false, out string? message4);
+                        if (message4 != null) validationMessages.Add(message4);
+
+                        ValidateCellValue(revNum, "RevNum", i, false, out string? message5);
+                        if (message5 != null) validationMessages.Add(message5);
+
+                        ValidateCellValue(itemCode, "Vat%", i, true, out string? message2);
+                        if (message2 != null) validationMessages.Add(message2);
+
+                        if(detailsDC!.Mtlp == null)
+                        {
+                            ValidateCellValue(itemCode, "Mtlp", i, true, out string? message6);
+                            if (message6 != null) validationMessages.Add(message6);
+                        }
+                        if(detailsDC != null)
+                        {
+                            if(detailsDC!.ProdTypeId == "AHU")
+                            {
+                                ValidateCellValue(itemCode, "UnitTag", i, true, out string? message3);
+                                if (message3 != null) validationMessages.Add(message3);
+                            }
+                        }
+                        if (validationMessages.Count > 0) new ValidationException(validationMessages);
+                        if(detailsDC!.ProdTypeId == "AHU")
+                        {
+                            itemCode = quotatationNum + unitTag + itemCode;
+                        }
+                        //
+
+
+                        foreach (var itemCode in itemCodes)
+                        {
+                            PricingMaster? pricingMasterExist = _pricingRepository.GetPricing(itemCode, optCode, context);
+                            if (pricingMasterExist != null && pricingMasterExist.Price != pricingValue)
+                                version = "V" + (Convert.ToInt32(pricingMasterExist.Version.Replace("V", "")) + 1); // if pricing is differnt then only make versions
+                            else if (pricingMasterExist != null && pricingMasterExist!.Price == pricingValue)
+                                continue;
+                            else
+                                version = "V1";
+
+                            OptionMaster optionMaster = new();
+                            optionMaster.OptCode = optCode;
+                            optionMaster.OptName = optName ?? optCode;
+
+                            optionMaster = _optCodeRepository.InsertOptCodeIfNotExist(optionMaster, context);
+
+                            PricingMaster pricingMaster = new PricingMaster();
+                            pricingMaster.ItemCode = itemCode;
+                            pricingMaster.OptCode = optionMaster.OptCode;
+                            pricingMaster.Version = version;
+                            pricingMaster.Price = pricingValue;
+
+                            pricingMaster = _pricingRepository.InsertPricingIfNotExist(pricingMaster, context);
+
+
+                        }
+                    }
+                    if (validationMessages.Count == 0)
+                        _optCodeRepository.Commit();
+                    else
+                        _optCodeRepository.RollBack();
+
+                }
+                return validationMessages;
+            }
+            catch (Exception ex)
+            {
+                _optCodeRepository.RollBack();
+                _logger.LogError(ex, ex.Message);
+                validationMessages.Add("Error in saving :" + ex.Message);
+                return validationMessages;
+            }
+            finally
+            {
+                _optCodeRepository.DisposeConnection();
+            }
+        }
+
+        private void ValidateCellValue(string? val ,string col,int index ,bool isNumber,out string? message)
+        {
+            message = null;
+            if (val == null)
+            {
+                message=(col + " is missing on Index " + index);
+            }
+            if(isNumber)
+            {
+                bool isDataType = decimal.TryParse(val, out decimal decimalValue);
+                if (!isDataType)
+                {
+                    message=(col+ " is not a number on Index " + index);
+                }
+            }
+           
+        }
+
     }
 }
