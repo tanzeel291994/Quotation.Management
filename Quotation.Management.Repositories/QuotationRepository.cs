@@ -536,7 +536,7 @@ namespace Quotation.Management.Repositories
                                                    CostItemLineValue = ql.CostItemLineValue ?? 0,
                                                    TtslsPriceWOVat = Math.Round(ql.TtNetPrice + (ql.CostItemLineValue ?? 0), 2),
                                                    TtslsPriceWMargin = Math.Round((100 + (ql.Margin ?? 0)) / 100 * (ql.TtNetPrice + (ql.CostItemLineValue ?? 0)), 2),
-                                                   TtslsPrice = Math.Round((100+(ql.Vat))/100 * (ql.TtNetPrice + (ql.CostItemLineValue ?? 0)),2)
+                                                   TtslsPrice = Math.Round((100+ql.Vat)/100 * ((100 + (ql.Margin ?? 0)) / 100 * (ql.TtNetPrice + (ql.CostItemLineValue ?? 0))),2)
                                                }).ToList();
                 if (selectedLines != null)
                     lines = lines.Where(x => selectedLines.Contains(x.LineNum)).ToList();
