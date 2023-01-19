@@ -549,6 +549,8 @@ namespace Quotation.Management.Entities.Models
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
+                entity.Property(e => e.Baseprice).HasColumnType("decimal(18, 2)");
+
                 entity.Property(e => e.OptName)
                     .HasMaxLength(500)
                     .IsUnicode(false);

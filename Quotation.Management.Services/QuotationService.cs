@@ -58,7 +58,7 @@ namespace Quotation.Management.Services
                 header.Asp = inputHeader.Asp;
                 header.IndustryId = inputHeader.IndustryId;
                 header.CreatedBy = inputHeader.UserId;
-                header.QuotationNum = inputHeader.QuotationNum ?? GenerateQuotionNum(header.AreaCode, header.Msp);
+                header.QuotationNum = inputHeader.QuotationNum ?? GenerateQuotionNum(header.AreaCode, header.Msp, header.QuotationDate.Year);
 
                 header = _quotationRepository.InsertUpdateQuotation(header, inputHeader.UserId);
                 return header;
@@ -142,7 +142,7 @@ namespace Quotation.Management.Services
             try
             {
                 List<QuotationLineDC> lines = _quotationRepository.GetQuotationLinesDC(Id, revNum);
-                List<string> itemCodes = lines.Select(x => x.ItemCode).Distinct().ToList();
+                List<string> itemCodes = lines.Select(x => x.BaseItemCode).Distinct().ToList();
                 List<ItemCodeDetailsDC> itemCodeDetails = _itemCodeRepository.GetItemCodeDetails(itemCodes,new QMTContext());
 
                 QuotationHeader? quotationHeader = _quotationRepository.GetQuotation(Id, revNum);
@@ -150,8 +150,8 @@ namespace Quotation.Management.Services
                 CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(currencyCode);
                 foreach (var _line in lines)
                 {
-                    ItemCodeDetailsDC itemCodeDetail = itemCodeDetails.Where(x => x.ItemCode == _line.ItemCode).FirstOrDefault();
-                    _line.CAF = itemCodeDetail != null ? Math.Round(quotationCurrency.ConvFactor / itemCodeDetail.CAF,4) : 1;
+                    ItemCodeDetailsDC itemCodeDetail = itemCodeDetails.Where(x => x.ItemCode == _line.BaseItemCode).FirstOrDefault();
+                    _line.CAF = itemCodeDetail != null ? Math.Round(quotationCurrency!.ConvFactor / itemCodeDetail.CAF,4) : 1;
                     _line.IndexValue = itemCodeDetail != null ? itemCodeDetail.IndexConvFactor : 1;
                 }
 
@@ -269,7 +269,7 @@ namespace Quotation.Management.Services
             line.QuotationNum = inputLine.QuotationNum;
             line.ActiveLine = true; // BY DEFAULT ALL LINES ARE ACTIVE WHEN INSERTED
             line.Qty = inputLine.Qty;
-            line.Mtlp = itemDetails.Mtlp ?? inputLine.Mtlp;
+            line.Mtlp = inputLine.Mtlp;
             line.UnitPrice = inputLine.UnitPrice;
             line.ItemCode = inputLine.ItemCode;
             line.Vat = inputLine.Vat;
@@ -520,13 +520,19 @@ namespace Quotation.Management.Services
                 {
                     throw new ValidationException(new List<string> {"Opt code:"+ optCodeDC.OptCode+" already exist for the line"});
                 }
+                ItemCodeDetailsDC? itemCodeDetails = _itemCodeRepository.GetItemCodeDetails(new List<string> { optCodeDC.ItemCode!},context).FirstOrDefault();
+                QuotationHeader? quotationHeader = _quotationRepository.GetQuotation(optCodeDC.QuotationNum, optCodeDC.RevNum);
+                string currencyCode = quotationHeader!.CurrencyCode;
+                CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(currencyCode);
+
                 QuotationOptCode optCode = new();
                 optCode.QuotationNum = optCodeDC.QuotationNum;
                 optCode.RevNum = optCodeDC.RevNum;
                 optCode.LineNum = optCodeDC.LineNum;
-                optCode.UnitPrice = optCodeDC.Price;
+                optCode.UnitPrice = optCodeDC.Price * (itemCodeDetails != null ? Math.Round(quotationCurrency!.ConvFactor / itemCodeDetails.CAF, 4) : 1);
                 optCode.OptCode = optCodeDC.OptCode;
                 optCode.OptName = optCodeDC.OptName;
+                optCode.Baseprice = optCodeDC.Price;
                 optCode.OptType = OptionType.NonStandard.ToString();
                 optCode = _quotationRepository.InsertQuotationOptCode(optCode, context);
                 
@@ -587,7 +593,6 @@ namespace Quotation.Management.Services
         {
             try
             {
-                //QuotationHeader? header = _quotationRepository.GetQuotation(Id, revNum);
                 var quotationOptCodes = _quotationRepository.GetQuotationLinesNonStandardOptions(Id, revNum, lineNum);
                 return quotationOptCodes;
             }
@@ -957,7 +962,7 @@ namespace Quotation.Management.Services
         {
             decimal ttslsPriceWithoutVat = inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0);
             decimal marginPercentage = inputLine.Margin ?? 0;
-            decimal totalWithMarginValue = (100 + marginPercentage) / 100 * ttslsPriceWithoutVat;
+            decimal totalWithMarginValue =  ttslsPriceWithoutVat/(1- (marginPercentage/100));
             return Math.Round(totalWithMarginValue, 2);
         }
 
@@ -966,11 +971,11 @@ namespace Quotation.Management.Services
             return pricing.Price * (quotationCurrency.ConvFactor/ item.CAF);
         }
 
-        private string GenerateQuotionNum(string areaCode ,int userId)
+        private string GenerateQuotionNum(string areaCode ,int userId,int year)
         {
-            int num = _quotationRepository.GetQuotationLatestNum();
+            int num = _quotationRepository.GetQuotationLatestNum(areaCode,userId,year);
             UserMaster user = _mastersRepository.GetUserByUserId(userId);
-            return "CHR"+user.FirstName.ToUpper()[0]+user.LastName.ToUpper()[0]+areaCode+ String.Format("{0:00000}", num);
+            return "CHR"+user.FirstName.ToUpper()[0]+user.LastName.ToUpper()[0]+areaCode+year.ToString().Substring(2,2)+ String.Format("{0:000}", num);
         }
 
 
@@ -1126,7 +1131,7 @@ namespace Quotation.Management.Services
             }
         }
 
-        public void ImportQuotationLines(DataSet ds)
+        public void ImportQuotationLines(DataSet ds,string quotationNum , int revNum)
         {
             List<string> validationMessages = new List<string>();
             try
@@ -1153,8 +1158,8 @@ namespace Quotation.Management.Services
                     for (int i = 0; i < dt.Rows.Count; i++)
                     {
                         string? itemCode = dt.Rows[i].Field<string>("ItemCode");
-                        string? quotationNum = dt.Rows[i].Field<string>("QuotationNum");
-                        string? revNum = Convert.ToString(dt.Rows[i].Field<object>("RevNum"));
+                        //string? quotationNum = dt.Rows[i].Field<string>("QuotationNum");
+                        //string? revNum = Convert.ToString(dt.Rows[i].Field<object>("RevNum"));
                         string? unitTag = dt.Rows[i].Field<string>("UnitTag");
                         string? qty = Convert.ToString(dt.Rows[i].Field<object>("Qty"));
                         string? mtlp = Convert.ToString(dt.Rows[i].Field<object>("Mtlp"));
@@ -1170,11 +1175,11 @@ namespace Quotation.Management.Services
                         ValidateCellValue(qty, "Qty", i, true, out string? message1);
                         if (message1 != null) validationMessages.Add(message1);
 
-                        ValidateCellValue(quotationNum, "QuotationNum", i, false, out string? message4);
+                        /*ValidateCellValue(quotationNum, "QuotationNum", i, false, out string? message4);
                         if (message4 != null) validationMessages.Add(message4);
 
                         ValidateCellValue(revNum, "RevNum", i, true, out string? message5);
-                        if (message5 != null) validationMessages.Add(message5);
+                        if (message5 != null) validationMessages.Add(message5);*/
 
                         ValidateCellValue(vat, "Vat%", i, true, out string? message2);
                         if (message2 != null) validationMessages.Add(message2);
@@ -1208,7 +1213,7 @@ namespace Quotation.Management.Services
                         inputLine.Vat = Convert.ToDecimal(vat!);
                         inputLine.Margin = margin != null && margin != "" ? Convert.ToDecimal(margin):null;
                         inputLine.UnitTag = unitTag;
-                        inputLine.RevNum = Convert.ToInt32(revNum);
+                        inputLine.RevNum = revNum;//Convert.ToInt32(revNum);
 
                         AddQuotationLine(inputLine, detailsDC!,context);
 

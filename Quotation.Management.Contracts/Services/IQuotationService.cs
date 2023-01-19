@@ -37,7 +37,7 @@ namespace Quotation.Management.Contracts.Services
 
         dynamic GetProductsFromQuotation(string Id, int revNum);
 
-        void ImportQuotationLines(DataSet ds);
+        void ImportQuotationLines(DataSet ds, string quotationNum, int revNum);
         //List<QuotationLine> UpdateUnitPriceFromOptions(string quotatioNum, int revNum, List<int> lineNums, QMTContext context);
     }
 }

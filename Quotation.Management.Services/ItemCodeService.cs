@@ -39,6 +39,11 @@ namespace Quotation.Management.Services
             return _itemCodeRepository.InsertItemCode(itemCode);
         }
 
+        public ItemCodeDetailsDC? GetItemCodeDetails(string itemCode)
+        {
+            return _itemCodeRepository.GetItemCodeDetails(new List<string>() { itemCode }).FirstOrDefault();
+        }
+
         public string? CreateItemCode(string baseItemCode, string option)
         {
             string[] optionSplit = option.Split("-");

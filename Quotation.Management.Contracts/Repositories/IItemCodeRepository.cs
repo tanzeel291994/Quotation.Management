@@ -24,6 +24,6 @@ namespace Quotation.Management.Contracts.Repositories
 
         CurrencyMaster? GetItemCodeCurrency(string itemCodeName);
 
-        List<ItemCodeDetailsDC> GetItemCodeDetails(List<string> itemCodes, QMTContext context);
+        List<ItemCodeDetailsDC> GetItemCodeDetails(List<string> itemCodes, QMTContext? _context = null);
     }
 }

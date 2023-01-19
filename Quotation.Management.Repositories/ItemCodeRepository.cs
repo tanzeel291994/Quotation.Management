@@ -155,8 +155,9 @@ namespace Quotation.Management.Repositories
             }
         }
 
-        public List<ItemCodeDetailsDC> GetItemCodeDetails(List<string> itemCodes,QMTContext context)
+        public List<ItemCodeDetailsDC> GetItemCodeDetails(List<string> itemCodes,QMTContext? _context = null)
         {
+            var context = _context ?? new QMTContext();
             var connectionString = context.Database.GetConnectionString();
             var result = new List<ItemCodeDetailsDC>();
             using (var conn = new SqlConnection(connectionString))
@@ -187,6 +188,10 @@ namespace Quotation.Management.Repositories
                 }
                 conn.Close();
 
+            }
+            if (_context == null)
+            {
+                context.Dispose();
             }
             return result;
         }

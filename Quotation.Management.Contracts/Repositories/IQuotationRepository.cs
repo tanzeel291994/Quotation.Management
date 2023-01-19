@@ -26,7 +26,7 @@ namespace Quotation.Management.Contracts.Repositories
         List<QuotationCostItem> GetQuotationCostItems(string quotationNum, int revNum, QMTContext? _context = null);
 
         QuotationLine GetQuotationLine(string quotationNum, int lineNum, int revNum, QMTContext? _context = null);
-        int GetQuotationLatestNum();
+        int GetQuotationLatestNum(string areaCode, int userId, int year);
         List<PricingMasterDC> GetPricingOptCode(string itemCode, List<string> optCode);
         List<QuotationOptCodeDC> GetQuotationLinesOptions(string quotationNum, int revNum);
         QuotationLineDC UpdateQuotationLine(QuotationLineDC _quotationLine, QMTContext? _context = null);

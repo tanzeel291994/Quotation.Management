@@ -61,7 +61,8 @@ namespace Quotation.Management.Contracts
         public int RevNum { get; set; }
         public int LineNum { get; set; }
         public string OptCode { get; set; } = null!;
-        public string? OptName { get; set; } 
+        public string? OptName { get; set; }
+        public string? ItemCode { get; set; }
         public decimal? Price { get; set; }
     }
 

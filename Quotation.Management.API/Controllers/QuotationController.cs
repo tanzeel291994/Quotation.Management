@@ -419,6 +419,8 @@ namespace QMT_API.Controllers
                 if (httpRequest.Form.Files.Count > 0)
                 {
                     var inputFile = httpRequest.Form.Files[0];
+                    string quotationNum = httpRequest.Form["QuotationNum"][0];
+                    int revNum = Convert.ToInt32(httpRequest.Form["RevNum"][0]);
                     using (var fileStream = inputFile.OpenReadStream())
                     {
                         if (inputFile.FileName.EndsWith(".xls"))
@@ -438,7 +440,7 @@ namespace QMT_API.Controllers
                     }
                     if (ds != null && ds.Tables.Count > 0 && validationMessages.Count == 0)
                     {
-                        _quotationService.ImportQuotationLines(ds);
+                        _quotationService.ImportQuotationLines(ds, quotationNum,revNum);
                     }
                 }
                 return Ok();

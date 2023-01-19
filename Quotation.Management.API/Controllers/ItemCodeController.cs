@@ -88,5 +88,27 @@ namespace QMT_API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError,ex.Message);
             }
         }
+
+        [HttpGet("mtlp")]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetDefaultMtlp(string itemCode)
+        {
+            try
+            {
+                var result = _itemCodeService.GetItemCodeDetails(itemCode);
+                decimal mtlp = 1;
+                if(result != null)
+                {
+                    mtlp = result.Mtlp.HasValue ? result.Mtlp.Value : 1;
+                }
+                return Ok(mtlp);
+               
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
     }
 }

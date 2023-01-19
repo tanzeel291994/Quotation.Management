@@ -487,14 +487,15 @@ namespace Quotation.Management.Repositories
                     return context.QuotationHeaders.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.IsActiveRevision == true).FirstOrDefault();
             }
         }
-        public int GetQuotationLatestNum()
+        public int GetQuotationLatestNum(string areaCode, int userId, int year)
         {
             using (var context = new QMTContext())
             {
-                if (!context.QuotationHeaders.Any())
+                int count = context.QuotationHeaders.Where(x => x.AreaCode == areaCode && x.CreatedBy == userId && x.QuotationDate.Year == year).Count();
+                if (count == 0)
                     return 1;
-                int maxNum= context.QuotationHeaders.Select(x => Convert.ToInt32(x.QuotationNum.Substring(7, x.QuotationNum.Length - 1))).Max();
-                return maxNum + 1;
+                //int maxNum= context.QuotationHeaders.Select(x => Convert.ToInt32(x.QuotationNum.Substring(7, x.QuotationNum.Length - 1))).Max();
+                return count + 1;
             }
         }
 
@@ -535,7 +536,7 @@ namespace Quotation.Management.Repositories
                                                    TtNetPrice = ql.TtNetPrice,
                                                    CostItemLineValue = ql.CostItemLineValue ?? 0,
                                                    TtslsPriceWOVat = Math.Round(ql.TtNetPrice + (ql.CostItemLineValue ?? 0), 2),
-                                                   TtslsPriceWMargin = Math.Round((100 + (ql.Margin ?? 0)) / 100 * (ql.TtNetPrice + (ql.CostItemLineValue ?? 0)), 2),
+                                                   TtslsPriceWMargin = Math.Round( (ql.TtNetPrice + (ql.CostItemLineValue ?? 0))/(1 - (ql.Margin ?? 0)/100 ) , 2),
                                                    TtslsPrice = Math.Round((100+ql.Vat)/100 * ((100 + (ql.Margin ?? 0)) / 100 * (ql.TtNetPrice + (ql.CostItemLineValue ?? 0))),2)
                                                }).ToList();
                 if (selectedLines != null)
@@ -583,7 +584,7 @@ namespace Quotation.Management.Repositories
                                                          QuotationNum = qoc.QuotationNum,
                                                          RevNum = qoc.RevNum,
                                                          LineNum = ql.LineNum,
-                                                         Price = qoc.UnitPrice,
+                                                         Price = qoc.Baseprice,
                                                          ItemCode = ql.ItemCode,
                                                          OptCode = qoc.OptCode,
                                                          OptName = qoc.OptName ?? qoc.OptCode,

@@ -11,9 +11,8 @@ namespace Quotation.Management.Contracts.Services
     public interface IItemCodeService
     {
         dynamic GetItemCodes();
-
         ItemMaster? InsertItemCode(ItemMaster itemCode);
-
+        ItemCodeDetailsDC? GetItemCodeDetails(string itemCode);
         string? CreateItemCode(string baseItemCode, string option);
         List<MasterDC> GetItemCodes(string searchString);
         List<string> ImportData(DataSet ds);
