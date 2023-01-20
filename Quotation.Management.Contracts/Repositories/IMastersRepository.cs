@@ -19,7 +19,7 @@ namespace Quotation.Management.Contracts.Repositories
         List<MasterDC> GetCustomers();
         List<MasterDC> GetUsers();
         List<MasterDC> GetCurrency();
-        List<MasterDC> GetCostItems();
+        List<MasterDC> GetCostItems(QMTContext? _context = null);
         List<MasterDC> GetProducts();
         UserMaster GetUserByUserId(int userId);
         CurrencyMaster? GetCurrencyByCode(string currencyCode);

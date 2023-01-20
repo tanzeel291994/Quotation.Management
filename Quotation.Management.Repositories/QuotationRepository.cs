@@ -155,8 +155,6 @@ namespace Quotation.Management.Repositories
 
         public List<QuotationLine> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItemLine> costItemLines, List<QuotationCostItem> costItems,Dictionary<string,decimal> groupIdTotalDict, QMTContext? _context)
         {
-
-            //bool firstIteration = true;
             foreach (var costItem in costItems)
             {
                 if (!groupIdTotalDict.ContainsKey(costItem.QuotationCostItemGroupId))
@@ -192,7 +190,42 @@ namespace Quotation.Management.Repositories
             }
             return quotationLines;
         }
+        /*
+        private void UpdateCustomDutyCostItemValue(List<QuotationCostItem> customDutyItems, List<QuotationCostItem> seaFreightItems, string seaFreightCode, Dictionary<string, decimal> groupIdTotalDict, QMTContext context)
+        {
+            List<string> customDutyCostItemGroupIds = customDutyItems.Select(x => x.QuotationCostItemGroupId).ToList();
+            List<string> seaFreightItemGroupIds = seaFreightItems.Select(x => x.QuotationCostItemGroupId).ToList();
+            List<QuotationCostItemLine> customDutyCostLines = context.QuotationCostItemLines.Where(x => customDutyCostItemGroupIds.Contains(x.QuotationCostItemGroupId)).ToList();
+            List<QuotationCostItemLine> seaFreightCostLines = context.QuotationCostItemLines.Where(x => seaFreightItemGroupIds.Contains(x.QuotationCostItemGroupId)).ToList();
 
+            List<int> customDutyLines = customDutyCostLines.Where(x => x.QuotationCostItemGroupId == costItemGroupId).Select(x => x.LineNum).ToList();
+
+            List<QuotationLine> quotationLines = context.QuotationLines.Where(x => customDutyLines.Contains(x.LineNum)).ToList();
+            List<QuotationCostItemLine> customDutyCostLines = context.QuotationCostItemLines.Where(x => customDutyCostItemGroupIds.Contains(x.QuotationCostItemGroupId)).ToList();
+            //get all seafreightLines
+            List<string> seafreightCostGrpIdsForCustomDuty = costItemLines.Where(x => customDutyLines.Contains(x.LineNum)
+                                                                         && seafreightCostItemGroupIds.Contains(x.QuotationCostItemGroupId))
+                                                                        .Select(x => x.QuotationCostItemGroupId).ToList();
+            foreach (var item in customDutyCostLines)
+            {
+                QuotationCostItemLine quotationCostItemLine = seaFreightCostLines.Where(x => x.LineNum == item.LineNum).FirstOrDefault();
+                if (quotationCostItemLine != null)
+                {
+                    QuotationLine quotationLine = quotationLines.Where(x => item.LineNum == x.LineNum).First();
+                    QuotationCostItem quotationCostItem = customDutyItems.Where(x => x.QuotationCostItemGroupId == item.QuotationCostItemGroupId).First();
+                    decimal ttslsPrice = quotationLine.TtNetPrice + quotationCostItemLine.CostItemLineValue;
+                    if (quotationCostItem.CostItemType == CostItemType.ByVal.ToString())
+                    {
+                        quotationLine.CostItemLineValue += quotationCostItem.CostItemValue * (ttslsPrice / groupIdTotalDict[quotationCostItem.QuotationCostItemGroupId]);
+                    }
+                    if (quotationCostItem.CostItemType == CostItemType.ByPercentage.ToString())
+                    {
+                        quotationLine.CostItemLineValue += (quotationCostItem.CostItemValue / 100 * groupIdTotalDict[quotationCostItem.QuotationCostItemGroupId);
+                    }
+                }
+            }
+        }
+        */
         public List<QuotationLine> GetQuotationLines(string quotationNum, int revNum, QMTContext? _context)
         {
             var context = _context ?? new QMTContext();

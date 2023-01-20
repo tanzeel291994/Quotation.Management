@@ -181,17 +181,18 @@ namespace Quotation.Management.Repositories
             }
         }
 
-        public List<MasterDC> GetCostItems()
+        public List<MasterDC> GetCostItems(QMTContext? _context = null)
         {
-            using (var context = new QMTContext())
-            {
-                return context.CostItemCodes.Select(x => new
+            var context = _context ?? new QMTContext();
+            List<MasterDC> costItems = context.CostItemCodes.Select(x => new
                 MasterDC
                 {
                     Name = x.CostItemName,
                     Code = x.CostItemId
                 }).ToList();
-            }
+            if (_context == null)
+                context.Dispose();
+            return costItems;
         }
 
         public List<MasterDC> GetCurrency()

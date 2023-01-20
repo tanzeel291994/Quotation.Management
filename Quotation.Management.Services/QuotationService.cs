@@ -228,12 +228,15 @@ namespace Quotation.Management.Services
                     List<QuotationLine> lines = UpdateAllLinesCostItemValue(inputLine.QuotationNum, inputLine.RevNum, context);
                     costItemValue = lines.Where(x => x.LineNum == line.LineNum).Select(x => x.CostItemLineValue).FirstOrDefault() ?? 0;
                 }
+                QuotationHeader? quotationHeader = _quotationRepository.GetQuotation(inputLine.QuotationNum, inputLine.RevNum);
+                string currencyCode = quotationHeader!.CurrencyCode;
+                CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(currencyCode);
                 inputLine.LineNum = line.LineNum;
                 inputLine.UnitPrice = line.UnitPrice;
                 inputLine.TtNetPrice = line.TtNetPrice;
                 inputLine.Margin = line.Margin;
                 inputLine.ActiveLine = line.ActiveLine;
-                inputLine.CAF = itemDetails.CAF;
+                inputLine.CAF = itemDetails != null ? Math.Round(quotationCurrency!.ConvFactor / itemDetails.CAF, 4) : 1;
                 inputLine.IndexValue = itemDetails.IndexConvFactor;
                 inputLine.UnitTag = line.UnitTag ?? "";
                 inputLine.CostItemLineValue = costItemValue;
@@ -842,7 +845,7 @@ namespace Quotation.Management.Services
             }
         }
 
-        private List<QuotationLine> UpdateAllLinesCostItemValue(string quotationNum ,int revNum,QMTContext context)//,List<string>? groupIds = null
+        private List<QuotationLine> UpdateAllLinesCostItemValue(string quotationNum ,int revNum,QMTContext context)
         {
             try
             {
@@ -852,20 +855,54 @@ namespace Quotation.Management.Services
 
                 List<QuotationLine> quotationLines = _quotationRepository.GetQuotationLines(quotationNum, revNum, context)
                                                     .Where(x => x.ActiveLine == true).ToList();
+                //List<MasterDC> cosItemCodes = _mastersRepository.GetCostItems(context);
 
+                //string customDutyCostCode = cosItemCodes.Where(x => x.Name == "Customs Duty").First().Code;
+                //string seaFreightCostCode = cosItemCodes.Where(x => x.Name == "Sea Freight").First().Code;
+
+                //List<string> customDutyCostItemGroupIds = costItems.Where(x => x.CostItemId == customDutyCostCode).Select(x=>x.QuotationCostItemGroupId).ToList();
                
-                Dictionary<string, decimal> groupIdTotalDict = new Dictionary<string, decimal>();
+                Dictionary<string, decimal> groupIdTotalDict = new();
                 foreach(var _costItem in costItems)
                 {
-                    List<QuotationCostItemLine> _costItemLines = costItemLines.Where(x=>x.QuotationCostItemGroupId == _costItem.QuotationCostItemGroupId).ToList();
+                    List<QuotationCostItemLine> _costItemLines = costItemLines.Where(x => x.QuotationCostItemGroupId == _costItem.QuotationCostItemGroupId).ToList();
                     List<int> lineNums = _costItemLines.Select(x => x.LineNum).Distinct().ToList();
-                    decimal ttslsPrice = quotationLines.Where(x => lineNums.Contains(x.LineNum)).Select(x=>x.TtNetPrice).Sum();
+                    decimal ttslsPrice = quotationLines.Where(x => lineNums.Contains(x.LineNum)).Select(x => x.TtNetPrice).Sum();
                     if (!groupIdTotalDict.TryAdd(_costItem.QuotationCostItemGroupId, ttslsPrice))
                     {
                         groupIdTotalDict[_costItem.QuotationCostItemGroupId] += ttslsPrice; //prodcut wise total value 
                     }
                 }
+                /*if(customDutyCostItemGroupIds.Count > 0)
+                foreach(var costItemGroupId in groupIdTotalDict.Keys)
+                {
+                    if (customDutyCostItemGroupIds.Contains(costItemGroupId))
+                    {
+                        //get all lines for this costIteMgroupId
+                        List<int> customDutyLines = costItemLines.Where(x => x.QuotationCostItemGroupId == costItemGroupId).Select(x => x.LineNum).ToList();
+                        //check if this custom duty lines have 
+                        List<string> seafreightCostGrpIdsForCustomDuty = costItemLines.Where(x => customDutyLines.Contains(x.LineNum) 
+                                                                         && seafreightCostItemGroupIds.Contains(x.QuotationCostItemGroupId))
+                                                                        .Select(x=>x.QuotationCostItemGroupId).ToList();
+                            //normally only one item would be in list 
+                        decimal seafreightValue=0;
+                        foreach(var _costItem in costItems.Where(x=> seafreightCostGrpIdsForCustomDuty.Contains(x.QuotationCostItemGroupId)))
+                        {
+                            if (_costItem.CostItemType == CostItemType.ByVal.ToString())
+                            {
+                                    seafreightValue += _costItem.CostItemValue * (ttslsPrice / totalValueGroupWise);
+                            }
+                            /*if (_costItem.CostItemType == CostItemType.ByPercentage.ToString())
+                            {
+                                    seafreightValue += (_costItem.CostItemValue / 100 * totalValueGroupWise);
+                            }
+                            
+                        }
+                            groupIdTotalDict[costItemGroupId] = +
 
+                    }
+                }
+                */
                 quotationLines = _quotationRepository.UpdateCostValueOfAllQuotationLine(quotationLines, costItemLines, costItems, groupIdTotalDict, context);
                 return quotationLines;
             }
@@ -876,6 +913,10 @@ namespace Quotation.Management.Services
                 
             }
         }
+
+        
+
+
         private List<QuotationLineDC> UpdateUnitPriceFromOptions(string quotatioNum, int revNum,List<int> lineNums,QMTContext context, List<PricingMasterDC>? pricingList = null)
         {
             try
@@ -954,7 +995,7 @@ namespace Quotation.Management.Services
         {
             decimal ttslsPriceWithoutVat = inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0);
             decimal marginPercentage = inputLine.Margin ?? 0;
-            decimal totalWithMarginValue = (100 + marginPercentage) / 100 * ttslsPriceWithoutVat;
+            decimal totalWithMarginValue = ttslsPriceWithoutVat / (1 - (marginPercentage / 100));
             return Math.Round((100 + inputLine.Vat) / 100 * totalWithMarginValue,2);
         }
 
@@ -1007,13 +1048,15 @@ namespace Quotation.Management.Services
                     {
                         dt.Columns.Add(optcode);
                     }
-                    dt.Columns.Add("UnitPrice");
+                    dt.Columns.Add("ListPrice");
                     dt.Columns.Add("Qty");
                     dt.Columns.Add("Mlp");
+                    dt.Columns.Add("TotalNet");
                     dt.Columns.Add("CostValue");
                     dt.Columns.Add("TtslsPrice");
+                    dt.Columns.Add("Margin%");
+                    dt.Columns.Add("TotalW/Margin");
                     dt.Columns.Add("VAT%");
-                    dt.Columns.Add("VAT Amnt");
                     dt.Columns.Add("Total Amnt");
                     decimal totalSalePriceProduct = 0;
                     decimal totalCostValueProduct = 0;
@@ -1036,14 +1079,16 @@ namespace Quotation.Management.Services
                             dr[dt.Columns.IndexOf(_opt.OptCode)] = pricing != null ? Math.Round(pricing.UnitPrice!.Value, 2).ToString("#,##0.##") : "";
                         }
 
-                        dr[dt.Columns.IndexOf("UnitPrice")] = Math.Round(lineDC.UnitPrice, 2).ToString("#,##0.##");
+                        dr[dt.Columns.IndexOf("ListPrice")] = Math.Round(lineDC.UnitPrice, 2).ToString("#,##0.##");
                         dr[dt.Columns.IndexOf("Qty")] = lineDC.Qty;
                         dr[dt.Columns.IndexOf("Mlp")] = lineDC.Mtlp;
+                        dr[dt.Columns.IndexOf("TotalNet")] = lineDC.TtNetPrice;
                         dr[dt.Columns.IndexOf("CostValue")] = lineDC.CostItemLineValue.HasValue? Math.Round(lineDC.CostItemLineValue.Value, 2).ToString("#,##0.##"):0;
                         dr[dt.Columns.IndexOf("TtslsPrice")] = Math.Round(lineDC.TtslsPriceWOVat, 2).ToString("#,##0.##");
+                        dr[dt.Columns.IndexOf("Margin%")] = lineDC.Margin ?? 0;
+                        dr[dt.Columns.IndexOf("TotalW/Margin")] = CalculatetotalWithMargin(lineDC).ToString("#,##0.##");
                         dr[dt.Columns.IndexOf("VAT%")] = lineDC.Vat;
-                        dr[dt.Columns.IndexOf("VAT Amnt")] = Math.Round(lineDC.Vat/100 * lineDC.TtslsPriceWOVat,2).ToString("#,##0.##"); 
-                        dr[dt.Columns.IndexOf("Total Amnt")] = Math.Round(lineDC.TtslsPrice,2).ToString("#,##0.##");
+                        dr[dt.Columns.IndexOf("Total Amnt")] = CalculateTotalValue(lineDC).ToString("#,##0.##");
                         dt.Rows.Add(dr);
                     }
 
@@ -1071,7 +1116,7 @@ namespace Quotation.Management.Services
                     DataTable dtCostProdItems = new();
                     dtCostProdItems.Columns.Add("CostItemCode");
                     dtCostProdItems.Columns.Add("TotCostProv");
-                    dtCostProdItems.Columns.Add("Percentage");
+                    dtCostProdItems.Columns.Add("Value");
 
                     var costItemLinesProd = costItemLines.Where(x => lineNums.Contains(x.LineNum));
                     List<string> costItemGroupIds = costItemLinesProd.Select(x => x.QuotationCostItemGroupId).Distinct().ToList();
@@ -1082,7 +1127,7 @@ namespace Quotation.Management.Services
                                             .Select(x=> x.CostItemLineValue).Sum();
                         drCostTotalProd[dtCostProdItems.Columns.IndexOf("CostItemCode")] = _mastersRepository.GetCostItemByCode(_costItem.CostItemId).CostItemName;
                         drCostTotalProd[dtCostProdItems.Columns.IndexOf("TotCostProv")] = Math.Round(costLineValue, 2).ToString("#,##0.##");
-                        drCostTotalProd[dtCostProdItems.Columns.IndexOf("Percentage")] = Math.Round(costLineValue / totalSalePriceProduct * 100, 2);
+                        drCostTotalProd[dtCostProdItems.Columns.IndexOf("Value")] = _costItem.CostItemValue + (_costItem.CostItemType == CostItemType.ByPercentage.ToString() ? "%" : "");  //Math.Round(costLineValue / totalSalePriceProduct * 100, 2);
                         dtCostProdItems.Rows.Add(drCostTotalProd);
                     }
                     productPrice.costItemProductWise = dtCostProdItems;
@@ -1093,7 +1138,7 @@ namespace Quotation.Management.Services
                 DataTable dtCostTotals = new();
                 dtCostTotals.Columns.Add("CostItemCode");
                 dtCostTotals.Columns.Add("TotCostProv");
-                dtCostTotals.Columns.Add("Percentage");
+                //dtCostTotals.Columns.Add("Percentage");
 
                 List<string> costItemCodes = costItems.Select(x => x.CostItemId).Distinct().ToList();
                 foreach (var _costItemCode in costItemCodes)
@@ -1104,7 +1149,7 @@ namespace Quotation.Management.Services
                     DataRow drCostTotal = dtCostTotals.NewRow();
                     drCostTotal[dtCostTotals.Columns.IndexOf("CostItemCode")] = _mastersRepository.GetCostItemByCode(_costItemCode).CostItemName;
                     drCostTotal[dtCostTotals.Columns.IndexOf("TotCostProv")] = Math.Round(costItemValue, 2).ToString("#,##0.##");
-                    drCostTotal[dtCostTotals.Columns.IndexOf("Percentage")] = Math.Round(costItemValue / totalSalePrice * 100, 2);
+                    //drCostTotal[dtCostTotals.Columns.IndexOf("Percentage")] = Math.Round(costItemValue / totalSalePrice * 100, 2);
                     dtCostTotals.Rows.Add(drCostTotal);
                 }
 
