@@ -524,7 +524,7 @@ namespace Quotation.Management.Repositories
         {
             using (var context = new QMTContext())
             {
-                int count = context.QuotationHeaders.Where(x => x.AreaCode == areaCode && x.CreatedBy == userId && x.QuotationDate.Year == year).Count();
+                int count = context.QuotationHeaders.Where(x =>  x.QuotationDate.Year == year).Count(); //x.AreaCode == areaCode && x.CreatedBy == userId &&
                 if (count == 0)
                     return 1;
                 //int maxNum= context.QuotationHeaders.Select(x => Convert.ToInt32(x.QuotationNum.Substring(7, x.QuotationNum.Length - 1))).Max();

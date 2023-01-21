@@ -10,6 +10,7 @@ using Quotation.Management.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -1016,7 +1017,7 @@ namespace Quotation.Management.Services
         {
             int num = _quotationRepository.GetQuotationLatestNum(areaCode,userId,year);
             UserMaster user = _mastersRepository.GetUserByUserId(userId);
-            return "CHR"+user.FirstName.ToUpper()[0]+user.LastName.ToUpper()[0]+areaCode+year.ToString().Substring(2,2)+ String.Format("{0:000}", num);
+            return "CRH"+user.FirstName.ToUpper()[0]+user.LastName.ToUpper()[0]+areaCode+year.ToString().Substring(2,2)+ String.Format("{0:0000}", num);
         }
 
 
@@ -1302,5 +1303,109 @@ namespace Quotation.Management.Services
            
         }
 
+
+        public void ImportData(DataSet ds)
+        {
+            int num1 = 0;
+            try
+            {
+                int index = ds.Tables.IndexOf("Quotation");
+                List<PricingMaster> pricingList = new();
+                if (index != -1)
+                {
+                    DataTable dt = ds.Tables[index];
+                    
+                    QMTContext context = _quotationRepository.BeginTransaction();
+                    for (int i = 0; i < dt.Rows.Count; i++)
+                    {
+                        num1 = i;
+                        if (num1 == 112)
+                        {
+                            var a = num1;
+                        }
+                        string quotationNum = dt.Rows[i].Field<string>("QuotationNum");
+                        int revNum = 0;
+                        string ProjectName = dt.Rows[i].Field<string>("ProjectName");
+                        string Customer = dt.Rows[i].Field<string>("Customer");
+                        string MSP = dt.Rows[i].Field<string>("ASM");
+                        string ASP = dt.Rows[i].Field<string>("AE");
+                        string AreaCode = dt.Rows[i].Field<string>("AreaCode");
+                        DateTime QuotationDate = dt.Rows[i].Field<DateTime>("QuotationDate");
+                        DateTime ExpectedDeliveryDate = dt.Rows[i].Field<DateTime>("ExpectedDeliveryDate");
+                        string DeliveryTerm = dt.Rows[i].Field<string>("DeliveryTerms");
+                        string PaymentTerm = dt.Rows[i].Field<string>("PaymentTerms");
+                        string Status = dt.Rows[i].Field<string>("Status");
+                        double Probability = dt.Rows[i].Field<double>("Probability");
+                        DateTime BookingDate = dt.Rows[i].Field<DateTime>("BookingDate");
+                        //string Industry = dt.Rows[i].Field<string>("Industry");
+                        string Currency = dt.Rows[i].Field<string>("Currency");
+
+                        CustomerMaster customerMaster = context.CustomerMasters.Where(x => x.CustomerName.ToLower() == Customer.ToLower()).FirstOrDefault();
+                        if(customerMaster == null)
+                        {
+                           int num =context.CustomerMasters.Where(x => x.CustomerCode.StartsWith("C"+AreaCode)).Count();
+                           customerMaster = new CustomerMaster();
+                           customerMaster.CustomerCode = "C"+AreaCode + "" + String.Format("{0:0000}", num+1);
+                           customerMaster.CustomerName = Customer;
+                           context.CustomerMasters.Add(customerMaster);
+                            //context.SaveChanges();
+                        }
+                        QuotationHeader quotationHeader = new();
+
+                        UserMaster mspUser = context.UserMasters.Where(x => x.FirstName.ToLower() + " " + x.LastName.ToLower() == MSP.ToLower()).First();
+                        UserMaster aspUser = context.UserMasters.Where(x => x.FirstName.ToLower() + " " + x.LastName.ToLower() == ASP.ToLower()).First();
+                        DeliveryTermMaster deliveryTermMaster =context.DeliveryTermMasters.Where(x => x.DeliveryTermName.ToLower() == DeliveryTerm.ToLower()).First();
+                        PaymentTermMaster paymentTermMaster =context.PaymentTermMasters.Where(x => x.PaymentTermName == PaymentTerm).First();
+                        QuotationStatusMaster statusMaster =context.QuotationStatusMasters.Where(x => x.StatusName.ToLower() == Status.ToLower()).FirstOrDefault();
+                        //IndustryMaster industryMaster =context.IndustryMasters.Where(x => x.Name.ToLower() == Industry.ToLower()).First();
+                        if(statusMaster == null)
+                        {
+                            statusMaster = new();
+                            int num = context.QuotationStatusMasters.Count();
+                            statusMaster.StatusName = Status;
+                            statusMaster.StatusId = num+1;
+                            context.QuotationStatusMasters.Add(statusMaster);
+                        }
+
+
+                        quotationHeader.QuotationNum = quotationNum;
+                        quotationHeader.RevNum = revNum;
+                        quotationHeader.Msp = mspUser.Id;
+                        quotationHeader.Asp = aspUser.Id;
+                        quotationHeader.DeliveryTermId = deliveryTermMaster.Id;
+                        quotationHeader.PaymentTermId = paymentTermMaster.Id;
+                        quotationHeader.Probability =  (int)Probability;
+                        quotationHeader.StatusId = statusMaster.StatusId;
+                        quotationHeader.AreaCode = AreaCode;
+                        quotationHeader.CustomerCode = customerMaster.CustomerCode;
+                        quotationHeader.ProjectName = ProjectName;
+                        //quotationHeader.IndustryId = industryMaster.Id;
+                        quotationHeader.QuotationDate = QuotationDate;// DateTime.ParseExact(QuotationDate, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                        quotationHeader.BookingDate = BookingDate;// DateTime.ParseExact(BookingDate, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                        quotationHeader.ExpectedDeliveryDate = ExpectedDeliveryDate;// DateTime.ParseExact(ExpectedDeliveryDate, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                        quotationHeader.IsActiveRevision = true;
+                        quotationHeader.CurrencyCode = Currency;
+
+
+                        context.QuotationHeaders.Add(quotationHeader);
+                        context.SaveChanges();
+                    }
+                    _quotationRepository.Commit();
+
+                }
+                //return validationMessages;
+            }
+            catch (Exception ex)
+            {
+                _quotationRepository.RollBack();
+                _logger.LogError(ex, ex.Message+num1);
+                //validationMessages.Add("Error in saving :" + ex.Message);
+                //return validationMessages;
+            }
+            finally
+            {
+                _quotationRepository.DisposeConnection();
+            }
+        }
     }
 }
