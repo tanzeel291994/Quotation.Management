@@ -856,12 +856,12 @@ namespace Quotation.Management.Services
 
                 List<QuotationLine> quotationLines = _quotationRepository.GetQuotationLines(quotationNum, revNum, context)
                                                     .Where(x => x.ActiveLine == true).ToList();
-                //List<MasterDC> cosItemCodes = _mastersRepository.GetCostItems(context);
+                List<MasterDC> costItemCodes = _mastersRepository.GetCostItems(context);
 
-                //string customDutyCostCode = cosItemCodes.Where(x => x.Name == "Customs Duty").First().Code;
-                //string seaFreightCostCode = cosItemCodes.Where(x => x.Name == "Sea Freight").First().Code;
+                string customDutyCostCode = costItemCodes.Where(x => x.Name == "Customs Duty").First().Code;
+                string seaFreightCostCode = costItemCodes.Where(x => x.Name == "Sea Freight").First().Code;
 
-                //List<string> customDutyCostItemGroupIds = costItems.Where(x => x.CostItemId == customDutyCostCode).Select(x=>x.QuotationCostItemGroupId).ToList();
+                List<QuotationCostItem> customDutyItems = costItems.Where(x => x.CostItemId == customDutyCostCode).ToList();
                
                 Dictionary<string, decimal> groupIdTotalDict = new();
                 foreach(var _costItem in costItems)
@@ -901,10 +901,11 @@ namespace Quotation.Management.Services
                         }
                             groupIdTotalDict[costItemGroupId] = +
 
-                    }
+                     }
                 }
                 */
-                quotationLines = _quotationRepository.UpdateCostValueOfAllQuotationLine(quotationLines, costItemLines, costItems, groupIdTotalDict, context);
+                groupIdTotalDict = _quotationRepository.UpdateCostValueOfAllQuotationLine(quotationLines, costItemLines, costItems, groupIdTotalDict, context);
+                _quotationRepository.UpdateCustomDutyCostItemValue(customDutyItems, groupIdTotalDict,context);
                 return quotationLines;
             }
             catch (Exception ex)

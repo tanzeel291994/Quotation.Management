@@ -21,6 +21,7 @@ namespace Quotation.Management.Entities.Models
         public decimal Qty { get; set; }
         public bool ActiveLine { get; set; }
         public decimal? CostItemLineValue { get; set; }
+        public decimal? SeaFreightValue { get; set; }
         public decimal Vat { get; set; }
         public decimal TtNetPrice { get; set; }
         public decimal? Margin { get; set; }
