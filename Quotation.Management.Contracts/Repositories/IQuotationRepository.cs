@@ -47,13 +47,12 @@ namespace Quotation.Management.Contracts.Repositories
 
         QuotationCostItem UpdateCostItem(QuotationCostItem _quotationCostItem, QMTContext? _context = null);
         List<QuotationCostItemLine> GetQuotationCostItemLines(string quotationNum, int revNum, QMTContext? _context = null);
-        //List<QuotationCostItem> GetQuotationCostItems(string quotationNum, int revNum, List<string> groupIds, QMTContext? _context = null);
         List<QuotationCostItemLine> InUpdDelQuotationCostItemLines(string quotationNum, int revNum, string groupId, List<QuotationCostItemLine> _quotationCostItemLines, QMTContext? _context = null);
         QuotationHeaderDC? GetQuotationHeader(string quotatioNum, int revNum);
         List<string> GetQuotationOptions(string quotationNum, int revNum);
         QuotationCostItem DeleteCostItem(QuotationCostItem _quotationCostItem, QMTContext? _context = null);
         QuotationCostItem GetQuotationCostItem(string quotationNum, int revNum, string groupId, QMTContext? _context = null);
-        Dictionary<string,decimal> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItemLine> costItemLines, List<QuotationCostItem> costItems, Dictionary<string, decimal> groupIdTotalDict, QMTContext? _context);
+        Dictionary<string, decimal> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItemLine> costItemLines, List<QuotationCostItem> costItems, Dictionary<string, decimal> groupIdTotalDict, string seaFreightCostCode, string customDutyCode, QMTContext? _context = null);
         void UpdateCustomDutyCostItemValue(List<QuotationCostItem> customDutyItems, Dictionary<string, decimal> groupIdTotalDict, QMTContext context);
         dynamic GetQuotationSearch(QuotationSearchDC input);
 

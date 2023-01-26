@@ -153,7 +153,7 @@ namespace Quotation.Management.Repositories
                 context.Dispose();
         }
 
-        public Dictionary<string, decimal> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItemLine> costItemLines, List<QuotationCostItem> costItems,Dictionary<string,decimal> groupIdTotalDict,string seaFreightCostCode, QMTContext? _context)
+        public Dictionary<string, decimal> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItemLine> costItemLines, List<QuotationCostItem> costItems,Dictionary<string,decimal> groupIdTotalDict,string seaFreightCostCode,string customDutyCode, QMTContext? _context=null)
         {
             foreach (var costItem in costItems)
             {
@@ -186,7 +186,11 @@ namespace Quotation.Management.Repositories
                 if(seaFreightLine != null)
                 {
                     _quotationLine.SeaFreightValue = seaFreightLine.CostItemLineValue;
-                    groupIdTotalDict[seaFreightLine.QuotationCostItemGroupId] += _quotationLine.SeaFreightValue.Value;
+                    var customDutyLine = _costItemLines.Where(x => x.QuotationCostItemGroup.CostItemId == customDutyCode).FirstOrDefault();
+                    if (customDutyLine != null)
+                    {
+                        groupIdTotalDict[customDutyLine.QuotationCostItemGroupId] += _quotationLine.SeaFreightValue.Value;
+                    }
                 }
                 
             }
@@ -199,7 +203,7 @@ namespace Quotation.Management.Repositories
             return groupIdTotalDict;
         }
         
-        private void UpdateCustomDutyCostItemValue(List<QuotationCostItem> customDutyItems, Dictionary<string, decimal> groupIdTotalDict, QMTContext context)
+        public void UpdateCustomDutyCostItemValue(List<QuotationCostItem> customDutyItems, Dictionary<string, decimal> groupIdTotalDict, QMTContext context)
         {
             List<string> customDutyCostItemGroupIds = customDutyItems.Select(x => x.QuotationCostItemGroupId).ToList();
             //List<string> seaFreightItemGroupIds = seaFreightItems.Select(x => x.QuotationCostItemGroupId).ToList();
@@ -227,10 +231,12 @@ namespace Quotation.Management.Repositories
                     }
                     if (quotationCostItem.CostItemType == CostItemType.ByPercentage.ToString())
                     {
-                        _quotationLine.CostItemLineValue += (quotationCostItem.CostItemValue / 100 * groupIdTotalDict[quotationCostItem.QuotationCostItemGroupId]);
+                        _quotationLine.CostItemLineValue += (quotationCostItem.CostItemValue / 100 * _quotationLine.SeaFreightValue.Value);
+                        item.CostItemLineValue = (quotationCostItem.CostItemValue / 100 * groupIdTotalDict[quotationCostItem.QuotationCostItemGroupId]);
                     }
                 }
             }
+            context.SaveChanges();
         }
         
         public List<QuotationLine> GetQuotationLines(string quotationNum, int revNum, QMTContext? _context)

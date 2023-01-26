@@ -904,7 +904,7 @@ namespace Quotation.Management.Services
                      }
                 }
                 */
-                groupIdTotalDict = _quotationRepository.UpdateCostValueOfAllQuotationLine(quotationLines, costItemLines, costItems, groupIdTotalDict, context);
+                groupIdTotalDict = _quotationRepository.UpdateCostValueOfAllQuotationLine(quotationLines, costItemLines, costItems, groupIdTotalDict,seaFreightCostCode, customDutyCostCode, context);
                 _quotationRepository.UpdateCustomDutyCostItemValue(customDutyItems, groupIdTotalDict,context);
                 return quotationLines;
             }
