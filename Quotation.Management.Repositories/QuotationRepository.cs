@@ -685,7 +685,8 @@ namespace Quotation.Management.Repositories
                                                                     select new QuotationLineCostItem
                                                                     {
                                                                         LineNum = ql.LineNum,
-                                                                        ItemCode = ql.SubItemCode ?? ql.ItemCode
+                                                                        ItemCode = ql.SubItemCode ?? ql.ItemCode,
+                                                                        CostLineValue = qc.CostItemLineValue
                                                                     }).ToList();
                     _costItem.quotationLineCostItems = quotCostItemLines.ToArray();
                 }
@@ -714,7 +715,9 @@ namespace Quotation.Management.Repositories
                                                     Probability = x.Probability,
                                                     CurrencyCode = x.CurrencyCode,
                                                     QuotationDate = x.QuotationDate,
-                                                    CustomerName = x.CustomerCodeNavigation.CustomerName
+                                                    CustomerName = x.CustomerCodeNavigation.CustomerName,
+                                                    DeliveryTermName = x.DeliveryTerm.DeliveryTermName,
+                                                    PaymentTermName = x.PaymentTerm.PaymentTermName,
                                                 })
                                                .FirstOrDefault();
                 return quotationHeaderDC;

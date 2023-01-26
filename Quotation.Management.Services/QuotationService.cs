@@ -241,6 +241,7 @@ namespace Quotation.Management.Services
                 inputLine.IndexValue = itemDetails.IndexConvFactor;
                 inputLine.UnitTag = line.UnitTag ?? "";
                 inputLine.CostItemLineValue = costItemValue;
+                inputLine.ProdTypeId = itemDetails.ProdTypeId;
                 inputLine.TtslsPriceWOVat = Math.Round((inputLine.TtNetPrice) + (inputLine.CostItemLineValue ?? 0), 2);
                 inputLine.TtslsPriceWMargin = Math.Round(CalculatetotalWithMargin(inputLine), 2);
                 inputLine.TtslsPrice = Math.Round(CalculateTotalValue(inputLine),2);

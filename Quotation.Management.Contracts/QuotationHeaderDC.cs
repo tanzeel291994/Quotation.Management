@@ -28,6 +28,8 @@ namespace Quotation.Management.Contracts
         public string? StatusName { get; set; } = null!;
         public string? AreaName { get; set; } = null!;
         public string? MspName { get; set; } = null!;
+        public string? DeliveryTermName { get; set; } = null!;
+        public string? PaymentTermName { get; set; } = null!;
         public int Probability { get; set; }
     }
 }

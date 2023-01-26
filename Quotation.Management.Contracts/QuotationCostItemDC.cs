@@ -37,6 +37,8 @@ namespace Quotation.Management.Contracts
     {
         public int LineNum { get; set; }
         public string ItemCode { get; set; } = null!;
+
+        public decimal CostLineValue { get; set; }
     }
 
     public class ProdItemTotal
