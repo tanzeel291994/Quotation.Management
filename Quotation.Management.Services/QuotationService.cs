@@ -242,9 +242,9 @@ namespace Quotation.Management.Services
                 inputLine.UnitTag = line.UnitTag ?? "";
                 inputLine.CostItemLineValue = costItemValue;
                 inputLine.ProdTypeId = itemDetails.ProdTypeId;
-                inputLine.TtslsPriceWOVat = Math.Round((inputLine.TtNetPrice) + (inputLine.CostItemLineValue ?? 0), 2);
-                inputLine.TtslsPriceWMargin = Math.Round(CalculatetotalWithMargin(inputLine), 2);
-                inputLine.TtslsPrice = Math.Round(CalculateTotalValue(inputLine),2);
+                inputLine.TtCostPrice = Math.Round((inputLine.TtNetPrice) + (inputLine.CostItemLineValue ?? 0), 2);
+                inputLine.TtSlsPrice = Math.Round(CalculatetotalWithMargin(inputLine), 2);
+                inputLine.TtSlsPriceWTVat = Math.Round(CalculateTotalValue(inputLine),2);
 
                 _quotationRepository.Commit();
                 return inputLine;
@@ -336,9 +336,9 @@ namespace Quotation.Management.Services
                 decimal costItemValue = lines.Where(x => x.LineNum == inputLine.LineNum).Select(x => x.CostItemLineValue).FirstOrDefault() ?? 0;
                 inputLine.CostItemLineValue = Math.Round(costItemValue,2);
                 
-                inputLine.TtslsPriceWOVat = Math.Round(inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0),2);
-                inputLine.TtslsPriceWMargin = Math.Round(CalculatetotalWithMargin(inputLine), 2);
-                inputLine.TtslsPrice = Math.Round(CalculateTotalValue(inputLine),2);
+                inputLine.TtCostPrice = Math.Round(inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0),2);
+                inputLine.TtSlsPrice = Math.Round(CalculatetotalWithMargin(inputLine), 2);
+                inputLine.TtSlsPriceWTVat = Math.Round(CalculateTotalValue(inputLine),2);
 
                 _quotationRepository.Commit();
                 return inputLine;
@@ -448,9 +448,9 @@ namespace Quotation.Management.Services
                 inputLine.CostItemLineValue = lines.Where(x => x.LineNum == inputLine.LineNum).Select(x => x.CostItemLineValue).FirstOrDefault() ?? 0;
                 inputLine.UnitPrice = lineDC.UnitPrice;
                 inputLine.TtNetPrice = linesDC.First().TtNetPrice;
-                inputLine.TtslsPriceWOVat = Math.Round(inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0), 2);
-                inputLine.TtslsPriceWMargin = Math.Round(CalculatetotalWithMargin(inputLine), 2);
-                inputLine.TtslsPrice = Math.Round(CalculateTotalValue(lineDC),2);
+                inputLine.TtCostPrice = Math.Round(inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0), 2);
+                inputLine.TtSlsPrice = Math.Round(CalculatetotalWithMargin(inputLine), 2);
+                inputLine.TtSlsPriceWTVat = Math.Round(CalculateTotalValue(lineDC),2);
                 
 
                _quotationRepository.Commit();
@@ -495,9 +495,9 @@ namespace Quotation.Management.Services
                 inputLine.UnitPrice = lineDC.UnitPrice;
                                
                 inputLine.TtNetPrice = linesDC.First().TtNetPrice;
-                inputLine.TtslsPriceWOVat = Math.Round(inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0), 2);
-                inputLine.TtslsPriceWMargin = Math.Round(CalculatetotalWithMargin(inputLine), 2);
-                inputLine.TtslsPrice = Math.Round(CalculateTotalValue(lineDC), 2); // with VAT
+                inputLine.TtCostPrice = Math.Round(inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0), 2);
+                inputLine.TtSlsPrice = Math.Round(CalculatetotalWithMargin(inputLine), 2);
+                inputLine.TtSlsPriceWTVat = Math.Round(CalculateTotalValue(lineDC), 2); // with VAT
 
                 _quotationRepository.Commit();
                 return inputLine;
@@ -974,9 +974,9 @@ namespace Quotation.Management.Services
                     lineDC.UnitTag = quotationLine.UnitTag;
                     lineDC.Vat = quotationLine.Vat;
                     lineDC.TtNetPrice = totalNetPrice;
-                    lineDC.TtslsPriceWOVat = Math.Round(lineDC.TtNetPrice + (lineDC.CostItemLineValue ?? 0), 2);
-                    lineDC.TtslsPriceWMargin = Math.Round(CalculatetotalWithMargin(lineDC), 2);
-                    lineDC.TtslsPrice = Math.Round(CalculateTotalValue(lineDC),2);
+                    lineDC.TtCostPrice = Math.Round(lineDC.TtNetPrice + (lineDC.CostItemLineValue ?? 0), 2);
+                    lineDC.TtSlsPrice = Math.Round(CalculatetotalWithMargin(lineDC), 2);
+                    lineDC.TtSlsPriceWTVat = Math.Round(CalculateTotalValue(lineDC),2);
 
                     
 
@@ -996,17 +996,17 @@ namespace Quotation.Management.Services
 
         private decimal CalculateTotalValue(QuotationLineDC inputLine)
         {
-            decimal ttslsPriceWithoutVat = inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0);
+            decimal ttCostPrice = inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0);
             decimal marginPercentage = inputLine.Margin ?? 0;
-            decimal totalWithMarginValue = ttslsPriceWithoutVat / (1 - (marginPercentage / 100));
-            return Math.Round((100 + inputLine.Vat) / 100 * totalWithMarginValue,2);
+            decimal totalWithMarginValue = ttCostPrice / (1 - (marginPercentage / 100));
+            return Math.Round(((100 + inputLine.Vat) / 100) * totalWithMarginValue,2);
         }
 
         private decimal CalculatetotalWithMargin(QuotationLineDC inputLine)
         {
-            decimal ttslsPriceWithoutVat = inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0);
+            decimal ttCostPrice = inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0);
             decimal marginPercentage = inputLine.Margin ?? 0;
-            decimal totalWithMarginValue =  ttslsPriceWithoutVat/(1- (marginPercentage/100));
+            decimal totalWithMarginValue = ttCostPrice / (1- (marginPercentage/100));
             return Math.Round(totalWithMarginValue, 2);
         }
 
@@ -1034,13 +1034,14 @@ namespace Quotation.Management.Services
                 List<QuotationCostItemLine> costItemLines = _quotationRepository.GetQuotationCostItemLines(quotationNum, revNum);
                 List<QuotationCostItem> costItems = _quotationRepository.GetQuotationCostItems(quotationNum, revNum);
                 PriceBreakDownDC priceBreakDownDC = new();
+                decimal totalCostPrice = 0;
                 decimal totalSalePrice = 0;
                 decimal totalCostValue = 0;
                 decimal totalQty = 0;
                 //decimal totalNetValue = 0;
                 foreach (var productType in productTypes)
                 {
-                    ProductPrice productPrice = new ProductPrice();
+                    ProductPrice productPrice = new();
                     productPrice.productType = productType;
 
                     DataTable dt = new();
@@ -1056,21 +1057,23 @@ namespace Quotation.Management.Services
                     dt.Columns.Add("Mlp");
                     dt.Columns.Add("TotalNet");
                     dt.Columns.Add("CostValue");
-                    dt.Columns.Add("TtslsPrice");
+                    dt.Columns.Add("TotalCost");
                     dt.Columns.Add("Margin%");
-                    dt.Columns.Add("TotalW/Margin");
+                    dt.Columns.Add("TotalPrice");
                     dt.Columns.Add("VAT%");
                     dt.Columns.Add("Total Amnt");
-                    decimal totalSalePriceProduct = 0;
+                    decimal totalCostPriceProduct = 0;
+                    decimal totalSalesPriceProduct = 0;
                     decimal totalCostValueProduct = 0;
                     //decimal totalNetValueProduct = 0;
                     decimal totalQtyofProduct = 0;
                     foreach (var lineDC in lines.Where(x=>x.ProdTypeId == productType))
                     {
-                        totalSalePriceProduct += lineDC.TtslsPriceWOVat;
+                        totalCostPriceProduct += lineDC.TtCostPrice;
                         //totalNetValue += lineDC.TtNetPrice;
                         totalCostValueProduct += (lineDC.CostItemLineValue ?? 0);
                         totalQtyofProduct += lineDC.Qty;
+                        totalSalesPriceProduct += CalculatetotalWithMargin(lineDC);
                         List <QuotationOptCode> optCodeOfLinePrice = optCodeList.Where(x => x.LineNum == lineDC.LineNum).ToList();
                         DataRow dr = dt.NewRow();
 
@@ -1087,9 +1090,9 @@ namespace Quotation.Management.Services
                         dr[dt.Columns.IndexOf("Mlp")] = lineDC.Mtlp;
                         dr[dt.Columns.IndexOf("TotalNet")] = lineDC.TtNetPrice;
                         dr[dt.Columns.IndexOf("CostValue")] = lineDC.CostItemLineValue.HasValue? Math.Round(lineDC.CostItemLineValue.Value, 2).ToString("#,##0.##"):0;
-                        dr[dt.Columns.IndexOf("TtslsPrice")] = Math.Round(lineDC.TtslsPriceWOVat, 2).ToString("#,##0.##");
+                        dr[dt.Columns.IndexOf("TotalCost")] = Math.Round(lineDC.TtCostPrice, 2).ToString("#,##0.##");
                         dr[dt.Columns.IndexOf("Margin%")] = lineDC.Margin ?? 0;
-                        dr[dt.Columns.IndexOf("TotalW/Margin")] = CalculatetotalWithMargin(lineDC).ToString("#,##0.##");
+                        dr[dt.Columns.IndexOf("TotalPrice")] = CalculatetotalWithMargin(lineDC).ToString("#,##0.##");
                         dr[dt.Columns.IndexOf("VAT%")] = lineDC.Vat;
                         dr[dt.Columns.IndexOf("Total Amnt")] = CalculateTotalValue(lineDC).ToString("#,##0.##");
                         dt.Rows.Add(dr);
@@ -1097,19 +1100,22 @@ namespace Quotation.Management.Services
 
                     DataTable dtProdTotals = new();
                     dtProdTotals.Columns.Add("TotalCostValue");
-                    dtProdTotals.Columns.Add("TotalSlsPrice");
+                    dtProdTotals.Columns.Add("TotalCost");
+                    dtProdTotals.Columns.Add("TotalPrice");
                     dtProdTotals.Columns.Add("TotalQty");
                     DataRow drProdTotal = dtProdTotals.NewRow();
                     drProdTotal[dtProdTotals.Columns.IndexOf("TotalCostValue")] = Math.Round(totalCostValueProduct,2).ToString("#,##0.##");
-                    drProdTotal[dtProdTotals.Columns.IndexOf("TotalSlsPrice")] = Math.Round(totalSalePriceProduct,2).ToString("#,##0.##");
+                    drProdTotal[dtProdTotals.Columns.IndexOf("TotalCost")] = Math.Round(totalCostPriceProduct, 2).ToString("#,##0.##");
+                    drProdTotal[dtProdTotals.Columns.IndexOf("TotalPrice")] = Math.Round(totalSalesPriceProduct, 2).ToString("#,##0.##");
                     drProdTotal[dtProdTotals.Columns.IndexOf("TotalQty")] = Math.Round(totalQtyofProduct, 2);
                     dtProdTotals.Rows.Add(drProdTotal);
 
                     productPrice.totals = dtProdTotals;
                     //dtTotals.Columns.Add("VatAmnt");
                     //dtTotals.Columns.Add("VatTotal");
-                    totalSalePrice += totalSalePriceProduct;
+                    totalCostPrice += totalCostPriceProduct;
                     totalCostValue += totalCostValueProduct;
+                    totalSalePrice += totalSalesPriceProduct;
                     totalQty += totalQtyofProduct;
 
                     productPrice.optionsPricing = dt;
@@ -1160,11 +1166,13 @@ namespace Quotation.Management.Services
 
                 DataTable dtTotals = new();
                 dtTotals.Columns.Add("TotalCostValue");
-                dtTotals.Columns.Add("TotalSlsPrice");
+                dtTotals.Columns.Add("TotalCost");
+                dtTotals.Columns.Add("TotalPrice");
                 dtTotals.Columns.Add("TotalQty");
                 DataRow drTotal = dtTotals.NewRow();
                 drTotal[dtTotals.Columns.IndexOf("TotalCostValue")] =  Math.Round(totalCostValue, 2).ToString("#,##0.##");
-                drTotal[dtTotals.Columns.IndexOf("TotalSlsPrice")] =   Math.Round(totalSalePrice, 2).ToString("#,##0.##");
+                drTotal[dtTotals.Columns.IndexOf("TotalCost")] =   Math.Round(totalCostPrice, 2).ToString("#,##0.##");
+                drTotal[dtTotals.Columns.IndexOf("TotalPrice")] =   Math.Round(totalSalePrice, 2).ToString("#,##0.##");
                 drTotal[dtTotals.Columns.IndexOf("TotalQty")] = totalQty;
                 dtTotals.Rows.Add(drTotal);
                 priceBreakDownDC.totalValueDCs = dtTotals;

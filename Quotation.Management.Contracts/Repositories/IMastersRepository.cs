@@ -24,7 +24,7 @@ namespace Quotation.Management.Contracts.Repositories
         UserMaster GetUserByUserId(int userId);
         CurrencyMaster? GetCurrencyByCode(string currencyCode);
         CostItemCode GetCostItemByCode(string costItemId);
-
+        List<MasterDC> GetCustomers(string searchString);
         List<MasterDC> GetIndustrys();
 
         UserMaster? GetCurrentUserDetails(string email);

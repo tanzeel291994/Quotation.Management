@@ -263,7 +263,7 @@ namespace Quotation.Management.Repositories
         public QuotationOptCode? GetQuotationOptCode(string quotationNum, int revNum, int lineNum,string optCode ,QMTContext? _context)
         {
             var context = _context ?? new QMTContext();
-            var _optCode = context.QuotationOptCodes.Where(x => x.QuotationNum == quotationNum.ToUpper() 
+            var _optCode = context.QuotationOptCodes.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.LineNum == lineNum
                               && x.RevNum == revNum && x.OptCode == optCode).FirstOrDefault();
             if (_context == null)
                 context.Dispose();
@@ -581,9 +581,9 @@ namespace Quotation.Management.Repositories
                                                    CurrencyCode = qh.CurrencyCode,
                                                    TtNetPrice = ql.TtNetPrice,
                                                    CostItemLineValue = ql.CostItemLineValue ?? 0,
-                                                   TtslsPriceWOVat = Math.Round(ql.TtNetPrice + (ql.CostItemLineValue ?? 0), 2),
-                                                   TtslsPriceWMargin = Math.Round( (ql.TtNetPrice + (ql.CostItemLineValue ?? 0))/(1 - (ql.Margin ?? 0)/100 ) , 2),
-                                                   TtslsPrice = Math.Round((100+ql.Vat)/100 * ((100 + (ql.Margin ?? 0)) / 100 * (ql.TtNetPrice + (ql.CostItemLineValue ?? 0))),2)
+                                                   TtCostPrice = Math.Round(ql.TtNetPrice + (ql.CostItemLineValue ?? 0), 2),
+                                                   TtSlsPrice = Math.Round( (ql.TtNetPrice + (ql.CostItemLineValue ?? 0))/(1 - (ql.Margin ?? 0)/100 ) , 2),
+                                                   TtSlsPriceWTVat = Math.Round((100+ql.Vat)/100 * (ql.TtNetPrice + (ql.CostItemLineValue ?? 0)) / (1 - (ql.Margin ?? 0) / 100), 2)
                                                }).ToList();
                 if (selectedLines != null)
                     lines = lines.Where(x => selectedLines.Contains(x.LineNum)).ToList();

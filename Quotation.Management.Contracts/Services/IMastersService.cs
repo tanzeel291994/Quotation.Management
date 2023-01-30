@@ -13,6 +13,8 @@ namespace Quotation.Management.Contracts.Services
 
         List<MasterDC> GetAllCustomers();
 
+        List<MasterDC> GetAllCustomers(string searchString);
+
         List<MasterDC> GetCostItems();
 
         UserMaster? GetCurrentUserDetails(string email);

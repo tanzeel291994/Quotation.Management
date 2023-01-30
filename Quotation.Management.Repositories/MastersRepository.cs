@@ -104,6 +104,18 @@ namespace Quotation.Management.Repositories
                 }).ToList();
             }
         }
+        public List<MasterDC> GetCustomers(string searchString)
+        {
+            using (var context = new QMTContext())
+            {
+                return context.CustomerMasters.Where(x=>x.CustomerName.ToLower().Contains(searchString.ToLower())).Select(x => new
+                MasterDC
+                {
+                    Name = x.CustomerName,
+                    Code = x.CustomerCode
+                }).ToList();
+            }
+        }
 
         public List<MasterDC> GetProjects()
         {

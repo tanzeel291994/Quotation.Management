@@ -65,6 +65,21 @@ namespace QMT_API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+        [HttpGet("customer/filter")]
+        [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetCustomers(string searchString)
+        {
+            try
+            {
+                var _customerList = _mastersService.GetAllCustomers(searchString);
+                return Ok(JsonConvert.SerializeObject(_customerList));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
 
         [HttpGet("getCurrentUser")]
         [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]

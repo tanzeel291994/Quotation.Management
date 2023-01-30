@@ -25,9 +25,9 @@ namespace Quotation.Management.Contracts
         public decimal? Margin { get; set; }
         public bool ActiveLine { get; set; }
         public decimal TtNetPrice { get; set; }
-        public decimal TtslsPrice { get; set; }
-        public decimal TtslsPriceWOVat { get; set; }
-        public decimal TtslsPriceWMargin { get; set; }
+        public decimal TtCostPrice { get; set; }
+        public decimal TtSlsPriceWTVat { get; set; }
+        public decimal TtSlsPrice { get; set; }
         public string? ProdTypeId { get; set; }
         public string? CurrencyCode { get; set; }
         public string? UnitTag { get; set; }
