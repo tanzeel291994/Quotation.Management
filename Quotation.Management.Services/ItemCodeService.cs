@@ -70,16 +70,16 @@ namespace Quotation.Management.Services
                 {
                     if (itemCodeArray.Length  < index)
                     {
-                        return null;
+                        return baseItemCode;
                     }
                     itemCodeArray[index] = opt[0];
                     return new string(itemCodeArray);
                 }
                 else
-                    return null;
+                    return baseItemCode;
             }
             else
-                return null;
+                return baseItemCode;
         }
 
 

@@ -166,15 +166,16 @@ namespace Quotation.Management.Repositories
 
         public CustomerMaster InsertCustomer(CustomerMaster customerMaster)
         {
-
             using (var context = new QMTContext())
             {
-                var _customer = context.CustomerMasters.Where(x => x.CustomerCode == customerMaster.CustomerCode).FirstOrDefault();
-                if(_customer != null)
+                var _customer = context.CustomerMasters.Where(x => x.CustomerName == customerMaster.CustomerName).FirstOrDefault();
+                if (_customer != null)
                 {
-                    throw new ValidationException(new List<string> { "Customer code already exists"});
+                    throw new ValidationException(new List<string> { "Customer name already exists" });
                 }
-
+                int num = context.CustomerMasters.Where(x => x.CustomerCode.StartsWith("C" + customerMaster.CustomerCode)).Count();
+                customerMaster.CustomerCode = "C" + customerMaster.CustomerCode + "" + String.Format("{0:0000}", num + 1);
+                customerMaster.CustomerName = customerMaster.CustomerName;
                 context.CustomerMasters.Add(customerMaster);
                 context.SaveChanges();
                 return customerMaster;

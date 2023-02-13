@@ -9,22 +9,26 @@ namespace Quotation.Management.Contracts.Repositories
 {
     public interface IQuotationRepository : ITransactional
     {
-         QuotationHeader InsertUpdateQuotation(QuotationHeader _quotationHeader, int? updatedBy);
+
+        List<QuotationLine> GetQuotationLines(string quotationNum, List<int> lineNums, int revNum, QMTContext? _context = null);
+        List<string> GetAllQuotationNums();
+         QuotationHeader InsertUpdateQuotation(QuotationHeader _quotationHeader, int? updatedBy, QMTContext? _context = null);
          QuotationLine InsertQuotationLine(QuotationLine _quotationLine, QMTContext? _context = null);
          QuotationOptCode InsertQuotationOptCode(QuotationOptCode _quotationOptCode, QMTContext? _context = null);
         //PricingMaster? GetPricingOptCode(string itemCode, string optCode);
         QuotationLine? GetLatestQuotationLine(string quotationNum, QMTContext? _context = null);
          QuotationHeader? GetQuotation(string quotationNum, int? revNum=null);
         List<QuotationLineDC> GetQuotationLinesDC(string quotationNum, int revNum, List<int>? selectedLines = null, string prodTypeId = "", QMTContext? _context = null);
-
+        int GetNewRevNum(string quotationNum, QMTContext? _context = null);
         string GenerateItemCode(QuotationLineDC _quotationLine, QMTContext? _context = null);
-        QuotationOptCode? GetQuotationOptCode(string quotationNum, int revNum, int lineNum, string optCode, QMTContext? _context);
+        QuotationOptCode? GetQuotationOptCode(string quotationNum, int revNum, int lineNum, string optCode, QMTContext? _context = null);
         List<QuotationOptCode> GetQuotationOptCodes(string quotationNum, int revNum, QMTContext? _context, int? lineNum = null);
 
         dynamic GetItemOptions(string itemCode, decimal convFactor);
 
         List<QuotationCostItem> GetQuotationCostItems(string quotationNum, int revNum, QMTContext? _context = null);
 
+        dynamic GetAllRevisions(string quotationNum);
         QuotationLine GetQuotationLine(string quotationNum, int lineNum, int revNum, QMTContext? _context = null);
         int GetQuotationLatestNum(string areaCode, int userId, int year);
         List<PricingMasterDC> GetPricingOptCode(string itemCode, List<string> optCode);
@@ -40,7 +44,9 @@ namespace Quotation.Management.Contracts.Repositories
 
         List<QuotationCostItemDC> GetQuotationCostLines(string quotatioNum, int revNum);
 
-        QuotationHeader? GetQuotation(string quotationNum, int revNum, QMTContext _context);
+        QuotationHeader? GetQuotation(string quotationNum, int revNum, QMTContext? _context = null);
+
+        int CreateRevision(string quotationNum, int revNum, int oldRevNum);
 
         List<QuotationOptCodeDC> GetQuotationLinesNonStandardOptions(string quotationNum, int revNum, int lineNum);
         QuotationHeader UpdateQuotationHeader(QuotationHeader _quotationHeader, QMTContext? _context = null);
@@ -65,6 +71,7 @@ namespace Quotation.Management.Contracts.Repositories
 
         List<QuotationCostItemLine> GetQuotationCostItemLines(string quotationNum, int lineNum, int revNum, QMTContext? _context = null);
 
+        void SetActiveRevision(string quotationNum, int revNum);
         void DeleteCostItemGroup(string quotationNum, int linenum, int revNum, List<string> costItemGroupIds, QMTContext? _context = null);
     }
 }

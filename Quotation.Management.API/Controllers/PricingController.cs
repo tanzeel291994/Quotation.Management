@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Quotation.Management.Contracts;
 using Quotation.Management.Contracts.Services;
 using Quotation.Management.Entities.Models;
 using System.Data;
@@ -72,7 +73,12 @@ namespace QMT_API.Controllers
                     }
 
                 }
-                return Ok(JsonConvert.SerializeObject(validationMessages));
+                if (validationMessages.Count > 0) throw new ValidationException(validationMessages);
+                return Ok();
+            }
+            catch (ValidationException ex)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, JsonConvert.SerializeObject(ex._messages));
             }
             catch (Exception ex)
             {
@@ -116,7 +122,12 @@ namespace QMT_API.Controllers
                     }
 
                 }
-                return Ok(JsonConvert.SerializeObject(validationMessages));
+                if (validationMessages.Count > 0) throw new ValidationException(validationMessages);
+                return Ok();
+            }
+            catch (ValidationException ex)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, JsonConvert.SerializeObject(ex._messages));
             }
             catch (Exception ex)
             {

@@ -21,7 +21,7 @@ namespace Quotation.Management.Contracts.Repositories
 
         List<MasterDC> GetItemCodes(string searchString);
         bool MultipleInsertItemCode(List<ItemMaster> itemCodes);
-
+        QuotationDefaultMultiplier InsertQuotationDefaultMlp(QuotationDefaultMultiplier _defaultMtlp, QMTContext? _context = null);
         CurrencyMaster? GetItemCodeCurrency(string itemCodeName);
 
         List<ItemCodeDetailsDC> GetItemCodeDetails(List<string> itemCodes, QMTContext? _context = null);

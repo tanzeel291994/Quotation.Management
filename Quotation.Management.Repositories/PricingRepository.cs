@@ -35,7 +35,8 @@ namespace Quotation.Management.Repositories
                             sm.SeriesName,
                             pm.ItemCode,
                             pm.OptCode,
-                            pm.Price
+                            pm.Price,
+                            pm.Version
 
                         }).ToList();
 
@@ -70,18 +71,26 @@ namespace Quotation.Management.Repositories
 
         public PricingMaster InsertPricingIfNotExist(PricingMaster _pricingMaster, QMTContext? _context = null)
         {
-            //using (var context = _context ?? new QMTContext())
-            //{
             var context = _context ?? new QMTContext();
-            PricingMaster? pricingMaster = context.PricingMasters.Where(x => x.ItemCode == _pricingMaster.ItemCode && x.OptCode == _pricingMaster.OptCode).FirstOrDefault();
+            PricingMaster? pricingMaster = context.PricingMasters.Where(x => x.ItemCode == _pricingMaster.ItemCode && x.OptCode == _pricingMaster.OptCode && x.Version == _pricingMaster.Version).FirstOrDefault();
             if (pricingMaster == null)
             {
                 context.PricingMasters.Add(_pricingMaster);
                 context.SaveChanges();
-                return _pricingMaster;
             }
-            return pricingMaster;
-            //}
+            return _pricingMaster;
+        }
+
+        public PricingMaster DeletePricingIfNotExist(PricingMaster _pricingMaster, QMTContext? _context = null)
+        {
+            var context = _context ?? new QMTContext();
+            var pricingMasterList = context.PricingMasters.Where(x => x.ItemCode == _pricingMaster.ItemCode && x.OptCode == _pricingMaster.OptCode).ToList();
+            if (pricingMasterList.Count > 0)
+            {
+                context.PricingMasters.RemoveRange(pricingMasterList);
+                context.SaveChanges();
+            }
+            return _pricingMaster;
         }
 
         public bool MultipleInsertPricingData(List<PricingMaster> pricingList)

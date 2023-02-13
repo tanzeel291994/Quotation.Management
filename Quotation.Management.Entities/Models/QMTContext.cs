@@ -15,7 +15,7 @@ namespace Quotation.Management.Entities.Models
             : base(options)
         {
         }
-
+        public DbSet<ItemCodeDetailsDC> ItemCodeDetailsDCs { get; set; }
         public virtual DbSet<BrandMaster> BrandMasters { get; set; } = null!;
         public virtual DbSet<CostItemCode> CostItemCodes { get; set; } = null!;
         public virtual DbSet<CurrencyMaster> CurrencyMasters { get; set; } = null!;
@@ -170,8 +170,7 @@ namespace Quotation.Management.Entities.Models
 
             modelBuilder.Entity<ItemMaster>(entity =>
             {
-                entity.HasKey(e => e.ItemCode)
-                    .HasName("PK__ItemMast__3ECC0FEBC4D15289");
+                entity.HasKey(e => e.ItemCode);
 
                 entity.ToTable("ItemMaster");
 
@@ -495,6 +494,8 @@ namespace Quotation.Management.Entities.Models
 
                 entity.Property(e => e.Qty).HasColumnType("decimal(18, 2)");
 
+                entity.Property(e => e.SeaFreightValue).HasColumnType("decimal(18, 2)");
+
                 entity.Property(e => e.SubItemCode)
                     .HasMaxLength(100)
                     .IsUnicode(false);
@@ -520,7 +521,7 @@ namespace Quotation.Management.Entities.Models
                     .WithMany(p => p.QuotationLines)
                     .HasForeignKey(d => d.ItemCode)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_quotaionLine_itemcode");
+                    .HasConstraintName("FK__Quotation__ItemC__26CFC035");
 
                 entity.HasOne(d => d.UpdatedByNavigation)
                     .WithMany(p => p.QuotationLineUpdatedByNavigations)

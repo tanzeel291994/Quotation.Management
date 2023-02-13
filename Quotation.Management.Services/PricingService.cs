@@ -139,6 +139,7 @@ namespace Quotation.Management.Services
                     QMTContext context = _productRepository.BeginTransaction();
                     for (int i = 0; i < dt.Rows.Count; i++)
                     {
+                        Console.WriteLine("on row indx:"+i);
                         string? productTypeId = dt.Rows[i].Field<string>("ProductTypeId");
                         string? productName = dt.Rows[i].Field<string>("ProductName");
                         string? itemGroupName = dt.Rows[i].Field<string>("ItemGroupName");
@@ -147,8 +148,9 @@ namespace Quotation.Management.Services
                         string? seriesName = dt.Rows[i].Field<string>("SeriesName");
                         string? parentSeries = dt.Rows[i].Field<string>("ParentSeries");
                         string? model = dt.Rows[i].Field<string>("Model");
-
-                        if(productTypeId == null)
+                        string? discount = Convert.ToString(dt.Rows[i].Field<object>("Discount"));
+                       
+                        if (productTypeId == null)
                         {
                             validationMessages.Add("ProductTypeId missing on Index " + i);
                             continue;
@@ -178,6 +180,7 @@ namespace Quotation.Management.Services
                             validationMessages.Add("Model missing on Index " + i);
                             continue;
                         }
+                        
 
                         ProductMaster productMaster = new();
                         productMaster.ProdTypeId = productTypeId;
@@ -208,6 +211,20 @@ namespace Quotation.Management.Services
                         itemMaster.ItemCode = model;
 
                         itemMaster = _itemCodeRepository.InsertItemCodeIfNotExist(itemMaster,context);
+                        if (discount != null)
+                        {
+                            bool isDiscountDataType = double.TryParse(discount, out double discountValue);
+                            if (!isDiscountDataType)
+                            {
+                                validationMessages.Add("Discount is not double value on row index " + i + " for itemCode:" + model);
+                                continue;
+                            }
+                            decimal mtlp = (decimal)(1 - discountValue);
+                            QuotationDefaultMultiplier quotationDefaultMultiplier = new();
+                            quotationDefaultMultiplier.ItemCode = model;
+                            quotationDefaultMultiplier.Mtlp = mtlp;
+                            _itemCodeRepository.InsertQuotationDefaultMlp(quotationDefaultMultiplier, context);
+                        }
                     }
                     if (validationMessages.Count == 0)
                         _productRepository.Commit();
@@ -248,7 +265,7 @@ namespace Quotation.Management.Services
                         if (columnName != "OptCode" && columnName != "OptName")
                             itemCodes.Add(columnName);
                     List<string> messages= _itemCodeRepository.ValidateAllItemCodes(itemCodes,out validItemCodes);
-                    //if (messages.Count > 0) return messages;
+                    if (messages.Count > 0) return messages;
 
                     itemCodes = itemCodes.Where(x => validItemCodes.Contains(x)).ToList();
                     QMTContext context = _optCodeRepository.BeginTransaction();
@@ -267,6 +284,11 @@ namespace Quotation.Management.Services
                             if (pricing == null || pricing == "")
                             {
                                 //validationMessages.Add("Pricing missing on Row Index " + i);
+                                //delete pricing for 
+                                PricingMaster pricingMastertodelete = new PricingMaster();
+                                pricingMastertodelete.ItemCode = itemCode;
+                                pricingMastertodelete.OptCode = optCode;
+                                _pricingRepository.DeletePricingIfNotExist(pricingMastertodelete, context);
                                 continue;
                             }
 
@@ -274,7 +296,7 @@ namespace Quotation.Management.Services
                             bool isPricingDataType = decimal.TryParse(pricing.Replace(",", "."), out decimal pricingValue);
                             if (!isPricingDataType)
                             {
-                                //validationMessages.Add("Pricing is not number on row index " + i +" for itemCode:"+itemCode);
+                                validationMessages.Add("Pricing is not number on row index " + i +" for itemCode:"+itemCode);
                                 continue;
                             }
                             PricingMaster? pricingMasterExist = _pricingRepository.GetPricing(itemCode, optCode, context);

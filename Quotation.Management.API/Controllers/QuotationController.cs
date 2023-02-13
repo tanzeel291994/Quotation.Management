@@ -8,6 +8,7 @@ using Quotation.Management.Entities.Models;
 using Quotation.Management.Services;
 using System.Data;
 using ExcelDataReader;
+using Newtonsoft.Json.Linq;
 
 namespace QMT_API.Controllers
 {
@@ -44,8 +45,26 @@ namespace QMT_API.Controllers
         {
             try
             {
-                var _quotation = _quotationService.GetQuotation(Id);
-                return Ok(JsonConvert.SerializeObject(_quotation));
+                var _quotation = _quotationService.GetQuotation(Id, revNum);
+                return Ok(JsonConvert.SerializeObject(_quotation, new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+        [HttpGet("all")]
+        [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetQuotationsAll()
+        {
+            try
+            {
+                var _quotations = _quotationService.GetAllQuotationNums();
+                return Ok(_quotations);
             }
             catch (Exception ex)
             {
@@ -88,6 +107,8 @@ namespace QMT_API.Controllers
             }
         }
 
+        #region Lines
+
         [HttpGet("lines")]
         [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -107,53 +128,15 @@ namespace QMT_API.Controllers
             }
         }
 
-        [HttpGet("cost/lines")]
-        [ProducesResponseType(typeof(PriceBreakDownDC), StatusCodes.Status200OK)]
+        [HttpPost("line/update")]
+        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetQuotationCostLines(string Id, int revNum)
+        public IActionResult UpdateQuotationLine(QuotationLineDC quotationLineDC)
         {
             try
             {
-                var _quotationCostItems = _quotationService.GetQuotationCostLines(Id, revNum);
-                return Ok(JsonConvert.SerializeObject(_quotationCostItems, new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                }));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-        }
-
-        [HttpGet("pbd")]
-        [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetQuotationPBD(string quotationNum, int revNum)
-        {
-            try
-            {
-                PriceBreakDownDC _quotationPBD = _quotationService.GetQuotationPBD(quotationNum, revNum);
-                return Ok(JsonConvert.SerializeObject(_quotationPBD));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-        }
-
-        [HttpGet("lines/options")]
-        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetQuotationLineOptions(string quotationId, int revNum)
-        {
-            try
-            {
-                var _lines = _quotationService.GetQuotationLinesOptCodes(quotationId, revNum);
-                return Ok(JsonConvert.SerializeObject(_lines, new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                }));
+                var _quotationLine = _quotationService.UpdateQuotationLine(quotationLineDC);
+                return Ok(_quotationLine);
             }
             catch (Exception ex)
             {
@@ -173,23 +156,7 @@ namespace QMT_API.Controllers
             }
             catch (ValidationException ex)
             {
-                return StatusCode(StatusCodes.Status422UnprocessableEntity,JsonConvert.SerializeObject(ex._messages));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-        }
-
-        [HttpPost("line/copyoption")]
-        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CopyOptionLine(QuotationCopyOptionDC quotationCopyOptionDC)
-        {
-            try
-            {
-                var result = _quotationService.CopyOptionLine(quotationCopyOptionDC);
-                return Ok(result);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, JsonConvert.SerializeObject(ex._messages));
             }
             catch (Exception ex)
             {
@@ -213,51 +180,19 @@ namespace QMT_API.Controllers
             }
         }
 
-        [HttpPost("line/nonstandard/options/add")]
-        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult AddNonStandadOption(QuotationNonStandardOptCodeDC nonStandardOptCodeDC)
-        {
-            try
-            {
-                var result = _quotationService.InsertNonStandardOption(nonStandardOptCodeDC);
-                return Ok(result);
-            }
-            catch (ValidationException ex)
-            {
-                return StatusCode(StatusCodes.Status422UnprocessableEntity, JsonConvert.SerializeObject(ex._messages));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-        }
 
-        [HttpPost("line/nonstandard/options/remove")]
-        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult RemoveNonStandadOption(QuotationNonStandardOptCodeDC nonStandardOptCodeDC)
-        {
-            try
-            {
-                var result = _quotationService.RemoveNonStandardOption(nonStandardOptCodeDC);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-        }
+        #endregion
 
-        [HttpGet("line/nonstandard/options")]
-        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
+        #region CostLines
+        [HttpGet("cost/lines")]
+        [ProducesResponseType(typeof(PriceBreakDownDC), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetQuotationLineNonStandadOptions(string quotationId, int revNum,int lineNum)
+        public IActionResult GetQuotationCostLines(string Id, int revNum)
         {
             try
             {
-                var _optCodes = _quotationService.GetQuotationLinesNonStandardOptCodes(quotationId, revNum,lineNum);
-                return Ok(JsonConvert.SerializeObject(_optCodes, new JsonSerializerSettings
+                var _quotationCostItems = _quotationService.GetQuotationCostLines(Id, revNum);
+                return Ok(JsonConvert.SerializeObject(_quotationCostItems, new JsonSerializerSettings
                 {
                     ContractResolver = new CamelCasePropertyNamesContractResolver()
                 }));
@@ -267,16 +202,31 @@ namespace QMT_API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-
         [HttpPost("costLine/add")]
         [ProducesResponseType(typeof(QuotationCostItem), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult AddCostItemLIne(QuotationCostItemDC quotationCostItemDC)
+        public IActionResult AddCostItemLIne([FromBody]List<QuotationCostItemDC> quotationCostItemDC)
         {
             try
             {
                 var result = _quotationService.InsertQuotationCostItem(quotationCostItemDC);
                 return Ok(JsonConvert.SerializeObject(result));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpGet("currency/convfactor")]
+        [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetCurrencyConv(string code, string oldcode,string quotationNum , int revNum)
+        {
+            try
+            {
+                var _currencyDC = _quotationService.GetCurrencyCode(code, oldcode, quotationNum,revNum);
+                return Ok(Newtonsoft.Json.JsonConvert.SerializeObject(_currencyDC));
             }
             catch (Exception ex)
             {
@@ -316,6 +266,72 @@ namespace QMT_API.Controllers
             }
         }
 
+        #endregion
+
+        [HttpGet("pbd")]
+        [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetQuotationPBD(string quotationNum, int revNum)
+        {
+            try
+            {
+                PriceBreakDownDC _quotationPBD = _quotationService.GetQuotationPBD(quotationNum, revNum);
+                return Ok(JsonConvert.SerializeObject(_quotationPBD));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        #region revisions
+
+        [HttpGet("setActiveRevision")]
+        [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult SetActiveRevision(string Id, int revNum)
+        {
+            try
+            {
+                _quotationService.SetActiveRevision(Id, revNum);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+        [HttpGet("allrevisions")]
+        [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetAllRevisions(string Id)
+        {
+            try
+            {
+                var data = _quotationService.GetAllRevisions(Id);
+                return Ok(JsonConvert.SerializeObject(data));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+        [HttpGet("createRevision")]
+        [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult CreateRevision(string Id, int revNum)
+        {
+            try
+            {
+                var data = _quotationService.CreateRevision(Id,revNum,0); //need to uodate userId
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+        #endregion
 
         [HttpPost("currency/update")]
         [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
@@ -333,21 +349,29 @@ namespace QMT_API.Controllers
             }
         }
 
-        [HttpPost("line/update")]
-        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+
+
+        #region Options
+
+        [HttpGet("lines/options")]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult UpdateQuotationLine(QuotationLineDC quotationLineDC)
+        public IActionResult GetQuotationLineOptions(string quotationId, int revNum)
         {
             try
             {
-                var _quotationLine = _quotationService.UpdateQuotationLine(quotationLineDC);
-                return Ok(_quotationLine);
+                var _lines = _quotationService.GetQuotationLinesOptCodes(quotationId, revNum);
+                return Ok(JsonConvert.SerializeObject(_lines, new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                }));
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
 
 
         [HttpPost("line/options")]
@@ -403,6 +427,80 @@ namespace QMT_API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+        [HttpPost("line/copyoption")]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult CopyOptionLine(QuotationCopyOptionDC quotationCopyOptionDC)
+        {
+            try
+            {
+                var result = _quotationService.CopyOptionLine(quotationCopyOptionDC);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+
+        [HttpPost("line/nonstandard/options/add")]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult AddNonStandadOption(QuotationNonStandardOptCodeDC nonStandardOptCodeDC)
+        {
+            try
+            {
+                var result = _quotationService.InsertNonStandardOption(nonStandardOptCodeDC);
+                return Ok(result);
+            }
+            catch (ValidationException ex)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, JsonConvert.SerializeObject(ex._messages));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpPost("line/nonstandard/options/remove")]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult RemoveNonStandadOption(QuotationNonStandardOptCodeDC nonStandardOptCodeDC)
+        {
+            try
+            {
+                var result = _quotationService.RemoveNonStandardOption(nonStandardOptCodeDC);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpGet("line/nonstandard/options")]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetQuotationLineNonStandadOptions(string quotationId, int revNum, int lineNum)
+        {
+            try
+            {
+                var _optCodes = _quotationService.GetQuotationLinesNonStandardOptCodes(quotationId, revNum, lineNum);
+                return Ok(JsonConvert.SerializeObject(_optCodes, new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        #endregion
 
         [HttpPost("lines/import/excel")]
         [ProducesResponseType(typeof(void), StatusCodes.Status200OK)]

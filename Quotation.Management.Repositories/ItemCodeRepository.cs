@@ -79,6 +79,7 @@ namespace Quotation.Management.Repositories
             //{
                 var context = _context ?? new QMTContext();
                 ItemMaster? itemMaster = context.ItemMasters.Where(x => x.ItemCode == _itemCode.ItemCode && x.SeriesId == _itemCode.SeriesId).FirstOrDefault();
+               
                 if (itemMaster == null)
                 {
                     context.ItemMasters.Add(_itemCode);
@@ -90,7 +91,23 @@ namespace Quotation.Management.Repositories
                 return itemMaster;
             //}
         }
+        public QuotationDefaultMultiplier InsertQuotationDefaultMlp(QuotationDefaultMultiplier _defaultMtlp, QMTContext? _context = null)
+        {
+            //using (var context = _context ?? new QMTContext())
+            //{
+            var context = _context ?? new QMTContext();
+            QuotationDefaultMultiplier? defaultMtlp = context.QuotationDefaultMultipliers.Where(x => x.ItemCode == _defaultMtlp.ItemCode).FirstOrDefault();
 
+            if (defaultMtlp == null)
+            {
+                context.QuotationDefaultMultipliers.Add(_defaultMtlp);
+                context.SaveChanges();
+            }
+            if (_context == null)
+                context.Dispose();
+            return _defaultMtlp;
+            //}
+        }
         public List<string> ValidateAllItemCodes(List<string> itemCodes ,out List<string> validItemCodes)
         {
             using (var context = new QMTContext())
@@ -155,14 +172,15 @@ namespace Quotation.Management.Repositories
             }
         }
 
-        public List<ItemCodeDetailsDC> GetItemCodeDetails(List<string> itemCodes,QMTContext? _context = null)
+        public List<ItemCodeDetailsDC> GetItemCodeDetails(List<string> itemCodes,QMTContext? _context =null)
         {
             var context = _context ?? new QMTContext();
-            var connectionString = context.Database.GetConnectionString();
             var result = new List<ItemCodeDetailsDC>();
-            using (var conn = new SqlConnection(connectionString))
+            result = context.Set<ItemCodeDetailsDC>().FromSqlRaw("EXEC GetItemCodeDetails {0}", string.Join(",", itemCodes)).ToList();
+
+            /*using (var conn = new SqlConnection(connectionString))
             {
-                conn.Open();
+                context.Database.OpenConnection();
                 using (var command = conn.CreateCommand())
                 {
                     command.CommandType = CommandType.StoredProcedure;
@@ -188,7 +206,7 @@ namespace Quotation.Management.Repositories
                 }
                 conn.Close();
 
-            }
+            }*/
             if (_context == null)
             {
                 context.Dispose();

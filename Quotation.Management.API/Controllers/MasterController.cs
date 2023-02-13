@@ -65,6 +65,21 @@ namespace QMT_API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+        [HttpGet("area/all")]
+        [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetSalesAreas()
+        {
+            try
+            {
+                var _areaList = _mastersService.GetAllAreas();
+                return Ok(JsonConvert.SerializeObject(_areaList));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
         [HttpGet("customer/filter")]
         [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -134,20 +149,6 @@ namespace QMT_API.Controllers
             }
         }
 
-        [HttpGet("currency/convfactor")]
-        [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetCurrencyConv(string code,string oldcode)
-        {
-            try
-            {
-                var _currencyDC = _mastersService.GetCurrencyCode(code,oldcode);
-                return Ok(Newtonsoft.Json.JsonConvert.SerializeObject(_currencyDC));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-        }
+        
     }
 }

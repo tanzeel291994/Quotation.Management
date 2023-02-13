@@ -67,6 +67,10 @@ namespace Quotation.Management.Services
         {
             return _mastersRepository.GetCustomers();
         }
+        public List<MasterDC> GetAllAreas()
+        {
+            return _mastersRepository.GetAreas();
+        }
         public List<MasterDC> GetAllCustomers(string searchString)
         {
             return _mastersRepository.GetCustomers(searchString);

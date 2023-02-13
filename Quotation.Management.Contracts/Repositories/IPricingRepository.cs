@@ -17,6 +17,7 @@ namespace Quotation.Management.Contracts.Repositories
 
         PricingMaster InsertPricingIfNotExist(PricingMaster _pricingMaster, QMTContext? _context = null);
 
+        PricingMaster DeletePricingIfNotExist(PricingMaster _pricingMaster, QMTContext? _context = null);
         bool MultipleInsertPricingData(List<PricingMaster> pricingList);
     }
 }
