@@ -7,7 +7,8 @@ namespace Quotation.Management.Contracts.Services
     public interface IQuotationService
     {
 
-        List<string> GetAllQuotationNums();
+         bool UpdateMultipleLines(JObject data);
+         List<string> GetAllQuotationNums();
          QuotationHeader? InsertQuotationHeader(QuotationHeaderDC inputHeader);
          QuotationLineDC? InsertQuotationLine(QuotationLineDC inputLine);
          QuotationHeader? GetQuotation(string Id, int? revNum = null);

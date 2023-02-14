@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -96,7 +97,30 @@ namespace Quotation.Management.Repositories
                 throw;
             }
         }
-
+        public void UpdateMultipleLines(List<QuotationLine> quotationLines,decimal inputValue,string updateType, QMTContext _context)
+        {
+            foreach(var line in quotationLines)
+            {
+                if(updateType == "VAT%")   //THese have depedceny on front end should be exact same as name
+                {
+                    line.Vat = inputValue;
+                }
+                else if (updateType == "Mtlp")
+                {
+                    line.Mtlp = inputValue;
+                    // line.TtNetPrice would be updated in UpdateUnitPriceFromOptions.
+                }
+                else if (updateType == "Margin%")
+                {
+                    line.Margin = inputValue;
+                }
+                else if (updateType == "Delete")
+                {
+                    _context.QuotationLines.Remove(line);
+                }
+            }
+            _context.SaveChanges();
+        }
         public QuotationHeader UpdateQuotationHeader(QuotationHeader _quotationHeader, QMTContext? _context = null)
         {
             var context = _context ?? new QMTContext();

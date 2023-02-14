@@ -280,6 +280,37 @@ namespace Quotation.Management.Services
         #endregion
 
         #region Lines
+        public bool UpdateMultipleLines(JObject data)
+        {
+            try
+            {
+                string quotationNum = (string)data["quotation"]!;
+                int revNum = (int) data["revNum"]!;
+                List<int> selectedLines = data["lines"]!.Select(x => (int)x).ToList();
+                decimal inputValue = data["inputValue"] != null ? (decimal)data["inputValue"]! : 0;
+                string updateType = (string)data["updateType"]!;
+                QMTContext context = _quotationRepository.BeginTransaction();
+                List<QuotationLine> quotationLines = _quotationRepository.GetQuotationLines(quotationNum,revNum,context);
+                quotationLines = quotationLines.Where(x => selectedLines.Contains(x.LineNum)).ToList();
+                _quotationRepository.UpdateMultipleLines(quotationLines,inputValue, updateType, context);
+
+                UpdateUnitPriceFromOptions(quotationNum,revNum,selectedLines,context);
+                UpdateAllLinesCostItemValue(quotationNum,revNum,context);
+
+                _quotationRepository.Commit();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                _quotationRepository.RollBack();
+                throw;
+            }
+            finally
+            {
+                _quotationRepository.DisposeConnection();
+            }
+        }
         public QuotationLineDC? InsertQuotationLine(QuotationLineDC inputLine)
         {
             try

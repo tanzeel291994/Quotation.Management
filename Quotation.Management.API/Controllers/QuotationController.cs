@@ -349,7 +349,21 @@ namespace QMT_API.Controllers
             }
         }
 
-
+        [HttpPost("multiple/update")]
+        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult UpdateMultipleLines(JObject data)
+        {
+            try
+            {
+                var result = _quotationService.UpdateMultipleLines(data);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
 
         #region Options
 
