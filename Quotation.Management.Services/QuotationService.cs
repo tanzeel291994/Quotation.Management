@@ -224,10 +224,13 @@ namespace Quotation.Management.Services
         {
             try
             {
+                CurrencyMaster? currencyMaster = _mastersRepository.GetCurrencyByCode(currencyDC.CurrencyCode);
+                CurrencyMaster? oldCurrencyMaster = _mastersRepository.GetCurrencyByCode(currencyDC.OldCurrencyCode);
                 QMTContext context = _quotationRepository.BeginTransaction();               
                 QuotationHeader? quotationHeader = _quotationRepository.GetQuotation(currencyDC.QuotationNum, currencyDC.RevNum, context);
                 quotationHeader!.CurrencyCode = currencyDC.CurrencyCode;
                 quotationHeader!.OldCurrencyCode = currencyDC.OldCurrencyCode;
+                decimal convFactor = currencyDC.NewConvFactor ?? Math.Round(currencyMaster!.ConvFactor/oldCurrencyMaster!.ConvFactor, 4);
                 if (currencyDC.NewConvFactor != null)
                     quotationHeader!.ConvFactor = currencyDC.NewConvFactor;
 
@@ -238,7 +241,7 @@ namespace Quotation.Management.Services
 
                 foreach (var _optCode in optCodeList)
                 {
-                    _optCode.UnitPrice = (decimal)(currencyDC.NewConvFactor ?? currencyDC.ConvFactor) * _optCode.UnitPrice;
+                    _optCode.UnitPrice = (convFactor) * _optCode.UnitPrice;
                     _quotationRepository.UpdateQuotationOptCodes(_optCode, context);
                 }
 
@@ -249,9 +252,9 @@ namespace Quotation.Management.Services
                 {
                     if (_costItem.CostItemType == CostItemType.ByVal.ToString())
                     {
-                        _costItem.CostItemValue *= (currencyDC.NewConvFactor ?? currencyDC.ConvFactor);
+                        _costItem.CostItemValue *= convFactor;
                         if(_costItem.FreightRate != null)
-                            _costItem.FreightRate *= (currencyDC.NewConvFactor ?? currencyDC.ConvFactor);
+                            _costItem.FreightRate *= convFactor;
 
                         _quotationRepository.UpdateCostItem(_costItem, context);
                     }
