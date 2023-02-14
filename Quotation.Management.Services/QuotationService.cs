@@ -156,18 +156,39 @@ namespace Quotation.Management.Services
             JObject jobject = new();
             try
             {
+                decimal adjustedConvfactor = 1;
                 List<QuotationLineDC> lines = _quotationRepository.GetQuotationLinesDC(Id, revNum);
                 List<string> itemCodes = lines.Select(x => x.BaseItemCode).Distinct().ToList();
                 List<ItemCodeDetailsDC> itemCodeDetails = _itemCodeRepository.GetItemCodeDetails(itemCodes);
-
-                QuotationHeader? quotationHeader = _quotationRepository.GetQuotation(Id, revNum);
+                
+                QuotationHeader ? quotationHeader = _quotationRepository.GetQuotation(Id, revNum);
                 string currencyCode = quotationHeader!.CurrencyCode;
                 CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(currencyCode);
-                decimal convFactor = quotationHeader!.ConvFactor ?? quotationCurrency!.ConvFactor;
+                CurrencyMaster? oldQuotationCurrency = null;
+                if (quotationHeader!.OldCurrencyCode != null)
+                {
+                    oldQuotationCurrency = _mastersRepository.GetCurrencyByCode(quotationHeader!.OldCurrencyCode);
+                }
+                if(quotationHeader!.ConvFactor != null) //conversion factor specified by the user  therfore there is an old currencu as well
+                {
+                    var convFactor = quotationHeader!.ConvFactor.Value;
+                    adjustedConvfactor = convFactor * oldQuotationCurrency!.ConvFactor;
+                }
+                else 
+                {
+                    if(oldQuotationCurrency != null) // user chnageed the currency but convfactor was takesas deafult one
+                    {
+                        adjustedConvfactor = Math.Round(quotationCurrency!.ConvFactor / oldQuotationCurrency!.ConvFactor, 4);
+                    }
+                    else
+                    {
+                        adjustedConvfactor = quotationCurrency!.ConvFactor;
+                    }
+                }
                 foreach (var _line in lines)
                 {
                     ItemCodeDetailsDC itemCodeDetail = itemCodeDetails.Where(x => x.ItemCode == _line.BaseItemCode).FirstOrDefault();
-                    _line.CAF = itemCodeDetail != null ? Math.Round(convFactor / itemCodeDetail.CAF,4) : 1;
+                    _line.CAF = itemCodeDetail != null ? Math.Round(adjustedConvfactor * itemCodeDetail.CAF,4) : 1;
                     _line.IndexValue = itemCodeDetail != null ? itemCodeDetail.IndexConvFactor : 1;
                     _line.ProductCurrencyCode = itemCodeDetail != null ? itemCodeDetail.CurrencyCode : "";
                 }
@@ -206,6 +227,7 @@ namespace Quotation.Management.Services
                 QMTContext context = _quotationRepository.BeginTransaction();               
                 QuotationHeader? quotationHeader = _quotationRepository.GetQuotation(currencyDC.QuotationNum, currencyDC.RevNum, context);
                 quotationHeader!.CurrencyCode = currencyDC.CurrencyCode;
+                quotationHeader!.OldCurrencyCode = currencyDC.OldCurrencyCode;
                 if (currencyDC.NewConvFactor != null)
                     quotationHeader!.ConvFactor = currencyDC.NewConvFactor;
 
@@ -276,6 +298,7 @@ namespace Quotation.Management.Services
                 inputLine.BaseItemCode = line.ItemCode;
                 inputLine.TtNetPrice = line.TtNetPrice;
                 inputLine.Margin = line.Margin;
+                inputLine.ProductCurrencyCode = itemDetails != null ? itemDetails.CurrencyCode : null;
                 inputLine.ActiveLine = line.ActiveLine;
                 inputLine.CAF = itemDetails != null ? Math.Round(quotationCurrency!.ConvFactor / itemDetails.CAF, 4) : 1;
                 inputLine.IndexValue = itemDetails.IndexConvFactor;

@@ -26,6 +26,7 @@ namespace Quotation.Management.Entities.Models
         public int Probability { get; set; }
         public bool IsActiveRevision { get; set; }
         public decimal? ConvFactor { get; set; }
+        public string? OldCurrencyCode { get; set; }
         public DateTime? BookingDate { get; set; }
         public int? IndustryId { get; set; }
         public int? Asp { get; set; }
