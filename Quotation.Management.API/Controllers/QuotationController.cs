@@ -352,7 +352,7 @@ namespace QMT_API.Controllers
         [HttpPost("multiple/update")]
         [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult UpdateMultipleLines(JObject data)
+        public IActionResult UpdateMultipleLines(UpdateMultipleLinesDC data)
         {
             try
             {

@@ -404,6 +404,10 @@ namespace Quotation.Management.Entities.Models
 
                 entity.Property(e => e.Msp).HasColumnName("MSP");
 
+                entity.Property(e => e.OldCurrencyCode)
+                    .HasMaxLength(10)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.ProjectName)
                     .HasMaxLength(500)
                     .IsUnicode(false);
@@ -427,7 +431,7 @@ namespace Quotation.Management.Entities.Models
                     .HasConstraintName("fk_QuotationHeader_CreatedBy");
 
                 entity.HasOne(d => d.CurrencyCodeNavigation)
-                    .WithMany(p => p.QuotationHeaders)
+                    .WithMany(p => p.QuotationHeaderCurrencyCodeNavigations)
                     .HasForeignKey(d => d.CurrencyCode)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Quotation__Curre__245D67DE");
@@ -454,6 +458,11 @@ namespace Quotation.Management.Entities.Models
                     .HasForeignKey(d => d.Msp)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__QuotationHe__MSP__25518C17");
+
+                entity.HasOne(d => d.OldCurrencyCodeNavigation)
+                    .WithMany(p => p.QuotationHeaderOldCurrencyCodeNavigations)
+                    .HasForeignKey(d => d.OldCurrencyCode)
+                    .HasConstraintName("FK__Quotation__OldCu__3335971A");
 
                 entity.HasOne(d => d.PaymentTerm)
                     .WithMany(p => p.QuotationHeaders)

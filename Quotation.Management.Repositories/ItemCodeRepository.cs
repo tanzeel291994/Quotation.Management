@@ -175,6 +175,7 @@ namespace Quotation.Management.Repositories
         public List<ItemCodeDetailsDC> GetItemCodeDetails(List<string> itemCodes,QMTContext? _context =null)
         {
             var context = _context ?? new QMTContext();
+            context.Database.SetCommandTimeout(180);
             var result = new List<ItemCodeDetailsDC>();
             result = context.Set<ItemCodeDetailsDC>().FromSqlRaw("EXEC GetItemCodeDetails {0}", string.Join(",", itemCodes)).ToList();
 

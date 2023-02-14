@@ -169,26 +169,28 @@ namespace Quotation.Management.Services
                 {
                     oldQuotationCurrency = _mastersRepository.GetCurrencyByCode(quotationHeader!.OldCurrencyCode);
                 }
-                if(quotationHeader!.ConvFactor != null) //conversion factor specified by the user  therfore there is an old currencu as well
-                {
-                    var convFactor = quotationHeader!.ConvFactor.Value;
-                    adjustedConvfactor = convFactor * oldQuotationCurrency!.ConvFactor;
-                }
-                else 
-                {
-                    if(oldQuotationCurrency != null) // user chnageed the currency but convfactor was takesas deafult one
-                    {
-                        adjustedConvfactor = Math.Round(quotationCurrency!.ConvFactor / oldQuotationCurrency!.ConvFactor, 4);
-                    }
-                    else
-                    {
-                        adjustedConvfactor = quotationCurrency!.ConvFactor;
-                    }
-                }
+                
                 foreach (var _line in lines)
                 {
                     ItemCodeDetailsDC itemCodeDetail = itemCodeDetails.Where(x => x.ItemCode == _line.BaseItemCode).FirstOrDefault();
-                    _line.CAF = itemCodeDetail != null ? Math.Round(adjustedConvfactor * itemCodeDetail.CAF,4) : 1;
+                    if (quotationHeader!.ConvFactor != null) //conversion factor specified by the user  therfore there is an old currencu as well
+                    {
+                        var convFactor = quotationHeader!.ConvFactor.Value;
+                        adjustedConvfactor = convFactor * oldQuotationCurrency!.ConvFactor;
+                    }
+                    else
+                    {
+                        //if (oldQuotationCurrency != null) // user chnageed the currency but convfactor was takesas deafult one
+                        //{
+                        //    adjustedConvfactor = Math.Round(quotationCurrency!.ConvFactor / oldQuotationCurrency!.ConvFactor, 4);
+                        //}
+                        //else
+                        //{
+                        adjustedConvfactor = quotationCurrency!.ConvFactor;
+                        //}
+                    }
+
+                    _line.CAF = itemCodeDetail != null ? Math.Round(adjustedConvfactor / itemCodeDetail.CAF, 4) : 1;
                     _line.IndexValue = itemCodeDetail != null ? itemCodeDetail.IndexConvFactor : 1;
                     _line.ProductCurrencyCode = itemCodeDetail != null ? itemCodeDetail.CurrencyCode : "";
                 }
@@ -211,7 +213,12 @@ namespace Quotation.Management.Services
                 CurrencyDC currencyDC = new();
                 currencyDC.OldCurrencyCode = oldCurrency!.CurrencyCode;
                 currencyDC.CurrencyCode = currency!.CurrencyCode;
-                currencyDC.ConvFactor = Math.Round( currency!.ConvFactor / (header!.ConvFactor ??  oldCurrency.ConvFactor), 4);
+                if(header!.ConvFactor != null)
+                {
+                    currencyDC.ConvFactor = Math.Round((header!.ConvFactor.Value * oldCurrency.ConvFactor)/ currency!.ConvFactor , 4);
+                }
+                else
+                  currencyDC.ConvFactor = Math.Round( currency!.ConvFactor /  oldCurrency.ConvFactor, 4);
                 return currencyDC;
             }
             catch (Exception ex)
@@ -280,22 +287,22 @@ namespace Quotation.Management.Services
         #endregion
 
         #region Lines
-        public bool UpdateMultipleLines(JObject data)
+        public bool UpdateMultipleLines(UpdateMultipleLinesDC data)
         {
             try
             {
-                string quotationNum = (string)data["quotation"]!;
-                int revNum = (int) data["revNum"]!;
-                List<int> selectedLines = data["lines"]!.Select(x => (int)x).ToList();
-                decimal inputValue = data["inputValue"] != null ? (decimal)data["inputValue"]! : 0;
-                string updateType = (string)data["updateType"]!;
+                //string quotationNum = (string)data["quotation"]!;
+                //int revNum = (int) data["revNum"]!;
+                //List<int> selectedLines = data["lines"];
+                //decimal inputValue = data["inputValue"] != null ? (decimal)data["inputValue"]! : 0;
+                //string updateType = (string)data["updateType"]!;
                 QMTContext context = _quotationRepository.BeginTransaction();
-                List<QuotationLine> quotationLines = _quotationRepository.GetQuotationLines(quotationNum,revNum,context);
-                quotationLines = quotationLines.Where(x => selectedLines.Contains(x.LineNum)).ToList();
-                _quotationRepository.UpdateMultipleLines(quotationLines,inputValue, updateType, context);
+                List<QuotationLine> quotationLines = _quotationRepository.GetQuotationLines(data.QuotationNum, data.RevNum,context);
+                quotationLines = quotationLines.Where(x => data.Lines.Contains(x.LineNum)).ToList();
+                _quotationRepository.UpdateMultipleLines(quotationLines, data.inputValue, data.TypeOfUpdate, context);
 
-                UpdateUnitPriceFromOptions(quotationNum,revNum,selectedLines,context);
-                UpdateAllLinesCostItemValue(quotationNum,revNum,context);
+                UpdateUnitPriceFromOptions(data.QuotationNum, data.RevNum, data.Lines, context);
+                UpdateAllLinesCostItemValue(data.QuotationNum, data.RevNum, context);
 
                 _quotationRepository.Commit();
                 return true;

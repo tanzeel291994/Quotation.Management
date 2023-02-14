@@ -68,6 +68,15 @@ namespace Quotation.Management.Contracts
         public decimal? Price { get; set; }
     }
 
+    public class UpdateMultipleLinesDC
+    {
+        public string QuotationNum { get; set; } = null!;
+        public int RevNum { get; set; }
+        public List<int> Lines { get; set; } = null!;
+        public string TypeOfUpdate { get; set; } = null!;
+        public decimal? inputValue { get; set; }
+
+    }
     public class PricingMasterDC
     {
         public string ItemCode { get; set; } = null!;

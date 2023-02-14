@@ -9,7 +9,7 @@ namespace Quotation.Management.Contracts.Repositories
 {
     public interface IQuotationRepository : ITransactional
     {
-        void UpdateMultipleLines(List<QuotationLine> quotationLines, decimal inputValue, string updateType, QMTContext _context);
+        void UpdateMultipleLines(List<QuotationLine> quotationLines, decimal? inputValue, string updateType, QMTContext _context);
         List<QuotationLine> GetQuotationLines(string quotationNum, List<int> lineNums, int revNum, QMTContext? _context = null);
         List<string> GetAllQuotationNums();
          QuotationHeader InsertUpdateQuotation(QuotationHeader _quotationHeader, int? updatedBy, QMTContext? _context = null);

@@ -37,6 +37,7 @@ namespace Quotation.Management.Repositories
                 header.IndustryId = _quotationHeader.IndustryId;
                 header.Msp = _quotationHeader.Msp;
                 header.Asp = _quotationHeader.Asp;
+                header.CurrencyCode = _quotationHeader.CurrencyCode; // tHIS is used when no lines ecist and header changed 
                 header.UpdatedBy = updatedBy;
             }
             else
@@ -97,22 +98,22 @@ namespace Quotation.Management.Repositories
                 throw;
             }
         }
-        public void UpdateMultipleLines(List<QuotationLine> quotationLines,decimal inputValue,string updateType, QMTContext _context)
+        public void UpdateMultipleLines(List<QuotationLine> quotationLines,decimal? inputValue,string updateType, QMTContext _context)
         {
             foreach(var line in quotationLines)
             {
                 if(updateType == "VAT%")   //THese have depedceny on front end should be exact same as name
                 {
-                    line.Vat = inputValue;
+                    line.Vat = inputValue.Value;
                 }
                 else if (updateType == "Mtlp")
                 {
-                    line.Mtlp = inputValue;
+                    line.Mtlp = inputValue.Value;
                     // line.TtNetPrice would be updated in UpdateUnitPriceFromOptions.
                 }
                 else if (updateType == "Margin%")
                 {
-                    line.Margin = inputValue;
+                    line.Margin = inputValue.Value;
                 }
                 else if (updateType == "Delete")
                 {

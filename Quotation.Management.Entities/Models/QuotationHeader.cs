@@ -26,12 +26,12 @@ namespace Quotation.Management.Entities.Models
         public int Probability { get; set; }
         public bool IsActiveRevision { get; set; }
         public decimal? ConvFactor { get; set; }
-        public string? OldCurrencyCode { get; set; }
         public DateTime? BookingDate { get; set; }
         public int? IndustryId { get; set; }
         public int? Asp { get; set; }
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
+        public string? OldCurrencyCode { get; set; }
 
         public virtual SalesArea AreaCodeNavigation { get; set; } = null!;
         public virtual UserMaster? AspNavigation { get; set; }
@@ -41,6 +41,7 @@ namespace Quotation.Management.Entities.Models
         public virtual DeliveryTermMaster DeliveryTerm { get; set; } = null!;
         public virtual IndustryMaster? Industry { get; set; }
         public virtual UserMaster MspNavigation { get; set; } = null!;
+        public virtual CurrencyMaster? OldCurrencyCodeNavigation { get; set; }
         public virtual PaymentTermMaster PaymentTerm { get; set; } = null!;
         public virtual QuotationStatusMaster Status { get; set; } = null!;
         public virtual UserMaster? UpdatedByNavigation { get; set; }
