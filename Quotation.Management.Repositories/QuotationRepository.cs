@@ -115,10 +115,6 @@ namespace Quotation.Management.Repositories
                 {
                     line.Margin = inputValue.Value;
                 }
-                else if (updateType == "Delete")
-                {
-                    _context.QuotationLines.Remove(line);
-                }
             }
             _context.SaveChanges();
         }

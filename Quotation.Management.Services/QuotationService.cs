@@ -291,15 +291,24 @@ namespace Quotation.Management.Services
         {
             try
             {
-                //string quotationNum = (string)data["quotation"]!;
-                //int revNum = (int) data["revNum"]!;
-                //List<int> selectedLines = data["lines"];
-                //decimal inputValue = data["inputValue"] != null ? (decimal)data["inputValue"]! : 0;
-                //string updateType = (string)data["updateType"]!;
                 QMTContext context = _quotationRepository.BeginTransaction();
                 List<QuotationLine> quotationLines = _quotationRepository.GetQuotationLines(data.QuotationNum, data.RevNum,context);
                 quotationLines = quotationLines.Where(x => data.Lines.Contains(x.LineNum)).ToList();
-                _quotationRepository.UpdateMultipleLines(quotationLines, data.inputValue, data.TypeOfUpdate, context);
+                if(data.TypeOfUpdate == "Delete")
+                {
+                    foreach (var _line in quotationLines)
+                    {
+                        List<string> costItemGroupIds = _quotationRepository.GetQuotationCostItemLines(_line.QuotationNum, _line.LineNum, _line.RevNum, context)
+                                                   .Select(x => x.QuotationCostItemGroupId).Distinct().ToList();
+
+                        _quotationRepository.DeleteQuotationOptions(_line.QuotationNum, _line.LineNum, _line.RevNum, context);
+                        _quotationRepository.DeleteCostItemLines(_line.QuotationNum, _line.LineNum, _line.RevNum, context);
+                        _quotationRepository.DeleteCostItemGroup(_line.QuotationNum, _line.LineNum, _line.RevNum, costItemGroupIds, context);
+                        _quotationRepository.DeleteQuotationLine(_line, context);
+                    }
+                }
+                else
+                    _quotationRepository.UpdateMultipleLines(quotationLines, data.inputValue, data.TypeOfUpdate, context);
 
                 UpdateUnitPriceFromOptions(data.QuotationNum, data.RevNum, data.Lines, context);
                 UpdateAllLinesCostItemValue(data.QuotationNum, data.RevNum, context);

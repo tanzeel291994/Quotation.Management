@@ -177,40 +177,18 @@ namespace Quotation.Management.Repositories
             var context = _context ?? new QMTContext();
             context.Database.SetCommandTimeout(180);
             var result = new List<ItemCodeDetailsDC>();
-            result = context.Set<ItemCodeDetailsDC>().FromSqlRaw("EXEC GetItemCodeDetails {0}", string.Join(",", itemCodes)).ToList();
-
-            /*using (var conn = new SqlConnection(connectionString))
+            try
             {
-                context.Database.OpenConnection();
-                using (var command = conn.CreateCommand())
+                result = context.Set<ItemCodeDetailsDC>().FromSqlRaw("EXEC GetItemCodeDetails {0}", string.Join(",", itemCodes)).ToList();
+                if (_context == null)
                 {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.CommandText = "GetItemCodeDetails";
-                    command.Parameters.AddWithValue("@ItemCodes", string.Join(",",itemCodes));
-
-                    var rdr = command.ExecuteReader();
-                  
-                    while (rdr.Read())
-                    {
-                        ItemCodeDetailsDC detailsDC = new();
-                        detailsDC.BrandName = rdr["BrandName"].ToString();
-                        detailsDC.ItemCode = rdr["ItemCode"].ToString();
-                        detailsDC.ProdName = rdr["ProdName"].ToString();
-                        detailsDC.ProdTypeId = rdr["ProdTypeId"].ToString();
-                        detailsDC.IndexConvFactor = !rdr.IsDBNull("IndexConvFactor") ? (decimal)rdr["IndexConvFactor"] : null;
-                        detailsDC.Mtlp = !rdr.IsDBNull("Mtlp") ? (decimal)rdr["Mtlp"] :null;
-                        detailsDC.CurrencyCode = rdr["CurrencyCode"].ToString();
-                        detailsDC.CAF = (decimal)rdr["CAF"];
-                        result.Add(detailsDC);
-                    }
-                    
+                    context.Dispose();
                 }
-                conn.Close();
-
-            }*/
-            if (_context == null)
+            }
+            catch(Exception ex)
             {
                 context.Dispose();
+                throw;
             }
             return result;
         }
