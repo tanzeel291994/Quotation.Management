@@ -365,6 +365,22 @@ namespace QMT_API.Controllers
             }
         }
 
+        [HttpPost("lines/copy")]
+        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult CopyQuotationLinesFromQuotation(CopyQuotationLineDC input)
+        {
+            try
+            {
+                var result = _quotationService.CopyQuotationLinesFromQuotation(input);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
         #region Options
 
         [HttpGet("lines/options")]

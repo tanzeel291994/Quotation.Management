@@ -327,6 +327,49 @@ namespace Quotation.Management.Services
                 _quotationRepository.DisposeConnection();
             }
         }
+        public bool CopyQuotationLinesFromQuotation(CopyQuotationLineDC input)
+        {
+            try
+            {
+                QMTContext context = _quotationRepository.BeginTransaction();
+                List<QuotationLine> quotationLines = _quotationRepository.GetQuotationLines(input.FromQuotationNum, input.Lines, input.FromRevNum, context);
+                List<string> allItemCodes = quotationLines.Select(x => x.ItemCode).Distinct().ToList(); ;
+                List<ItemCodeDetailsDC> itemCodeDetails = _itemCodeRepository.GetItemCodeDetails(allItemCodes, context);
+                foreach (var _line in quotationLines)
+                {
+                    QuotationLineDC inputLine = new();
+                    inputLine.QuotationNum = input.ToQuotationNum;
+                    inputLine.ActiveLine = true; 
+                    inputLine.Qty = _line.Qty;
+                    inputLine.Mtlp = _line.Mtlp;
+                    inputLine.UnitPrice = _line.UnitPrice;
+                    inputLine.ItemCode = _line.ItemCode;
+                    inputLine.Vat = _line.Vat;
+                    inputLine.Margin = _line.Margin;
+                    inputLine.UnitTag = _line.UnitTag;
+                    inputLine.RevNum = input.ToRevNum;
+                    ItemCodeDetailsDC? detailsDC = itemCodeDetails.Where(x => x.ItemCode == _line.ItemCode).FirstOrDefault();
+                    
+                    AddQuotationLine(inputLine, detailsDC!, context);
+                }
+
+                UpdateUnitPriceFromOptions(input.ToQuotationNum, input.ToRevNum, input.Lines, context);
+                UpdateAllLinesCostItemValue(input.ToQuotationNum, input.ToRevNum, context);
+
+                _quotationRepository.Commit();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                _quotationRepository.RollBack();
+                throw;
+            }
+            finally
+            {
+                _quotationRepository.DisposeConnection();
+            }
+        }
         public QuotationLineDC? InsertQuotationLine(QuotationLineDC inputLine)
         {
             try

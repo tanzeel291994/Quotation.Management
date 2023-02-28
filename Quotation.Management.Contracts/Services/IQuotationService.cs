@@ -23,8 +23,8 @@ namespace Quotation.Management.Contracts.Services
 
         List<QuotationOptCodeDC>? GetQuotationLinesNonStandardOptCodes(string Id, int revNum, int lineNum);
         List<QuotationCostItemDC> InsertQuotationCostItem(List<QuotationCostItemDC> input);
-
-        CurrencyDC GetCurrencyCode(string curencyCode, string oldCurrencyCode, string quotationNum, int revNum);
+        bool CopyQuotationLinesFromQuotation(CopyQuotationLineDC input);
+         CurrencyDC GetCurrencyCode(string curencyCode, string oldCurrencyCode, string quotationNum, int revNum);
          bool UpdateQuotationCurrency(CurrencyDC currencyDC);
         QuotationCostItemDC UpdateQuotationCostItem(QuotationCostItemDC input);
 

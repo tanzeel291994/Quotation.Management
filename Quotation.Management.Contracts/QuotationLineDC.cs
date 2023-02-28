@@ -77,6 +77,15 @@ namespace Quotation.Management.Contracts
         public decimal? inputValue { get; set; }
 
     }
+    public class CopyQuotationLineDC
+    {
+        public string FromQuotationNum { get; set; } = null!;
+        public string ToQuotationNum { get; set; } = null!;
+        public int FromRevNum { get; set; }
+        public int ToRevNum { get; set; }
+        public List<int> Lines { get; set; } = null!;
+
+    }
     public class PricingMasterDC
     {
         public string ItemCode { get; set; } = null!;
