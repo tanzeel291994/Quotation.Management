@@ -237,7 +237,7 @@ namespace QMT_API.Controllers
         [HttpPost("costLine/update")]
         [ProducesResponseType(typeof(QuotationCostItem), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult UpdateCostItemLIne(QuotationCostItemDC quotationCostItemDC)
+        public IActionResult UpdateCostItemLIne([FromBody] QuotationCostItemDC quotationCostItemDC)
         {
             try
             {

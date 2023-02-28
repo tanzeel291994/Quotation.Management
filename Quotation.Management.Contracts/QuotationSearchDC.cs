@@ -18,5 +18,6 @@ namespace Quotation.Management.Contracts
         public bool ItemCodeWise { get; set; }
         public string? AreaCode { get; set; }
         public int? StatusId { get; set; }
+        public int? QuotationYear { get; set; }
     }
 }

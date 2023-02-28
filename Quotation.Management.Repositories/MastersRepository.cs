@@ -40,6 +40,18 @@ namespace Quotation.Management.Repositories
                 }).ToList();
             }
         }
+        public List<MasterDC> GetAllQuotationYears()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.QuotationHeaders.Select(x=> x.QuotationDate.Year).Distinct().Select(x => new
+                MasterDC
+                {
+                    Name = x.ToString(),
+                    Id = x
+                }).ToList();
+            }
+        }
 
         public List<MasterDC> GetDeliveryTerms()
         {
@@ -181,6 +193,74 @@ namespace Quotation.Management.Repositories
                 return customerMaster;
             }
         }
+        public void InsertCostItem(string name)
+        {
+            using (var context = new QMTContext())
+            {
+                var _data = context.CostItemCodes.Where(x => x.CostItemName.ToLower() == name.ToLower()).FirstOrDefault();
+                if (_data != null)
+                {
+                    throw new ValidationException(new List<string> { "Cost Item already exists" });
+                }
+                int num = context.CostItemCodes.Select(x => Convert.ToInt32(x.CostItemId.Replace("C00",""))).Max();
+                CostItemCode costItemCode = new();
+                costItemCode.CostItemId = "C00" + (num+1);
+                costItemCode.CostItemName = name;
+                context.CostItemCodes.Add(costItemCode);
+                context.SaveChanges();
+            }
+        }
+        public void InsertPaymentTerm(string name)
+        {
+            using (var context = new QMTContext())
+            {
+                var _data = context.PaymentTermMasters.Where(x => x.PaymentTermName.ToLower() == name.ToLower()).FirstOrDefault();
+                if (_data != null)
+                {
+                    throw new ValidationException(new List<string> { "PaymentTermName already exists" });
+                }
+                int num = context.PaymentTermMasters.Select(x => x.Id).Max();
+                PaymentTermMaster paymentTermMaster  = new();
+                paymentTermMaster.Id = (num + 1);
+                paymentTermMaster.PaymentTermName = name;
+                context.PaymentTermMasters.Add(paymentTermMaster);
+                context.SaveChanges();
+            }
+        }
+        public void InsertDeliveryTerm(string name)
+        {
+            using (var context = new QMTContext())
+            {
+                var _data = context.DeliveryTermMasters.Where(x => x.DeliveryTermName.ToLower() == name.ToLower()).FirstOrDefault();
+                if (_data != null)
+                {
+                    throw new ValidationException(new List<string> { "DeliveryTermName already exists" });
+                }
+                int num = context.DeliveryTermMasters.Select(x => x.Id).Max();
+                DeliveryTermMaster deliveryTermMaster = new();
+                deliveryTermMaster.Id = (num + 1);
+                deliveryTermMaster.DeliveryTermName = name;
+                context.DeliveryTermMasters.Add(deliveryTermMaster);
+                context.SaveChanges();
+            }
+        }
+        /*public void InsertSalesArea(string name)
+        {
+            using (var context = new QMTContext())
+            {
+                var _data = context.SalesAreas.Where(x => x.a.ToLower() == name.ToLower()).FirstOrDefault();
+                if (_data != null)
+                {
+                    throw new ValidationException(new List<string> { "DeliveryTermName already exists" });
+                }
+                int num = context.DeliveryTermMasters.Select(x => x.Id).Max();
+                DeliveryTermMaster deliveryTermMaster = new();
+                deliveryTermMaster.Id = (num + 1);
+                deliveryTermMaster.DeliveryTermName = name;
+                context.DeliveryTermMasters.Add(deliveryTermMaster);
+                context.SaveChanges();
+            }
+        }*/
         public List<MasterDC> GetProducts()
         {
             using (var context = new QMTContext())

@@ -196,7 +196,7 @@ namespace Quotation.Management.Repositories
                 context.Dispose();
         }
 
-        public Dictionary<string, decimal> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItemLine> costItemLines, List<QuotationCostItem> costItems,Dictionary<string,decimal> groupIdTotalDict,string seaFreightCostCode,string customDutyCode, QMTContext? _context=null)
+        public Dictionary<string, decimal> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItemLine> costItemLines, List<QuotationCostItem> costItems,Dictionary<string,decimal> groupIdTotalDict,string seaFreightCostCode,string customDutyCode, QMTContext context)
         {
             foreach (var costItem in costItems)
             {
@@ -237,27 +237,22 @@ namespace Quotation.Management.Repositories
                 }
                 
             }
-            var context = _context ?? new QMTContext();
-            
             if (quotationLines.Count > 0)
             {
                 context.SaveChanges();
             }
-            if (_context == null)
-            {
-                context.Dispose();
-            }
             return groupIdTotalDict;
         }
         
-        public void UpdateCustomDutyCostItemValue(List<QuotationCostItem> customDutyItems, Dictionary<string, decimal> groupIdTotalDict, QMTContext context)
+        public void UpdateCustomDutyCostItemValue(string quotationNum, int revNum, List<QuotationCostItem> customDutyItems, Dictionary<string, decimal> groupIdTotalDict, QMTContext context)
         {
             List<string> customDutyCostItemGroupIds = customDutyItems.Select(x => x.QuotationCostItemGroupId).ToList();
-            List<QuotationCostItemLine> customDutyCostLines = context.QuotationCostItemLines.Where(x => customDutyCostItemGroupIds.Contains(x.QuotationCostItemGroupId)).ToList();
+            List<QuotationCostItemLine> customDutyCostLines = context.QuotationCostItemLines.Where(x => customDutyCostItemGroupIds.Contains(x.QuotationCostItemGroupId) && x.QuotationNum == quotationNum && x.RevNum == revNum).ToList();
 
             List<int> customDutyLines = customDutyCostLines.Select(x => x.LineNum).Distinct().ToList();
 
-            List<QuotationLine> quotationLines = context.QuotationLines.Where(x => customDutyLines.Contains(x.LineNum)).ToList();
+            List<QuotationLine> quotationLines = context.QuotationLines.Where(x => customDutyLines.Contains(x.LineNum) 
+                                                 && x.QuotationNum == quotationNum && x.RevNum == revNum).ToList();
 
             foreach (var item in customDutyCostLines)
             {
@@ -564,7 +559,10 @@ namespace Quotation.Management.Repositories
                              where (qh.QuotationNum == input.QuotationNum || input.QuotationNum == null) &&
                              (qh.CustomerCode == input.CustomerCode || input.CustomerCode == null) &&
                              (qh.ProjectName == input.ProjectName || input.ProjectName == null) &&
-                             (qh.AreaCode == input.AreaCode || input.AreaCode == null)
+                             (qh.AreaCode == input.AreaCode || input.AreaCode == null) &&
+                             (qh.QuotationDate.Year == input.QuotationYear || input.QuotationYear == null) &&
+                             (qh.Msp == input.Msp || input.Msp == null) &&
+                             (qh.StatusId == input.StatusId || input.StatusId == null)
                              select new
                              {
                                  QuotationNum = qh.QuotationNum,
@@ -572,7 +570,10 @@ namespace Quotation.Management.Repositories
                                  CustomerName = qh.CustomerCodeNavigation.CustomerName,
                                  AreaName = qh.AreaCodeNavigation.AreaName,
                                  RevNum = qh.RevNum,
-                                 IsActiveRevision = qh.IsActiveRevision
+                                 IsActiveRevision = qh.IsActiveRevision,
+                                 Status = qh.Status.StatusName,
+                                 QuotationDate = qh.QuotationDate,
+                                 SalesRep = qh.MspNavigation.FirstName+' '+qh.MspNavigation.LastName
                              }).ToList();
                 return _data;
             }

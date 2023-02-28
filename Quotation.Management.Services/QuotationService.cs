@@ -868,7 +868,7 @@ namespace Quotation.Management.Services
                 List<QuotationCostItemLine> costItemLines = new();
                 foreach (var _quotationLine in quotationLines)
                 {
-                    ttslsPrice += (_quotationLine.UnitPrice * _quotationLine.Mtlp * _quotationLine.Qty);
+                    ttslsPrice += (_quotationLine.TtNetPrice);
                 }
                 foreach (var _line in input.quotationLineCostItems)
                 {
@@ -880,7 +880,7 @@ namespace Quotation.Management.Services
                     costItemLine.QuotationCostItemGroupId = costItem.QuotationCostItemGroupId;
                     if (costItem.CostItemType == CostItemType.ByVal.ToString())
                     {
-                        costItemLine.CostItemLineValue = costItem.CostItemValue * ((quotationLine.UnitPrice * quotationLine.Mtlp * quotationLine.Qty) / ttslsPrice);
+                        costItemLine.CostItemLineValue = costItem.CostItemValue * (quotationLine.TtNetPrice / ttslsPrice);
                     }
                     if (costItem.CostItemType == CostItemType.ByPercentage.ToString())
                     {
@@ -1033,7 +1033,7 @@ namespace Quotation.Management.Services
                     }
                 }
                 groupIdTotalDict = _quotationRepository.UpdateCostValueOfAllQuotationLine(quotationLines, costItemLines, costItems, groupIdTotalDict,seaFreightCostCode, customDutyCostCode, context);
-                _quotationRepository.UpdateCustomDutyCostItemValue(customDutyItems, groupIdTotalDict,context);
+                _quotationRepository.UpdateCustomDutyCostItemValue(quotationNum, revNum, customDutyItems, groupIdTotalDict,context);
                 return quotationLines;
             }
             catch (Exception ex)

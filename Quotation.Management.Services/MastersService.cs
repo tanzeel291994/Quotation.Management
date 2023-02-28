@@ -28,7 +28,7 @@ namespace Quotation.Management.Services
         }
         public JObject? GetAllMasters()
         {
-            JObject jobject = new JObject();
+            JObject jobject = new();
             try
             {
                 jobject.Add(new JProperty("users",JsonConvert.SerializeObject(_mastersRepository.GetUsers())));
@@ -39,6 +39,7 @@ namespace Quotation.Management.Services
                 jobject.Add(new JProperty("statuses", JsonConvert.SerializeObject(_mastersRepository.GetStatuses())));
                 jobject.Add(new JProperty("currency", JsonConvert.SerializeObject(_mastersRepository.GetCurrency())));
                 jobject.Add(new JProperty("industries", JsonConvert.SerializeObject(_mastersRepository.GetIndustrys())));
+                
                 //jobject.Add(new JProperty("itemCodes", JsonConvert.SerializeObject(_itemCodeRepository.GetAll())));
                 //jobject.Add(new JProperty("products", JsonConvert.SerializeObject(_mastersRepository.GetProducts())));
                 //jobject.Add(new JProperty("costItems", JsonConvert.SerializeObject(_mastersRepository.GetCostItems())));
@@ -71,6 +72,39 @@ namespace Quotation.Management.Services
         {
             return _mastersRepository.GetAreas();
         }
+        public List<MasterDC> GetMasterData(string type)
+        {
+            List<MasterDC> data = new();
+            if (type == "CostItems") data = _mastersRepository.GetCostItems();
+            else if (type == "PaymentTerms") data = _mastersRepository.GetPaymentTerms();
+            else if (type == "DeliveryTerms") data = _mastersRepository.GetDeliveryTerms();
+            else if (type == "Areas") data = _mastersRepository.GetDeliveryTerms();
+            else if (type == "Currency") data = _mastersRepository.GetCurrency();
+            else if (type == "Industry") data = _mastersRepository.GetIndustrys();
+            else if (type == "Status") data = _mastersRepository.GetStatuses();
+            else data = new();
+
+            return data;
+        }
+        public void InsertMasterData(string type,string name)
+        {
+            try
+            {
+                List<MasterDC> data = new();
+                if (type == "CostItems") _mastersRepository.InsertCostItem(name);
+                else if (type == "PaymentTerms") _mastersRepository.InsertPaymentTerm(name);
+                else if (type == "DeliveryTerms") _mastersRepository.InsertDeliveryTerm(name);
+                //else if (type == "Areas") _mastersRepository.InsertSalesArea(name);
+                //else if (type == "Currency")  _mastersRepository.InsertCurrency(name);
+                //else if (type == "Industry") _mastersRepository.InsertIndustry(name);
+                //else if (type == "Status")  _mastersRepository.InsertStatus(name);
+                //else data = new();
+            }
+             catch (ValidationException ex)
+            {
+                throw;
+            }
+        }
         public List<MasterDC> GetAllCustomers(string searchString)
         {
             return _mastersRepository.GetCustomers(searchString);
@@ -102,6 +136,7 @@ namespace Quotation.Management.Services
                 jobject.Add(new JProperty("statuses", JsonConvert.SerializeObject(_mastersRepository.GetStatuses())));
                 jobject.Add(new JProperty("products", JsonConvert.SerializeObject(_mastersRepository.GetProducts())));
                 jobject.Add(new JProperty("projects", JsonConvert.SerializeObject(_mastersRepository.GetProjects())));
+                jobject.Add(new JProperty("quotationYears", JsonConvert.SerializeObject(_mastersRepository.GetAllQuotationYears())));
 
                 return jobject;
             }

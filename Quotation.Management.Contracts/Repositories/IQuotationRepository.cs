@@ -58,8 +58,8 @@ namespace Quotation.Management.Contracts.Repositories
         List<string> GetQuotationOptions(string quotationNum, int revNum);
         QuotationCostItem DeleteCostItem(QuotationCostItem _quotationCostItem, QMTContext? _context = null);
         QuotationCostItem GetQuotationCostItem(string quotationNum, int revNum, string groupId, QMTContext? _context = null);
-        Dictionary<string, decimal> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItemLine> costItemLines, List<QuotationCostItem> costItems, Dictionary<string, decimal> groupIdTotalDict, string seaFreightCostCode, string customDutyCode, QMTContext? _context = null);
-        void UpdateCustomDutyCostItemValue(List<QuotationCostItem> customDutyItems, Dictionary<string, decimal> groupIdTotalDict, QMTContext context);
+        Dictionary<string, decimal> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItemLine> costItemLines, List<QuotationCostItem> costItems, Dictionary<string, decimal> groupIdTotalDict, string seaFreightCostCode, string customDutyCode, QMTContext context);
+        void UpdateCustomDutyCostItemValue(string quotationNum, int revNum, List<QuotationCostItem> customDutyItems, Dictionary<string, decimal> groupIdTotalDict, QMTContext context);
         dynamic GetQuotationSearch(QuotationSearchDC input);
 
         dynamic GetQuotationLinesSearch(QuotationSearchDC input);

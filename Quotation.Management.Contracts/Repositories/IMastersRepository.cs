@@ -22,6 +22,7 @@ namespace Quotation.Management.Contracts.Repositories
         List<MasterDC> GetCostItems(QMTContext? _context = null);
         List<MasterDC> GetProducts();
         UserMaster GetUserByUserId(int userId);
+        List<MasterDC> GetAllQuotationYears();
         CurrencyMaster? GetCurrencyByCode(string currencyCode);
         CostItemCode GetCostItemByCode(string costItemId);
         List<MasterDC> GetCustomers(string searchString);
@@ -29,5 +30,12 @@ namespace Quotation.Management.Contracts.Repositories
 
         UserMaster? GetCurrentUserDetails(string email);
         CustomerMaster InsertCustomer(CustomerMaster customerMaster);
+        void InsertCostItem(string name);
+        void InsertPaymentTerm(string name);
+        void InsertDeliveryTerm(string name);
+        //void InsertSalesArea(string name);
+        //void InsertCurrency(string name);
+        //void InsertIndustry(string name);
+        //void InsertStatus(string name);
     }
 }
