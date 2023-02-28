@@ -365,7 +365,7 @@ namespace QMT_API.Controllers
             }
         }
 
-        [HttpPost("multiple/update")]
+        [HttpPost("lines/copy")]
         [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CopyQuotationLinesFromQuotation(CopyQuotationLineDC input)
