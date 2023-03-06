@@ -495,7 +495,6 @@ namespace Quotation.Management.Services
                 inputLine.TtCostPrice = Math.Round(inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0),2);
                 inputLine.TtSlsPrice = Math.Round(CalculatetotalWithMargin(inputLine), 2);
                 inputLine.TtSlsPriceWTVat = Math.Round(CalculateTotalValue(inputLine),2);
-
                 _quotationRepository.Commit();
                 return inputLine;
             }

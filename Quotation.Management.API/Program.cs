@@ -52,6 +52,7 @@ builder.Services.AddScoped<IItemCodeService, ItemCodeService>();
 builder.Services.AddScoped<IPricingService, PricingService>();
 builder.Services.AddScoped<IMastersService, MastersService>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
+builder.Services.AddScoped<IIssueService, IssueService>();
 #endregion
 
 #region Repositories
@@ -64,6 +65,7 @@ builder.Services.AddScoped<IItemCodeRepository<ItemMaster>, ItemCodeRepository>(
 builder.Services.AddScoped<IPricingRepository<PricingMaster>, PricingRepository>();
 builder.Services.AddScoped<IMastersRepository, MastersRepository>();
 builder.Services.AddScoped<IQuotationRepository, QuotationRepository>();
+builder.Services.AddScoped<IIssueRepository<Issue>, IssueRepository>();
 #endregion
  
 var app = builder.Build();

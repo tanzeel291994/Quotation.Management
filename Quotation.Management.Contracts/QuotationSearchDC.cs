@@ -19,5 +19,7 @@ namespace Quotation.Management.Contracts
         public string? AreaCode { get; set; }
         public int? StatusId { get; set; }
         public int? QuotationYear { get; set; }
+        public DateTime? FromBookingDate { get; set; }
+        public DateTime? ToBookingDate { get; set; }
     }
 }

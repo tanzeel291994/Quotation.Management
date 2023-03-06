@@ -7,6 +7,7 @@ namespace Quotation.Management.Entities.Models
     {
         public UserMaster()
         {
+            Issues = new HashSet<Issue>();
             QuotationCostItemCreatedByNavigations = new HashSet<QuotationCostItem>();
             QuotationCostItemUpdatedByNavigations = new HashSet<QuotationCostItem>();
             QuotationHeaderAspNavigations = new HashSet<QuotationHeader>();
@@ -23,6 +24,7 @@ namespace Quotation.Management.Entities.Models
         public string Email { get; set; } = null!;
         public string? Role { get; set; }
 
+        public virtual ICollection<Issue> Issues { get; set; }
         public virtual ICollection<QuotationCostItem> QuotationCostItemCreatedByNavigations { get; set; }
         public virtual ICollection<QuotationCostItem> QuotationCostItemUpdatedByNavigations { get; set; }
         public virtual ICollection<QuotationHeader> QuotationHeaderAspNavigations { get; set; }

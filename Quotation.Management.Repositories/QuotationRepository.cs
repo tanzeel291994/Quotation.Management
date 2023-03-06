@@ -65,9 +65,16 @@ namespace Quotation.Management.Repositories
                 line.CostItemLineValue = _quotationLine.CostItemLineValue;
                 line.Vat = _quotationLine.Vat;
                 line.TtNetPrice = _quotationLine.TtNetPrice;
-                line.Margin = _quotationLine.Margin;
+               
                 line.UnitTag = _quotationLine.UnitTag;
-                line.SubItemCode = _quotationLine.SubItemCode; //check this 
+                line.SubItemCode = _quotationLine.SubItemCode;
+                if(_quotationLine.Margin == line.Margin)
+                {
+                    line.Margin = Math.Round((1 - ((_quotationLine.TtNetPrice + (_quotationLine.CostItemLineValue ?? 0)) / _quotationLine.TtSlsPrice)) * 100,2);
+                }
+                else
+                    line.Margin = _quotationLine.Margin;
+
                 context.SaveChanges();
             }
             if(_context == null)
@@ -520,32 +527,55 @@ namespace Quotation.Management.Repositories
             {
 
                 var _data = (from qh in context.QuotationHeaders
-                             join ql in context.QuotationLines on new { qh.QuotationNum,qh.RevNum } equals new { ql.QuotationNum, ql.RevNum }
+                             join ql in context.QuotationLines on new { qh.QuotationNum, qh.RevNum } equals new { ql.QuotationNum, ql.RevNum }
                              join im in context.ItemMasters on ql.ItemCode equals im.ItemCode
                              join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
                              join ig in context.ItemGroupMasters on sm.GroupId equals ig.GroupId
                              join bm in context.BrandMasters on sm.BrandId equals bm.BrandId
                              join pm in context.ProductMasters on ig.ProdTypeId equals pm.ProdTypeId
-                             where (qh.QuotationNum == input.QuotationNum  || input.QuotationNum ==null) &&
+                             where (qh.QuotationNum == input.QuotationNum || input.QuotationNum == null) &&
                             (qh.CustomerCode == input.CustomerCode || input.CustomerCode == null) &&
                             (qh.ProjectName == input.ProjectName || input.ProjectName == null) &&
                             (pm.ProdTypeId == input.Product || input.Product == null) &&
                              (bm.BrandId == input.BrandId || input.BrandId == null) &&
-                            (qh.AreaCode == input.AreaCode || input.AreaCode == null) 
-                            select new 
-                            {
-                                QuotationNum = qh.QuotationNum,
-                                ProjectName = qh.ProjectName,
-                                CustomerName = qh.CustomerCodeNavigation.CustomerName,
-                                AreaName = qh.AreaCodeNavigation.AreaName,
-                                LineNum = ql.LineNum,
-                                BrandName = bm.BrandName,
-                                ProductName = pm.ProdName,
-                                SeriesName = sm.SeriesName,
-                                RevNum = qh.RevNum,
-                                IsActiveRevision = qh.IsActiveRevision
-                            }).ToList();
-                return _data;
+                            (qh.AreaCode == input.AreaCode || input.AreaCode == null) &&
+                            (!input.ToBookingDate.HasValue || input.ToBookingDate.Value >= qh.BookingDate  ) &&
+                            (!input.FromBookingDate.HasValue || input.FromBookingDate.Value <= qh.BookingDate  ) 
+                            && qh.IsActiveRevision == true
+                             select new
+                             {
+                                 QuotationNum = qh.QuotationNum,
+                                 ProjectName = qh.ProjectName,
+                                 CustomerName = qh.CustomerCodeNavigation.CustomerName,
+                                 AreaName = qh.AreaCodeNavigation.AreaName,
+                                 BrandName = bm.BrandName,
+                                 ProductName = pm.ProdName,
+                                 LineNum = ql.LineNum,
+                                 TotalOrderValue = ql.TtNetPrice + (ql.CostItemLineValue ?? 0),
+                                 RevNum = "R"+qh.RevNum,
+                             }).ToList();
+
+                   var result =_data.GroupBy(x => new
+                                {
+                                    x.QuotationNum,
+                                    x.ProjectName,
+                                    x.CustomerName,
+                                    x.AreaName,
+                                    x.BrandName,
+                                    x.ProductName,
+                                    x.RevNum
+                                }).Select(g => new
+                                {
+                                    TotalOrderValue = g.Sum(x => x.TotalOrderValue),
+                                    ProjectName =g.Select(x=>x.ProjectName).FirstOrDefault(),
+                                    QuotationNum = g.Select(x=>x.QuotationNum).FirstOrDefault(),
+                                    CustomerName = g.Select(x=>x.CustomerName).FirstOrDefault(),
+                                    BrandName = g.Select(x=>x.BrandName).FirstOrDefault(),
+                                    ProductName = g.Select(x => x.ProductName).FirstOrDefault(),
+                                    RevNum = g.Select(x => x.RevNum).FirstOrDefault()
+                                }).ToList();
+
+                return result;
             }
         }
 
