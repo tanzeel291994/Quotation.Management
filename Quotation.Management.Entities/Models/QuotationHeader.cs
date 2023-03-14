@@ -25,13 +25,13 @@ namespace Quotation.Management.Entities.Models
         public int StatusId { get; set; }
         public int Probability { get; set; }
         public bool IsActiveRevision { get; set; }
-        //public decimal? ConvFactor { get; set; }
+        public decimal? ConvFactor { get; set; }
         public DateTime? BookingDate { get; set; }
         public int? IndustryId { get; set; }
         public int? Asp { get; set; }
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
-        //public string? OldCurrencyCode { get; set; }
+        public string? OldCurrencyCode { get; set; }
 
         public virtual SalesArea AreaCodeNavigation { get; set; } = null!;
         public virtual UserMaster? AspNavigation { get; set; }

@@ -29,6 +29,7 @@ namespace Quotation.Management.Contracts
         public decimal TtSlsPriceWTVat { get; set; }
         public decimal TtSlsPrice { get; set; }
         public string? ProdTypeId { get; set; }
+        //public string? BrandCode { get; set; }
         public string? CurrencyCode { get; set; }
         public string? ProductCurrencyCode { get; set; }
         public string? UnitTag { get; set; }

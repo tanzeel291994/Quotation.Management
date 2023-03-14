@@ -693,6 +693,7 @@ namespace Quotation.Management.Repositories
                                                    CurrencyCode = qh.CurrencyCode,
                                                    TtNetPrice = ql.TtNetPrice,
                                                    CAF = ql.CAF,
+                                                   //BrandCode = sm.Brand!.BrandName,
                                                    CostItemLineValue = ql.CostItemLineValue ?? 0,
                                                    TtCostPrice = Math.Round(ql.TtNetPrice + (ql.CostItemLineValue ?? 0), 2),
                                                    TtSlsPrice = Math.Round( (ql.TtNetPrice + (ql.CostItemLineValue ?? 0))/(1 - (ql.Margin ?? 0)/100 ) , 2),
