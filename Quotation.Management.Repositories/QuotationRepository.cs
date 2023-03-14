@@ -692,6 +692,7 @@ namespace Quotation.Management.Repositories
                                                    Margin = ql.Margin ?? 0,
                                                    CurrencyCode = qh.CurrencyCode,
                                                    TtNetPrice = ql.TtNetPrice,
+                                                   CAF = ql.CAF,
                                                    CostItemLineValue = ql.CostItemLineValue ?? 0,
                                                    TtCostPrice = Math.Round(ql.TtNetPrice + (ql.CostItemLineValue ?? 0), 2),
                                                    TtSlsPrice = Math.Round( (ql.TtNetPrice + (ql.CostItemLineValue ?? 0))/(1 - (ql.Margin ?? 0)/100 ) , 2),

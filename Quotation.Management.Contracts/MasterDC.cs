@@ -16,10 +16,18 @@ namespace Quotation.Management.Contracts
     public class CurrencyDC
     {
         public string CurrencyCode { get; set; } = null!;
-        public string OldCurrencyCode { get; set; } = null!;
-        public decimal ConvFactor { get; set; }
-        public decimal? NewConvFactor { get; set; }
+        public List<ProductCAFCode> productCAFs;
+        // public string OldCurrencyCode { get; set; } = null!;
+        //public decimal ConvFactor { get; set; }
+       // public decimal? NewConvFactor { get; set; }
         public string QuotationNum { get; set; } = null!;
         public int RevNum { get; set; }
     }
+
+    public class ProductCAFCode
+    {
+        public string ProductCode { get; set; } = null!;
+        public decimal CAF;
+    }
+
 }
