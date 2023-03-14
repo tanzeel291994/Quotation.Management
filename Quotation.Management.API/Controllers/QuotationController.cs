@@ -107,6 +107,25 @@ namespace QMT_API.Controllers
             }
         }
 
+        [HttpPost("dashboard")]
+        [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetDashBoard(QuotationSearchDC quotationSearch)
+        {
+            try
+            {
+                var _data = _quotationService.GetQuotationDashboard(quotationSearch);
+                return Ok(JsonConvert.SerializeObject(_data, new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
         #region Lines
 
         [HttpGet("lines")]

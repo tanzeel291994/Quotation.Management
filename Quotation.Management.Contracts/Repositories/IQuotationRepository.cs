@@ -71,6 +71,7 @@ namespace Quotation.Management.Contracts.Repositories
 
         List<QuotationCostItemLine> GetQuotationCostItemLines(string quotationNum, int lineNum, int revNum, QMTContext? _context = null);
 
+        dynamic GetBrandData(QuotationSearchDC input, out dynamic brandValue);
         void SetActiveRevision(string quotationNum, int revNum);
         void DeleteCostItemGroup(string quotationNum, int linenum, int revNum, List<string> costItemGroupIds, QMTContext? _context = null);
     }
