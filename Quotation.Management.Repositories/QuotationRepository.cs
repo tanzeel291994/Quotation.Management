@@ -65,9 +65,16 @@ namespace Quotation.Management.Repositories
                 line.CostItemLineValue = _quotationLine.CostItemLineValue;
                 line.Vat = _quotationLine.Vat;
                 line.TtNetPrice = _quotationLine.TtNetPrice;
-                line.Margin = _quotationLine.Margin;
+               
                 line.UnitTag = _quotationLine.UnitTag;
-                line.SubItemCode = _quotationLine.SubItemCode; //check this 
+                line.SubItemCode = _quotationLine.SubItemCode;
+                if(_quotationLine.Margin == line.Margin)
+                {
+                    line.Margin = Math.Round((1 - ((_quotationLine.TtNetPrice + (_quotationLine.CostItemLineValue ?? 0)) / _quotationLine.TtSlsPrice)) * 100,2);
+                }
+                else
+                    line.Margin = _quotationLine.Margin;
+
                 context.SaveChanges();
             }
             if(_context == null)
@@ -196,7 +203,7 @@ namespace Quotation.Management.Repositories
                 context.Dispose();
         }
 
-        public Dictionary<string, decimal> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItemLine> costItemLines, List<QuotationCostItem> costItems,Dictionary<string,decimal> groupIdTotalDict,string seaFreightCostCode,string customDutyCode, QMTContext? _context=null)
+        public Dictionary<string, decimal> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItemLine> costItemLines, List<QuotationCostItem> costItems,Dictionary<string,decimal> groupIdTotalDict,string seaFreightCostCode,string customDutyCode, QMTContext context)
         {
             foreach (var costItem in costItems)
             {
@@ -237,27 +244,22 @@ namespace Quotation.Management.Repositories
                 }
                 
             }
-            var context = _context ?? new QMTContext();
-            
             if (quotationLines.Count > 0)
             {
                 context.SaveChanges();
             }
-            if (_context == null)
-            {
-                context.Dispose();
-            }
             return groupIdTotalDict;
         }
         
-        public void UpdateCustomDutyCostItemValue(List<QuotationCostItem> customDutyItems, Dictionary<string, decimal> groupIdTotalDict, QMTContext context)
+        public void UpdateCustomDutyCostItemValue(string quotationNum, int revNum, List<QuotationCostItem> customDutyItems, Dictionary<string, decimal> groupIdTotalDict, QMTContext context)
         {
             List<string> customDutyCostItemGroupIds = customDutyItems.Select(x => x.QuotationCostItemGroupId).ToList();
-            List<QuotationCostItemLine> customDutyCostLines = context.QuotationCostItemLines.Where(x => customDutyCostItemGroupIds.Contains(x.QuotationCostItemGroupId)).ToList();
+            List<QuotationCostItemLine> customDutyCostLines = context.QuotationCostItemLines.Where(x => customDutyCostItemGroupIds.Contains(x.QuotationCostItemGroupId) && x.QuotationNum == quotationNum && x.RevNum == revNum).ToList();
 
             List<int> customDutyLines = customDutyCostLines.Select(x => x.LineNum).Distinct().ToList();
 
-            List<QuotationLine> quotationLines = context.QuotationLines.Where(x => customDutyLines.Contains(x.LineNum)).ToList();
+            List<QuotationLine> quotationLines = context.QuotationLines.Where(x => customDutyLines.Contains(x.LineNum) 
+                                                 && x.QuotationNum == quotationNum && x.RevNum == revNum).ToList();
 
             foreach (var item in customDutyCostLines)
             {
@@ -525,36 +527,152 @@ namespace Quotation.Management.Repositories
             {
 
                 var _data = (from qh in context.QuotationHeaders
-                             join ql in context.QuotationLines on new { qh.QuotationNum,qh.RevNum } equals new { ql.QuotationNum, ql.RevNum }
+                             join ql in context.QuotationLines on new { qh.QuotationNum, qh.RevNum } equals new { ql.QuotationNum, ql.RevNum }
                              join im in context.ItemMasters on ql.ItemCode equals im.ItemCode
                              join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
                              join ig in context.ItemGroupMasters on sm.GroupId equals ig.GroupId
                              join bm in context.BrandMasters on sm.BrandId equals bm.BrandId
                              join pm in context.ProductMasters on ig.ProdTypeId equals pm.ProdTypeId
-                             where (qh.QuotationNum == input.QuotationNum  || input.QuotationNum ==null) &&
+                             where (qh.QuotationNum == input.QuotationNum || input.QuotationNum == null) &&
                             (qh.CustomerCode == input.CustomerCode || input.CustomerCode == null) &&
                             (qh.ProjectName == input.ProjectName || input.ProjectName == null) &&
                             (pm.ProdTypeId == input.Product || input.Product == null) &&
                              (bm.BrandId == input.BrandId || input.BrandId == null) &&
-                            (qh.AreaCode == input.AreaCode || input.AreaCode == null) 
-                            select new 
-                            {
-                                QuotationNum = qh.QuotationNum,
-                                ProjectName = qh.ProjectName,
-                                CustomerName = qh.CustomerCodeNavigation.CustomerName,
-                                AreaName = qh.AreaCodeNavigation.AreaName,
-                                LineNum = ql.LineNum,
-                                BrandName = bm.BrandName,
-                                ProductName = pm.ProdName,
-                                SeriesName = sm.SeriesName,
-                                RevNum = qh.RevNum,
-                                IsActiveRevision = qh.IsActiveRevision
-                            }).ToList();
-                return _data;
+                            (qh.AreaCode == input.AreaCode || input.AreaCode == null) &&
+                            (!input.ToBookingDate.HasValue || input.ToBookingDate.Value >= qh.BookingDate  ) &&
+                            (!input.FromBookingDate.HasValue || input.FromBookingDate.Value <= qh.BookingDate  ) 
+                            && qh.IsActiveRevision == true
+                             select new
+                             {
+                                 QuotationNum = qh.QuotationNum,
+                                 ProjectName = qh.ProjectName,
+                                 CustomerName = qh.CustomerCodeNavigation.CustomerName,
+                                 AreaName = qh.AreaCodeNavigation.AreaName,
+                                 BrandName = bm.BrandName,
+                                 ProductName = pm.ProdName,
+                                 LineNum = ql.LineNum,
+                                 CurrencyCode = qh.CurrencyCode,
+                                 BookingDate = qh.BookingDate!.Value.Date,
+                                 Status = qh.Status.StatusName,
+                                 TotalOrderValue = ql.TtNetPrice + (ql.CostItemLineValue ?? 0),
+                                 SalesRep = qh.MspNavigation.FirstName + ' ' + qh.MspNavigation.LastName,
+                                 RevNum = "R"+qh.RevNum,
+                                 QuotationDate = qh.QuotationDate,
+                             }).ToList();
+
+                   var result =_data.GroupBy(x => new
+                                {
+                                    x.QuotationNum,
+                                    x.ProjectName,
+                                    x.CustomerName,
+                                    x.AreaName,
+                                    x.BrandName,
+                                    x.ProductName,
+                                    x.CurrencyCode,
+                                    x.BookingDate,
+                                    x.RevNum,
+                                    x.Status,
+                                    x.SalesRep,
+                                    x.QuotationDate
+                                }).Select(g => new
+                                {
+                                    TotalOrderValue = g.Sum(x => x.TotalOrderValue),
+                                    ProjectName =g.Select(x=>x.ProjectName).FirstOrDefault(),
+                                    QuotationNum = g.Select(x=>x.QuotationNum).FirstOrDefault(),
+                                    CustomerName = g.Select(x=>x.CustomerName).FirstOrDefault(),
+                                    BrandName = g.Select(x=>x.BrandName).FirstOrDefault(),
+                                    ProductName = g.Select(x => x.ProductName).FirstOrDefault(),
+                                    RevNum = g.Select(x => x.RevNum).FirstOrDefault(),
+                                    SalesRep = g.Select(x => x.SalesRep).FirstOrDefault(),
+                                    Status = g.Select(x => x.Status).FirstOrDefault(),
+                                    QuotationDate = g.Select(x => x.QuotationDate).FirstOrDefault(),
+                                    AreaName = g.Select(x => x.AreaName).FirstOrDefault(),
+                                    BookingDate = g.Select(x => x.BookingDate).FirstOrDefault(),
+                                    CurrencyCode = g.Select(x => x.CurrencyCode).FirstOrDefault(),
+                                }).ToList();
+
+                return result;
             }
         }
 
-        
+        public dynamic GetBrandData(QuotationSearchDC input,out dynamic brandValue)
+        {
+            using (var context = new QMTContext())
+            {
+
+                var _data = (from qh in context.QuotationHeaders
+                             join ql in context.QuotationLines on new { qh.QuotationNum, qh.RevNum } equals new { ql.QuotationNum, ql.RevNum }
+                             join im in context.ItemMasters on ql.ItemCode equals im.ItemCode
+                             join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
+                             join ig in context.ItemGroupMasters on sm.GroupId equals ig.GroupId
+                             join bm in context.BrandMasters on sm.BrandId equals bm.BrandId
+                             join pm in context.ProductMasters on ig.ProdTypeId equals pm.ProdTypeId
+                             join cm in context.CurrencyMasters on qh.CurrencyCode equals cm.CurrencyCode
+                             where (qh.QuotationNum == input.QuotationNum || input.QuotationNum == null) &&
+                            (qh.CustomerCode == input.CustomerCode || input.CustomerCode == null) &&
+                            (qh.ProjectName == input.ProjectName || input.ProjectName == null) &&
+                            (pm.ProdTypeId == input.Product || input.Product == null) &&
+                             (bm.BrandId == input.BrandId || input.BrandId == null) &&
+                            (qh.AreaCode == input.AreaCode || input.AreaCode == null) &&
+                            (!input.ToBookingDate.HasValue || input.ToBookingDate.Value >= qh.BookingDate) &&
+                            (!input.FromBookingDate.HasValue || input.FromBookingDate.Value <= qh.BookingDate)
+                            && qh.IsActiveRevision == true
+                             select new
+                             {
+                                 //QuotationNum = qh.QuotationNum,
+                                 //ProjectName = qh.ProjectName,
+                                 //CustomerName = qh.CustomerCodeNavigation.CustomerName,
+                                 AreaName = qh.AreaCodeNavigation.AreaName,
+                                 BrandName = bm.BrandName,
+                                 //ProductName = pm.ProdName,
+                                 LineNum = ql.LineNum,
+                                 //Status = qh.Status.StatusName,
+                                 TotalOrderValue = (ql.TtNetPrice + (ql.CostItemLineValue ?? 0)) * cm.ConvFactor,
+                                 //SalesRep = qh.MspNavigation.FirstName + ' ' + qh.MspNavigation.LastName,
+                                 //RevNum = "R" + qh.RevNum,
+                                 //QuotationDate = qh.QuotationDate,
+                             }).ToList();
+
+                var result = _data.GroupBy(x => new
+                {
+                    //x.QuotationNum,
+                   // x.ProjectName,
+                    //x.CustomerName,
+                    x.AreaName,
+                    x.BrandName,
+                    //x.ProductName,
+                   // x.RevNum,
+                   // x.Status,
+                   // x.SalesRep,
+                   // x.QuotationDate
+                }).Select(g => new
+                {
+                    TotalOrderValue = g.Sum(x => x.TotalOrderValue),
+                    //ProjectName = g.Select(x => x.ProjectName).FirstOrDefault(),
+                    //QuotationNum = g.Select(x => x.QuotationNum).FirstOrDefault(),
+                    //CustomerName = g.Select(x => x.CustomerName).FirstOrDefault(),
+                    BrandName = g.Select(x => x.BrandName).FirstOrDefault(),
+                    //ProductName = g.Select(x => x.ProductName).FirstOrDefault(),
+                    //RevNum = g.Select(x => x.RevNum).FirstOrDefault(),
+                    //SalesRep = g.Select(x => x.SalesRep).FirstOrDefault(),
+                    //Status = g.Select(x => x.Status).FirstOrDefault(),
+                    //QuotationDate = g.Select(x => x.QuotationDate).FirstOrDefault(),
+                    AreaName = g.Select(x => x.AreaName).FirstOrDefault()
+                }).ToList();
+
+                brandValue =  _data.GroupBy(x => new
+                {
+                    x.BrandName,
+                }).Select(g => new
+                {
+                    TotalOrderValue = g.Sum(x => x.TotalOrderValue),
+                    BrandName = g.Select(x => x.BrandName).FirstOrDefault(),
+                }).ToList();
+
+                return result;
+            }
+        }
+
         public dynamic GetQuotationSearch(QuotationSearchDC input)
         {
             using (var context = new QMTContext())
@@ -564,15 +682,23 @@ namespace Quotation.Management.Repositories
                              where (qh.QuotationNum == input.QuotationNum || input.QuotationNum == null) &&
                              (qh.CustomerCode == input.CustomerCode || input.CustomerCode == null) &&
                              (qh.ProjectName == input.ProjectName || input.ProjectName == null) &&
-                             (qh.AreaCode == input.AreaCode || input.AreaCode == null)
+                             (qh.AreaCode == input.AreaCode || input.AreaCode == null) &&
+                             (qh.QuotationDate.Year == input.QuotationYear || input.QuotationYear == null) &&
+                             (qh.Msp == input.Msp || input.Msp == null) &&
+                             (qh.StatusId == input.StatusId || input.StatusId == null) &&
+                             (!input.ToBookingDate.HasValue || input.ToBookingDate.Value >= qh.BookingDate) &&
+                             (!input.FromBookingDate.HasValue || input.FromBookingDate.Value <= qh.BookingDate)
+                             && qh.IsActiveRevision == true
                              select new
                              {
                                  QuotationNum = qh.QuotationNum,
                                  ProjectName = qh.ProjectName,
                                  CustomerName = qh.CustomerCodeNavigation.CustomerName,
                                  AreaName = qh.AreaCodeNavigation.AreaName,
-                                 RevNum = qh.RevNum,
-                                 IsActiveRevision = qh.IsActiveRevision
+                                 RevNum = "R"+qh.RevNum,
+                                 Status = qh.Status.StatusName,
+                                 QuotationDate = qh.QuotationDate,
+                                 SalesRep = qh.MspNavigation.FirstName+' '+qh.MspNavigation.LastName
                              }).ToList();
                 return _data;
             }

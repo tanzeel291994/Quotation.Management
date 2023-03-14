@@ -132,14 +132,14 @@ namespace Quotation.Management.Services
             try
             {
                 dynamic result;
-                if(!quotationSearch.ItemCodeWise)
-                {
-                     result = _quotationRepository.GetQuotationSearch(quotationSearch);
-                }
-                else
-                {
+               // if(!quotationSearch.ItemCodeWise)
+               // {
+                   //  result = _quotationRepository.GetQuotationSearch(quotationSearch);
+               // }
+               // else
+               // {
                     result = _quotationRepository.GetQuotationLinesSearch(quotationSearch);
-                }
+               // }
 
                 return result;
             }
@@ -150,6 +150,71 @@ namespace Quotation.Management.Services
             }
         }
 
+        public JArray GetQuotationDashboard(QuotationSearchDC quotationSearch)
+        {
+            JArray jArray = new();
+            try
+            {
+                 dynamic brandValue ;
+                 var result = _quotationRepository.GetBrandData(quotationSearch,out brandValue );
+
+                JArray brandList = JArray.Parse(JsonConvert.SerializeObject(brandValue));
+                foreach (var data in  JArray.Parse(JsonConvert.SerializeObject(result)))
+                {
+                    var jobject = new JObject();
+                    if(data["BrandName"] == "Aermec")
+                    {
+                        jobject.Add("TotalOrderValue1", data["TotalOrderValue"]);
+                        jobject.Add("AreaName1", data["AreaName"]);
+                        if(brandList.Any(x => x.Value<string>("BrandName") == "Aermec"))
+                        {
+                            var obj = brandList.Where(x => x.Value<string>("BrandName") == "Aermec").First();
+                            var total = obj.Value<decimal>("TotalOrderValue");
+                            var singleValue = Convert.ToDecimal(data["TotalOrderValue"]);
+                            jobject.Add("perc1", Math.Round(singleValue/ total * 100,2));
+                        }
+                        else
+                            jobject.Add("perc1", 0);
+                    }
+                    if (data["BrandName"] == "Toshiba")
+                    {
+                        jobject.Add("TotalOrderValue2", data["TotalOrderValue"]);
+                        jobject.Add("AreaName2", data["AreaName"]);
+                        if (brandList.Any(x => x.Value<string>("BrandName") == "Toshiba"))
+                        {
+                            var obj = brandList.Where(x => x.Value<string>("BrandName") == "Toshiba").First();
+                            var total = obj.Value<decimal>("TotalOrderValue");
+                            var singleValue = Convert.ToDecimal(data["TotalOrderValue"]);
+                            jobject.Add("perc2", Math.Round(singleValue / total * 100, 2));
+                        }
+                        else
+                            jobject.Add("perc2", 0);
+                    }
+                    if (data["BrandName"] == "Untes")
+                    {
+                        jobject.Add("TotalOrderValue3", data["TotalOrderValue"]);
+                        jobject.Add("AreaName3", data["AreaName"]);
+                        if (brandList.Any(x => x.Value<string>("BrandName") == "Untes"))
+                        {
+                            var obj = brandList.Where(x => x.Value<string>("BrandName") == "Untes").First();
+                            var total = obj.Value<decimal>("TotalOrderValue");
+                            var singleValue = Convert.ToDecimal(data["TotalOrderValue"]);
+                            jobject.Add("perc3", Math.Round(singleValue / total * 100, 2));
+                        }
+                        else
+                            jobject.Add("perc3", 0);
+                    }
+                    jArray.Add(jobject);
+                }
+
+                return jArray;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                throw;
+            }
+        }
 
         public List<QuotationLineDC> GetQuotationLines(string Id, int revNum)
         {
@@ -532,7 +597,6 @@ namespace Quotation.Management.Services
                 inputLine.TtCostPrice = Math.Round(inputLine.TtNetPrice + (inputLine.CostItemLineValue ?? 0),2);
                 inputLine.TtSlsPrice = Math.Round(CalculatetotalWithMargin(inputLine), 2);
                 inputLine.TtSlsPriceWTVat = Math.Round(CalculateTotalValue(inputLine),2);
-
                 _quotationRepository.Commit();
                 return inputLine;
             }
@@ -949,7 +1013,7 @@ namespace Quotation.Management.Services
                 List<QuotationCostItemLine> costItemLines = new();
                 foreach (var _quotationLine in quotationLines)
                 {
-                    ttslsPrice += (_quotationLine.UnitPrice * _quotationLine.Mtlp * _quotationLine.Qty);
+                    ttslsPrice += (_quotationLine.TtNetPrice);
                 }
                 foreach (var _line in input.quotationLineCostItems)
                 {
@@ -961,7 +1025,7 @@ namespace Quotation.Management.Services
                     costItemLine.QuotationCostItemGroupId = costItem.QuotationCostItemGroupId;
                     if (costItem.CostItemType == CostItemType.ByVal.ToString())
                     {
-                        costItemLine.CostItemLineValue = costItem.CostItemValue * ((quotationLine.UnitPrice * quotationLine.Mtlp * quotationLine.Qty) / ttslsPrice);
+                        costItemLine.CostItemLineValue = costItem.CostItemValue * (quotationLine.TtNetPrice / ttslsPrice);
                     }
                     if (costItem.CostItemType == CostItemType.ByPercentage.ToString())
                     {
@@ -1114,7 +1178,7 @@ namespace Quotation.Management.Services
                     }
                 }
                 groupIdTotalDict = _quotationRepository.UpdateCostValueOfAllQuotationLine(quotationLines, costItemLines, costItems, groupIdTotalDict,seaFreightCostCode, customDutyCostCode, context);
-                _quotationRepository.UpdateCustomDutyCostItemValue(customDutyItems, groupIdTotalDict,context);
+                _quotationRepository.UpdateCustomDutyCostItemValue(quotationNum, revNum, customDutyItems, groupIdTotalDict,context);
                 return quotationLines;
             }
             catch (Exception ex)

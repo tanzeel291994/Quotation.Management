@@ -22,6 +22,7 @@ namespace Quotation.Management.Entities.Models
         public virtual DbSet<CustomerMaster> CustomerMasters { get; set; } = null!;
         public virtual DbSet<DeliveryTermMaster> DeliveryTermMasters { get; set; } = null!;
         public virtual DbSet<IndustryMaster> IndustryMasters { get; set; } = null!;
+        public virtual DbSet<Issue> Issues { get; set; } = null!;
         public virtual DbSet<ItemGroupMaster> ItemGroupMasters { get; set; } = null!;
         public virtual DbSet<ItemMaster> ItemMasters { get; set; } = null!;
         public virtual DbSet<OptionMaster> OptionMasters { get; set; } = null!;
@@ -145,6 +146,34 @@ namespace Quotation.Management.Entities.Models
                 entity.Property(e => e.Name)
                     .HasMaxLength(500)
                     .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<Issue>(entity =>
+            {
+                entity.ToTable("Issue");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+
+                entity.Property(e => e.DevRemarks).HasMaxLength(1000);
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(200)
+                    .HasColumnName("Status_");
+
+                entity.Property(e => e.Type)
+                    .HasMaxLength(500)
+                    .HasColumnName("Type_");
+
+                entity.Property(e => e.Title).HasMaxLength(500);
+
+                entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+
+                entity.HasOne(d => d.CreatedByNavigation)
+                    .WithMany(p => p.Issues)
+                    .HasForeignKey(d => d.CreatedBy)
+                    .HasConstraintName("FK__Issue__CreatedBy__5A4F643B");
             });
 
             modelBuilder.Entity<ItemGroupMaster>(entity =>
