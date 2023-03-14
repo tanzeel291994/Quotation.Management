@@ -798,7 +798,7 @@ namespace Quotation.Management.Repositories
                                                join im in context.ItemMasters on ql.ItemCode equals im.ItemCode
                                                join sm in context.SeriesMasters on im.SeriesId equals sm.SeriesId
                                                join ig in context.ItemGroupMasters on sm.GroupId equals ig.GroupId
-
+                                               join bm in context.BrandMasters on sm.BrandId equals bm.BrandId
                                                where ql.QuotationNum == quotationNum.ToUpper() && ql.RevNum == revNum
                                                select new QuotationLineDC
                                                {
@@ -819,7 +819,8 @@ namespace Quotation.Management.Repositories
                                                    CurrencyCode = qh.CurrencyCode,
                                                    TtNetPrice = ql.TtNetPrice,
                                                    CAF = ql.CAF,
-                                                   //BrandCode = sm.Brand!.BrandName,
+                                                   BrandCode = bm.BrandName,
+                                                   ProductCurrencyCode = bm.CurrencyCode,
                                                    CostItemLineValue = ql.CostItemLineValue ?? 0,
                                                    TtCostPrice = Math.Round(ql.TtNetPrice + (ql.CostItemLineValue ?? 0), 2),
                                                    TtSlsPrice = Math.Round( (ql.TtNetPrice + (ql.CostItemLineValue ?? 0))/(1 - (ql.Margin ?? 0)/100 ) , 2),

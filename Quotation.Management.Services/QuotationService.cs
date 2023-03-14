@@ -282,7 +282,12 @@ namespace Quotation.Management.Services
                 {
                     if(!currencyDC.productCAFs.Any(x=> x.ProductCode == _line.ProdTypeId))
                     {
-                        currencyDC.productCAFs.Add(new ProductCAFCode { CAF = _line.CAF, ProductCode = _line.ProdTypeId });
+                        currencyDC.productCAFs.Add(new ProductCAFCode { 
+                            CAF = _line.CAF, 
+                            ProductCode = _line.ProdTypeId,
+                            BrandCode = _line.BrandCode,
+                            CurrencyCode = _line.ProductCurrencyCode
+                        });
                     }
                 }
                 

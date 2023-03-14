@@ -27,6 +27,8 @@ namespace Quotation.Management.Contracts
     public class ProductCAFCode
     {
         public string ProductCode { get; set; } = null!;
+        public string BrandCode = null!;
+        public string CurrencyCode = null!;
         public decimal CAF;
     }
 
