@@ -16,7 +16,7 @@ namespace Quotation.Management.Contracts
     public class CurrencyDC
     {
         public string CurrencyCode { get; set; } = null!;
-        public List<ProductCAFCode> productCAFs=new();
+        public ProductCAFCode[] ProductCAFs = new ProductCAFCode[] { };
         public string? OldCurrencyCode { get; set; }
         public decimal ConvFactor { get; set; }
        // public decimal? NewConvFactor { get; set; }

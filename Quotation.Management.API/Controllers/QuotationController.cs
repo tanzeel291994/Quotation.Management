@@ -355,7 +355,7 @@ namespace QMT_API.Controllers
         [HttpPost("currency/update")]
         [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult UpdateQuotationCurrency(CurrencyDC currencyDC)
+        public IActionResult UpdateQuotationCurrency([FromBody]CurrencyDC currencyDC)
         {
             try
             {
