@@ -10,8 +10,9 @@ namespace Quotation.Management.Entities.Models
             QuotationHeaders = new HashSet<QuotationHeader>();
         }
 
-        public string CustomerCode { get; set; } = null!;
-        public string CustomerName { get; set; } = null!;
+        public string Code { get; set; } = null!;
+        public string Name { get; set; } = null!;
+        public int CustomerType { get; set; }
 
         public virtual ICollection<QuotationHeader> QuotationHeaders { get; set; }
     }

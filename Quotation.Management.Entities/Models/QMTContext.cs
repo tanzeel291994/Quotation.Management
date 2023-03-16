@@ -110,17 +110,21 @@ namespace Quotation.Management.Entities.Models
 
             modelBuilder.Entity<CustomerMaster>(entity =>
             {
-                entity.HasKey(e => e.CustomerCode)
+                entity.HasKey(e => e.Code)
                     .HasName("PK__Customer__06678520B581B887");
 
                 entity.ToTable("CustomerMaster");
 
-                entity.Property(e => e.CustomerCode)
+                entity.Property(e => e.Code)
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
-                entity.Property(e => e.CustomerName)
+                entity.Property(e => e.Name)
                     .HasMaxLength(500)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CustomerType)
+                    .HasMaxLength(100)
                     .IsUnicode(false);
             });
 

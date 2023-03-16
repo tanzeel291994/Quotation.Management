@@ -21,7 +21,7 @@ namespace Quotation.Management.Entities.Models
         public int? NoOfContainers { get; set; }
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
-
+        public string? Remarks { get; set; }
         public virtual CostItemCode CostItem { get; set; } = null!;
         public virtual UserMaster? CreatedByNavigation { get; set; }
         public virtual ProductMaster ProdType { get; set; } = null!;

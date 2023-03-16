@@ -111,8 +111,8 @@ namespace Quotation.Management.Repositories
                 return context.CustomerMasters.Select(x => new
                 MasterDC
                 {
-                    Name = x.CustomerName,
-                    Code = x.CustomerCode
+                    Name = x.Name,
+                    Code = x.Code
                 }).ToList();
             }
         }
@@ -120,11 +120,11 @@ namespace Quotation.Management.Repositories
         {
             using (var context = new QMTContext())
             {
-                return context.CustomerMasters.Where(x=>x.CustomerName.ToLower().Contains(searchString.ToLower())).Select(x => new
+                return context.CustomerMasters.Where(x=>x.Code.ToLower().Contains(searchString.ToLower()) && x.CustomerType == (int)MasterEnum.CUSTOMER ).Select(x => new
                 MasterDC
                 {
-                    Name = x.CustomerName,
-                    Code = x.CustomerCode
+                    Name = x.Name,
+                    Code = x.Code
                 }).ToList();
             }
         }
@@ -176,91 +176,125 @@ namespace Quotation.Management.Repositories
             }
         }
 
-        public CustomerMaster InsertCustomer(CustomerMaster customerMaster)
+        public void InsertCustomer(string code, string name , int type)
         {
             using (var context = new QMTContext())
             {
-                var _customer = context.CustomerMasters.Where(x => x.CustomerName == customerMaster.CustomerName).FirstOrDefault();
-                if (_customer != null)
+                var _data= context.CustomerMasters.Where(x => x.Name.ToLower() == name.ToLower() && x.CustomerType == type).FirstOrDefault();
+                if (_data != null)
                 {
                     throw new ValidationException(new List<string> { "Customer name already exists" });
                 }
-                int num = context.CustomerMasters.Where(x => x.CustomerCode.StartsWith("C" + customerMaster.CustomerCode)).Count();
-                customerMaster.CustomerCode = "C" + customerMaster.CustomerCode + "" + String.Format("{0:0000}", num + 1);
-                customerMaster.CustomerName = customerMaster.CustomerName;
-                context.CustomerMasters.Add(customerMaster);
-                context.SaveChanges();
-                return customerMaster;
-            }
-        }
-        public void InsertCostItem(string name)
-        {
-            using (var context = new QMTContext())
-            {
-                var _data = context.CostItemCodes.Where(x => x.CostItemName.ToLower() == name.ToLower()).FirstOrDefault();
-                if (_data != null)
+                string prefix = "";
+                switch ((MasterEnum)type)
                 {
-                    throw new ValidationException(new List<string> { "Cost Item already exists" });
+                    case MasterEnum.CUSTOMER:
+                        prefix = "C";
+                        break;
+                    case MasterEnum.CLIENT:
+                        prefix = "CL";
+                        break;
+                    case MasterEnum.CONSULTANT:
+                        prefix = "CNS";
+                        break;
                 }
-                int num = context.CostItemCodes.Select(x => Convert.ToInt32(x.CostItemId.Replace("C00",""))).Max();
-                CostItemCode costItemCode = new();
-                costItemCode.CostItemId = "C00" + (num+1);
-                costItemCode.CostItemName = name;
-                context.CostItemCodes.Add(costItemCode);
+                int num = context.CustomerMasters.Where(x => x.Code.StartsWith(prefix + code)).Count(); //here _data.customerCode is areaCode
+                
+                CustomerMaster toBeInserted = new();
+                toBeInserted.Code = prefix + code + "" + String.Format("{0:0000}", num + 1);
+                toBeInserted.Name = name;
+                toBeInserted.CustomerType = type;
+                context.CustomerMasters.Add(toBeInserted);
                 context.SaveChanges();
             }
         }
-        public void InsertPaymentTerm(string name)
+
+        public void InsertMaster(string code, string name, MasterEnum type)
         {
             using (var context = new QMTContext())
             {
-                var _data = context.PaymentTermMasters.Where(x => x.PaymentTermName.ToLower() == name.ToLower()).FirstOrDefault();
-                if (_data != null)
+                if(type == MasterEnum.STATUS)
                 {
-                    throw new ValidationException(new List<string> { "PaymentTermName already exists" });
+                    var _data = context.QuotationStatusMasters.Where(x => x.StatusName.ToLower() == name.ToLower()).FirstOrDefault();
+                    if (_data != null)
+                    {
+                        throw new ValidationException(new List<string> { "Status already exists" });
+                    }
+                    int num = context.QuotationStatusMasters.Select(x => x.StatusId).Max();
+                    QuotationStatusMaster tobeInserted = new();
+                    tobeInserted.StatusId = (num + 1);
+                    tobeInserted.StatusName = name;
+                    context.QuotationStatusMasters.Add(tobeInserted);
                 }
-                int num = context.PaymentTermMasters.Select(x => x.Id).Max();
-                PaymentTermMaster paymentTermMaster  = new();
-                paymentTermMaster.Id = (num + 1);
-                paymentTermMaster.PaymentTermName = name;
-                context.PaymentTermMasters.Add(paymentTermMaster);
+                else if (type == MasterEnum.DELIVERY_TERM)
+                {
+                    var _data = context.DeliveryTermMasters.Where(x => x.DeliveryTermName.ToLower() == name.ToLower()).FirstOrDefault();
+                    if (_data != null)
+                    {
+                        throw new ValidationException(new List<string> { "Delivery Term already exists" });
+                    }
+                    int num = context.DeliveryTermMasters.Select(x => x.Id).Max();
+                    DeliveryTermMaster tobeInserted = new();
+                    tobeInserted.Id = (num + 1);
+                    tobeInserted.DeliveryTermName = name;
+                    context.DeliveryTermMasters.Add(tobeInserted);
+                }
+                else if (type == MasterEnum.SALES_AREA)
+                {
+                    var _data = context.SalesAreas.Where(x => x.AreaName.ToLower() == name.ToLower()).FirstOrDefault();
+                    if (_data != null)
+                    {
+                        throw new ValidationException(new List<string> { "Sales area already exists" });
+                    }
+                    SalesArea tobeInserted = new();
+                    tobeInserted.AreaCode = code;
+                    tobeInserted.AreaName = name;
+                    context.SalesAreas.Add(tobeInserted);
+                }
+                else if (type == MasterEnum.PAYMENT_TERM)
+                {
+                    var _data = context.PaymentTermMasters.Where(x => x.PaymentTermName.ToLower() == name.ToLower()).FirstOrDefault();
+                    if (_data != null)
+                    {
+                        throw new ValidationException(new List<string> { "PaymentTermName already exists" });
+                    }
+                    int num = context.DeliveryTermMasters.Select(x => x.Id).Max();
+                    PaymentTermMaster tobeInserted = new();
+                    tobeInserted.Id = (num + 1);
+                    tobeInserted.PaymentTermName = name;
+                    context.PaymentTermMasters.Add(tobeInserted);
+                }
+                else if (type == MasterEnum.INDUSTRY)
+                {
+                    var _data = context.IndustryMasters.Where(x => x.Name.ToLower() == name.ToLower()).FirstOrDefault();
+                    if (_data != null)
+                    {
+                        throw new ValidationException(new List<string> { "Industry already exists" });
+                    }
+                    int num = context.IndustryMasters.Select(x => x.Id).Max();
+                    IndustryMaster tobeInserted = new();
+                    tobeInserted.Id = (num + 1);
+                    tobeInserted.Name = name;
+                    context.IndustryMasters.Add(tobeInserted);
+                }
+                else if (type == MasterEnum.COSTITEMS)
+                {
+                    var _data = context.CostItemCodes.Where(x => x.CostItemName.ToLower() == name.ToLower()).FirstOrDefault();
+                    if (_data != null)
+                    {
+                        throw new ValidationException(new List<string> { "Cost Item already exists" });
+                    }
+                    int num = context.CostItemCodes.Select(x => Convert.ToInt32(x.CostItemId.Replace("C00", ""))).Max();
+                    CostItemCode costItemCode = new();
+                    costItemCode.CostItemId = "C00" + (num + 1);
+                    costItemCode.CostItemName = name;
+                    context.CostItemCodes.Add(costItemCode);
+                }
+
                 context.SaveChanges();
             }
         }
-        public void InsertDeliveryTerm(string name)
-        {
-            using (var context = new QMTContext())
-            {
-                var _data = context.DeliveryTermMasters.Where(x => x.DeliveryTermName.ToLower() == name.ToLower()).FirstOrDefault();
-                if (_data != null)
-                {
-                    throw new ValidationException(new List<string> { "DeliveryTermName already exists" });
-                }
-                int num = context.DeliveryTermMasters.Select(x => x.Id).Max();
-                DeliveryTermMaster deliveryTermMaster = new();
-                deliveryTermMaster.Id = (num + 1);
-                deliveryTermMaster.DeliveryTermName = name;
-                context.DeliveryTermMasters.Add(deliveryTermMaster);
-                context.SaveChanges();
-            }
-        }
-        /*public void InsertSalesArea(string name)
-        {
-            using (var context = new QMTContext())
-            {
-                var _data = context.SalesAreas.Where(x => x.a.ToLower() == name.ToLower()).FirstOrDefault();
-                if (_data != null)
-                {
-                    throw new ValidationException(new List<string> { "DeliveryTermName already exists" });
-                }
-                int num = context.DeliveryTermMasters.Select(x => x.Id).Max();
-                DeliveryTermMaster deliveryTermMaster = new();
-                deliveryTermMaster.Id = (num + 1);
-                deliveryTermMaster.DeliveryTermName = name;
-                context.DeliveryTermMasters.Add(deliveryTermMaster);
-                context.SaveChanges();
-            }
-        }*/
+        
         public List<MasterDC> GetProducts()
         {
             using (var context = new QMTContext())

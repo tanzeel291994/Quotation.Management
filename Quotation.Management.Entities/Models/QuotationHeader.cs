@@ -14,6 +14,8 @@ namespace Quotation.Management.Entities.Models
         public string QuotationNum { get; set; } = null!;
         public int RevNum { get; set; }
         public string CustomerCode { get; set; } = null!;
+        public string? ClientCode { get; set; }
+        public string? ConsultantCode { get; set; }
         public string CurrencyCode { get; set; } = null!;
         public int Msp { get; set; }
         public string? ProjectName { get; set; }
@@ -32,7 +34,7 @@ namespace Quotation.Management.Entities.Models
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
         public string? OldCurrencyCode { get; set; }
-
+        public string? Remarks { get; set; }
         public virtual SalesArea AreaCodeNavigation { get; set; } = null!;
         public virtual UserMaster? AspNavigation { get; set; }
         public virtual UserMaster? CreatedByNavigation { get; set; }

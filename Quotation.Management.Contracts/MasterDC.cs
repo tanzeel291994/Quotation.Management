@@ -11,6 +11,7 @@ namespace Quotation.Management.Contracts
         public string Name { get; set; } = null!;
         public string Code { get; set; } = null!;
         public int Id { get; set; }
+        public string Type="";
     }
 
     public class CurrencyDC
@@ -19,7 +20,7 @@ namespace Quotation.Management.Contracts
         public ProductCAFCode[] ProductCAFs = new ProductCAFCode[] { };
         public string? OldCurrencyCode { get; set; }
         public decimal ConvFactor { get; set; }
-       // public decimal? NewConvFactor { get; set; }
+        // public decimal? NewConvFactor { get; set; }
         public string QuotationNum { get; set; } = null!;
         public int RevNum { get; set; }
     }
@@ -30,6 +31,19 @@ namespace Quotation.Management.Contracts
         public string BrandCode = null!;
         public string CurrencyCode = null!;
         public decimal CAF;
+    }
+
+    public enum MasterEnum
+    {
+        DELIVERY_TERM=1,
+        PAYMENT_TERM=2,
+        SALES_AREA=3,
+        CUSTOMER=4,
+        CLIENT=5,
+        CONSULTANT=6,
+        INDUSTRY =7,
+        COSTITEMS=8,
+        STATUS =9
     }
 
 }

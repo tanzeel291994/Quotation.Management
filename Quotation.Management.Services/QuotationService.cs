@@ -256,7 +256,7 @@ namespace Quotation.Management.Services
                     }*/
 
                     //for test update quotation line 
-                    if(_line.CAF == 1)
+                    if(_line.CAF == 1) //FOR TESTING ONLY 
                     {
                         _line.CAF = Math.Round(quotationCurrency.ConvFactor / itemCodeDetail.CAF, 4);
                          _quotationRepository.UpdateQuotationLine(_line);
@@ -1674,13 +1674,14 @@ namespace Quotation.Management.Services
                         //string Industry = dt.Rows[i].Field<string>("Industry");
                         string Currency = dt.Rows[i].Field<string>("Currency");
 
-                        CustomerMaster customerMaster = context.CustomerMasters.Where(x => x.CustomerName.ToLower() == Customer.ToLower()).FirstOrDefault();
+                        CustomerMaster customerMaster = context.CustomerMasters.Where(x => x.Name.ToLower() == Customer.ToLower() && x.CustomerType == (int)MasterEnum.CUSTOMER).FirstOrDefault();
                         if(customerMaster == null)
                         {
-                           int num =context.CustomerMasters.Where(x => x.CustomerCode.StartsWith("C"+AreaCode)).Count();
+                           int num =context.CustomerMasters.Where(x => x.Code.StartsWith("C"+AreaCode)).Count();
                            customerMaster = new CustomerMaster();
-                           customerMaster.CustomerCode = "C"+AreaCode + "" + String.Format("{0:0000}", num+1);
-                           customerMaster.CustomerName = Customer;
+                           customerMaster.Code = "C"+AreaCode + "" + String.Format("{0:0000}", num+1);
+                           customerMaster.Name = Customer;
+                            customerMaster.CustomerType = (int)MasterEnum.CUSTOMER;
                            context.CustomerMasters.Add(customerMaster);
                             //context.SaveChanges();
                         }
@@ -1711,7 +1712,7 @@ namespace Quotation.Management.Services
                         quotationHeader.Probability =  (int)Probability;
                         quotationHeader.StatusId = statusMaster.StatusId;
                         quotationHeader.AreaCode = AreaCode;
-                        quotationHeader.CustomerCode = customerMaster.CustomerCode;
+                        quotationHeader.CustomerCode = customerMaster.Code;
                         quotationHeader.ProjectName = ProjectName;
                         //quotationHeader.IndustryId = industryMaster.Id;
                         quotationHeader.QuotationDate = QuotationDate;// DateTime.ParseExact(QuotationDate, "dd/MM/yyyy", CultureInfo.InvariantCulture);

@@ -53,11 +53,11 @@ namespace Quotation.Management.Services
             }
         }
 
-        public CustomerMaster InsertCustomer(CustomerMaster customerMaster)
+        public void InsertCustomer(string code , string name , int type)
         {
             try
             {
-                return _mastersRepository.InsertCustomer(customerMaster);
+                _mastersRepository.InsertCustomer(code,name,type);
             }
             catch(ValidationException ex)
             {
@@ -86,19 +86,20 @@ namespace Quotation.Management.Services
 
             return data;
         }
-        public void InsertMasterData(string type,string name)
+        public void InsertMasterData(string code,int type,string name)
         {
             try
             {
                 List<MasterDC> data = new();
-                if (type == "CostItems") _mastersRepository.InsertCostItem(name);
-                else if (type == "PaymentTerms") _mastersRepository.InsertPaymentTerm(name);
-                else if (type == "DeliveryTerms") _mastersRepository.InsertDeliveryTerm(name);
+                //if (type == "CostItems") _mastersRepository.InsertCostItem(name);
+                //else if (type == "PaymentTerms") _mastersRepository.InsertPaymentTerm(name);
+                //else if (type == "DeliveryTerms") _mastersRepository.InsertDeliveryTerm(name);
                 //else if (type == "Areas") _mastersRepository.InsertSalesArea(name);
                 //else if (type == "Currency")  _mastersRepository.InsertCurrency(name);
                 //else if (type == "Industry") _mastersRepository.InsertIndustry(name);
                 //else if (type == "Status")  _mastersRepository.InsertStatus(name);
                 //else data = new();
+                _mastersRepository.InsertMaster(code, name, (MasterEnum)type);
             }
              catch (ValidationException ex)
             {

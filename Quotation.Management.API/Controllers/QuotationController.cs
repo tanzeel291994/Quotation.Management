@@ -245,7 +245,10 @@ namespace QMT_API.Controllers
             try
             {
                 var _currencyDC = _quotationService.GetCurrencyCode(code, oldcode, quotationNum,revNum);
-                return Ok(Newtonsoft.Json.JsonConvert.SerializeObject(_currencyDC));
+                return Ok(JsonConvert.SerializeObject(_currencyDC, new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                }));
             }
             catch (Exception ex)
             {

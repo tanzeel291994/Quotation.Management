@@ -29,13 +29,7 @@ namespace Quotation.Management.Contracts.Repositories
         List<MasterDC> GetIndustrys();
 
         UserMaster? GetCurrentUserDetails(string email);
-        CustomerMaster InsertCustomer(CustomerMaster customerMaster);
-        void InsertCostItem(string name);
-        void InsertPaymentTerm(string name);
-        void InsertDeliveryTerm(string name);
-        //void InsertSalesArea(string name);
-        //void InsertCurrency(string name);
-        //void InsertIndustry(string name);
-        //void InsertStatus(string name);
+        void InsertCustomer(string code, string name, int type);
+        void InsertMaster(string code, string name, MasterEnum type);
     }
 }

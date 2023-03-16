@@ -37,6 +37,9 @@ namespace Quotation.Management.Repositories
                 header.IndustryId = _quotationHeader.IndustryId;
                 header.Msp = _quotationHeader.Msp;
                 header.Asp = _quotationHeader.Asp;
+                header.Remarks = _quotationHeader.Remarks;
+                header.ClientCode = _quotationHeader.ClientCode;
+                header.ConsultantCode = _quotationHeader.ConsultantCode;
                 header.CurrencyCode = _quotationHeader.CurrencyCode; // tHIS is used when no lines ecist and header changed 
                 header.UpdatedBy = updatedBy;
             }
@@ -547,7 +550,7 @@ namespace Quotation.Management.Repositories
                              {
                                  QuotationNum = qh.QuotationNum,
                                  ProjectName = qh.ProjectName,
-                                 CustomerName = qh.CustomerCodeNavigation.CustomerName,
+                                 CustomerName = qh.CustomerCodeNavigation.Code,
                                  AreaName = qh.AreaCodeNavigation.AreaName,
                                  BrandName = bm.BrandName,
                                  ProductName = pm.ProdName,
@@ -694,7 +697,7 @@ namespace Quotation.Management.Repositories
                              {
                                  QuotationNum = qh.QuotationNum,
                                  ProjectName = qh.ProjectName,
-                                 CustomerName = qh.CustomerCodeNavigation.CustomerName,
+                                 CustomerName = qh.CustomerCodeNavigation.Name,
                                  AreaName = qh.AreaCodeNavigation.AreaName,
                                  RevNum = "R"+qh.RevNum,
                                  Status = qh.Status.StatusName,
@@ -990,7 +993,7 @@ namespace Quotation.Management.Repositories
                                                     Probability = x.Probability,
                                                     CurrencyCode = x.CurrencyCode,
                                                     QuotationDate = x.QuotationDate,
-                                                    CustomerName = x.CustomerCodeNavigation.CustomerName,
+                                                    CustomerName = x.CustomerCodeNavigation.Name,
                                                     DeliveryTermName = x.DeliveryTerm.DeliveryTermName,
                                                     PaymentTermName = x.PaymentTerm.PaymentTermName,
                                                 })
