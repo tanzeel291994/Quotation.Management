@@ -120,7 +120,7 @@ namespace Quotation.Management.Repositories
         {
             using (var context = new QMTContext())
             {
-                return context.CustomerMasters.Where(x=>x.Code.ToLower().Contains(searchString.ToLower()) && x.CustomerType == (int)MasterEnum.CUSTOMER ).Select(x => new
+                return context.CustomerMasters.Where(x=>x.Code.ToLower().Contains(searchString.ToLower()) && x.Type == (int)MasterEnum.CUSTOMER ).Select(x => new
                 MasterDC
                 {
                     Name = x.Name,
@@ -180,7 +180,7 @@ namespace Quotation.Management.Repositories
         {
             using (var context = new QMTContext())
             {
-                var _data= context.CustomerMasters.Where(x => x.Name.ToLower() == name.ToLower() && x.CustomerType == type).FirstOrDefault();
+                var _data= context.CustomerMasters.Where(x => x.Name.ToLower() == name.ToLower() && x.Type == type).FirstOrDefault();
                 if (_data != null)
                 {
                     throw new ValidationException(new List<string> { "Customer name already exists" });
@@ -203,7 +203,7 @@ namespace Quotation.Management.Repositories
                 CustomerMaster toBeInserted = new();
                 toBeInserted.Code = prefix + code + "" + String.Format("{0:0000}", num + 1);
                 toBeInserted.Name = name;
-                toBeInserted.CustomerType = type;
+                toBeInserted.Type = type;
                 context.CustomerMasters.Add(toBeInserted);
                 context.SaveChanges();
             }

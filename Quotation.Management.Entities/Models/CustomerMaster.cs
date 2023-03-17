@@ -12,7 +12,7 @@ namespace Quotation.Management.Entities.Models
 
         public string Code { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int CustomerType { get; set; }
+        public int Type { get; set; }
 
         public virtual ICollection<QuotationHeader> QuotationHeaders { get; set; }
     }

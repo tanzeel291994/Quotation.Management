@@ -44,6 +44,9 @@ namespace Quotation.Management.Contracts.Services
         JArray GetQuotationDashboard(QuotationSearchDC quotationSearch);
         void ImportData(DataSet ds);
         void ImportQuotationLines(DataSet ds, string quotationNum, int revNum);
+
+        List<ProductCAFCode> GetProductCAF(string quotationNum, int revNum);
+        bool UpdateProductCAF(List<ProductCAFCode> currencyDC, string quotationNum, int revNum);
         //List<QuotationLine> UpdateUnitPriceFromOptions(string quotatioNum, int revNum, List<int> lineNums, QMTContext context);
     }
 }

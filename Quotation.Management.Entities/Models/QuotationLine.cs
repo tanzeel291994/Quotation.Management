@@ -22,13 +22,13 @@ namespace Quotation.Management.Entities.Models
         public bool ActiveLine { get; set; }
         public decimal? CostItemLineValue { get; set; }
         public decimal Vat { get; set; }
-        public decimal? CAF { get; set; }
         public decimal TtNetPrice { get; set; }
         public decimal? Margin { get; set; }
         public string? UnitTag { get; set; }
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
         public decimal? SeaFreightValue { get; set; }
+        public decimal? Caf { get; set; }
 
         public virtual UserMaster? CreatedByNavigation { get; set; }
         public virtual ItemMaster ItemCodeNavigation { get; set; } = null!;

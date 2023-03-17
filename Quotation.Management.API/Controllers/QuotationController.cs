@@ -255,6 +255,44 @@ namespace QMT_API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+        [HttpGet("currency/caf")]
+        [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetProductCAF(string quotationNum, int revNum)
+        {
+            try
+            {
+                var _list= _quotationService.GetProductCAF(quotationNum, revNum);
+                return Ok(JsonConvert.SerializeObject(_list, new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+        [HttpPost("caf/update")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult UpdateProductCAF([FromBody] string json)//List<ProductCAFCode> data
+        {
+            try
+            {
+                JObject jobject = JsonConvert.DeserializeObject<JObject>(json);
+                string quotationNum = jobject.GetValue("quotationNum")!.ToString();
+                int revNum = Convert.ToInt32(jobject.GetValue("revNum")!.ToString());
+                List<ProductCAFCode> productCAFCodes = JsonConvert.DeserializeObject<List<ProductCAFCode>>(jobject.GetValue("productCAFs")!.ToString());
+                var result = _quotationService.UpdateProductCAF(productCAFCodes!, quotationNum, revNum);
+                return Ok(result);
+                //return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
 
         [HttpPost("costLine/update")]
         [ProducesResponseType(typeof(QuotationCostItem), StatusCodes.Status200OK)]
@@ -356,14 +394,16 @@ namespace QMT_API.Controllers
         #endregion
 
         [HttpPost("currency/update")]
-        [ProducesResponseType(typeof(QuotationLine), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult UpdateQuotationCurrency([FromBody]CurrencyDC currencyDC)
+        public IActionResult UpdateQuotationCurrency([FromBody]string  json )//List<ProductCAFCode> data
         {
             try
             {
+                CurrencyDC currencyDC = JsonConvert.DeserializeObject<CurrencyDC>(json);
                 var result = _quotationService.UpdateQuotationCurrency(currencyDC);
                 return Ok(result);
+                //return Ok();
             }
             catch (Exception ex)
             {

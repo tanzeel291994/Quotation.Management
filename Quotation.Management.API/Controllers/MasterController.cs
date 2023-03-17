@@ -37,12 +37,12 @@ namespace QMT_API.Controllers
         [HttpPost("Customer/add")]
         [ProducesResponseType(typeof(CustomerMaster), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult InsertCustomer(CustomerMaster customerMaster)
+        public IActionResult InsertCustomer(string code, string name, int type)
         {
             try
             {
-                var _customer = _mastersService.InsertCustomer(customerMaster);
-                return Ok(_customer);
+                 _mastersService.InsertCustomer(code,name,type);
+                return Ok();
             }
             catch (ValidationException ex)
             {
@@ -98,11 +98,11 @@ namespace QMT_API.Controllers
         [HttpPost("insert")]
         [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult InsertMasterData(string type,string name)
+        public IActionResult InsertMasterData(string code,int type,string name)
         {
             try
             {
-                 _mastersService.InsertMasterData(type, name);
+                 _mastersService.InsertMasterData(code,type, name);
                 return Ok();
             }
             catch (ValidationException ex)

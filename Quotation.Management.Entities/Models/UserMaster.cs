@@ -12,6 +12,7 @@ namespace Quotation.Management.Entities.Models
             QuotationCostItemUpdatedByNavigations = new HashSet<QuotationCostItem>();
             QuotationHeaderAspNavigations = new HashSet<QuotationHeader>();
             QuotationHeaderCreatedByNavigations = new HashSet<QuotationHeader>();
+            QuotationHeaderLockedForEditingByNavigations = new HashSet<QuotationHeader>();
             QuotationHeaderMspNavigations = new HashSet<QuotationHeader>();
             QuotationHeaderUpdatedByNavigations = new HashSet<QuotationHeader>();
             QuotationLineCreatedByNavigations = new HashSet<QuotationLine>();
@@ -22,13 +23,15 @@ namespace Quotation.Management.Entities.Models
         public string FirstName { get; set; } = null!;
         public string LastName { get; set; } = null!;
         public string Email { get; set; } = null!;
-        public string? Role { get; set; }
+        public string Role { get; set; } = null!;
+        public bool IsActive { get; set; }
 
         public virtual ICollection<Issue> Issues { get; set; }
         public virtual ICollection<QuotationCostItem> QuotationCostItemCreatedByNavigations { get; set; }
         public virtual ICollection<QuotationCostItem> QuotationCostItemUpdatedByNavigations { get; set; }
         public virtual ICollection<QuotationHeader> QuotationHeaderAspNavigations { get; set; }
         public virtual ICollection<QuotationHeader> QuotationHeaderCreatedByNavigations { get; set; }
+        public virtual ICollection<QuotationHeader> QuotationHeaderLockedForEditingByNavigations { get; set; }
         public virtual ICollection<QuotationHeader> QuotationHeaderMspNavigations { get; set; }
         public virtual ICollection<QuotationHeader> QuotationHeaderUpdatedByNavigations { get; set; }
         public virtual ICollection<QuotationLine> QuotationLineCreatedByNavigations { get; set; }

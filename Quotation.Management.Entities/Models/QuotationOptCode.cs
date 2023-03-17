@@ -14,6 +14,7 @@ namespace Quotation.Management.Entities.Models
         public string? OptName { get; set; }
         public string? OptType { get; set; }
         public decimal? Baseprice { get; set; }
+        public string? Version { get; set; }
 
         public virtual QuotationLine QuotationLine { get; set; } = null!;
     }

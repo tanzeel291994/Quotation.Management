@@ -14,10 +14,11 @@ namespace Quotation.Management.Contracts
         public string Type="";
     }
 
-    public class CurrencyDC
+    public partial class CurrencyDC
     {
         public string CurrencyCode { get; set; } = null!;
-        public ProductCAFCode[] ProductCAFs = new ProductCAFCode[] { };
+        //public ProductCAFCode[]? productCAFs ; 
+        public List<ProductCAFCode> productCAFs = new() ; 
         public string? OldCurrencyCode { get; set; }
         public decimal ConvFactor { get; set; }
         // public decimal? NewConvFactor { get; set; }
@@ -28,9 +29,9 @@ namespace Quotation.Management.Contracts
     public class ProductCAFCode
     {
         public string ProductCode { get; set; } = null!;
-        public string BrandCode = null!;
-        public string CurrencyCode = null!;
-        public decimal CAF;
+        public string BrandCode { get; set; } = null!;
+        public string CurrencyCode { get; set; } = null!;
+        public decimal Caf { get; set; }
     }
 
     public enum MasterEnum

@@ -10,12 +10,11 @@ namespace Quotation.Management.Contracts.Services
         JObject? GetAllMastersForSearch();
         CurrencyDC GetCurrencyCode(string curencyCode, string oldCurrencyCode);
 
-        CustomerMaster InsertCustomer(CustomerMaster customerMaster);
-        void InsertMasterData(string type, string name);
+        void InsertCustomer(string code, string name, int type);
+        void InsertMasterData(string code, int type, string name);
         List<MasterDC> GetAllCustomers();
 
         List<MasterDC> GetAllCustomers(string searchString);
-
         List<MasterDC> GetCostItems();
         List<MasterDC> GetAllAreas();
         UserMaster? GetCurrentUserDetails(string email);

@@ -285,24 +285,27 @@ namespace Quotation.Management.Services
                 CurrencyMaster? oldCurrency = _mastersRepository.GetCurrencyByCode(oldCurrencyCode);
                 CurrencyDC currencyDC = new();
                 List<QuotationLineDC> quotationLines = _quotationRepository.GetQuotationLinesDC(quotationNum,revNum);
-                //currencyDC.ProductCAFs = new ProductCAFCode[] { } ;
+
+                currencyDC.productCAFs = new();
                 List<ProductCAFCode> productCAFList = new();
-                foreach(var _line in quotationLines)
+                foreach (var _line in quotationLines)
                 {
-                    if(!productCAFList.Any(x=> x.ProductCode == _line.ProdTypeId))
+                    if (!productCAFList.Any(x => x.ProductCode == _line.ProdTypeId))
                     {
-                        productCAFList.Add(new ProductCAFCode { 
-                            CAF = _line.CAF, 
+                        CurrencyMaster? currencyProduct = _mastersRepository.GetCurrencyByCode(_line.ProductCurrencyCode);
+                        productCAFList.Add(new ProductCAFCode
+                        {
+                            Caf = Math.Round(currency.ConvFactor/ currencyProduct.ConvFactor,4),
                             ProductCode = _line.ProdTypeId,
                             BrandCode = _line.BrandCode,
                             CurrencyCode = _line.ProductCurrencyCode
                         });
                     }
                 }
-                currencyDC.ProductCAFs = productCAFList.ToArray();
-                 //oldcurrency code 
-                 //   USD 				AED  X X+f
-                 //   AED                     OMR  Y  (X+f)AED/USD(USD/EUR)(EUR/OMR)
+                currencyDC.productCAFs = productCAFList;
+                //oldcurrency code 
+                //   USD 				AED  X X+f
+                //   AED                     OMR  Y  (X+f)AED/USD(USD/EUR)(EUR/OMR)
 
                 if (header!.OldCurrencyCode != null)
                 {
@@ -330,11 +333,87 @@ namespace Quotation.Management.Services
                 throw;
             }
         }
+
+        public List<ProductCAFCode> GetProductCAF( string quotationNum, int revNum)
+        {
+            try
+            {
+                //CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(quotationCurrencyCode);
+                List<QuotationLineDC> quotationLines = _quotationRepository.GetQuotationLinesDC(quotationNum, revNum);
+                List<ProductCAFCode> productCAFList = new();
+                foreach (var _line in quotationLines)
+                {
+                    if (!productCAFList.Any(x => x.ProductCode == _line.ProdTypeId))
+                    {
+                        productCAFList.Add(new ProductCAFCode
+                        {
+                            Caf = _line.CAF,
+                            ProductCode = _line.ProdTypeId,
+                            BrandCode = _line.BrandCode,
+                            CurrencyCode = _line.ProductCurrencyCode
+                        });
+                    }
+                }
+                return productCAFList;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                throw;
+            }
+        }
+
+        public bool UpdateProductCAF(List<ProductCAFCode> productCAFCodes, string quotationNum, int revNum)
+        {
+            try
+            {
+                QMTContext context = _quotationRepository.BeginTransaction();
+                QuotationHeader? quotationHeader = _quotationRepository.GetQuotation(quotationNum, revNum, context);
+                List<QuotationLineDC> quotationLines = _quotationRepository.GetQuotationLinesDC(quotationNum, revNum, _context: context);
+
+                List<QuotationOptCode> optCodeList = _quotationRepository.GetQuotationOptCodes(quotationNum, revNum, context);
+                List<QuotationLine> allLines = _quotationRepository.GetQuotationLines(quotationNum, revNum, context);
+                foreach (var _optCode in optCodeList)
+                {
+                    QuotationLineDC quotationLineDC = quotationLines.Where(x => x.LineNum == _optCode.LineNum && x.RevNum == _optCode.RevNum).First();
+                    if (productCAFCodes.Where(x => x.ProductCode == quotationLineDC.ProdTypeId).Any())
+                    {
+                        decimal newCAF = productCAFCodes.Where(x => x.ProductCode == quotationLineDC.ProdTypeId).First().Caf;
+                        _optCode.UnitPrice = (newCAF) * _optCode.Baseprice;
+                        QuotationLine _quotationLine = allLines.Where(x => x.LineNum == _optCode.LineNum).First();
+                        _quotationLine.Caf = newCAF;
+                    }
+                    else
+                    {
+                        _optCode.UnitPrice = (quotationLineDC.CAF) * _optCode.Baseprice;
+                    }
+                    _quotationRepository.UpdateQuotationOptCodes(_optCode, context);
+                }
+
+                UpdateUnitPriceFromOptions(quotationNum, revNum, quotationLines.Select(x => x.LineNum).ToList(), context);
+
+                UpdateAllLinesCostItemValue(quotationNum, revNum, context);
+
+                _quotationRepository.Commit();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                _quotationRepository.RollBack();
+                throw;
+            }
+            finally
+            {
+                _quotationRepository.DisposeConnection();
+            }
+        }
+
         public bool UpdateQuotationCurrency(CurrencyDC currencyDC)
         {
             try
             {
-                  CurrencyMaster? currencyMaster = _mastersRepository.GetCurrencyByCode(currencyDC.CurrencyCode);
+                CurrencyMaster? currencyMaster = _mastersRepository.GetCurrencyByCode(currencyDC.CurrencyCode);
                 CurrencyMaster? oldCurrencyMaster = _mastersRepository.GetCurrencyByCode(currencyDC.OldCurrencyCode);
                 QMTContext context = _quotationRepository.BeginTransaction();               
                 QuotationHeader? quotationHeader = _quotationRepository.GetQuotation(currencyDC.QuotationNum, currencyDC.RevNum, context);
@@ -348,18 +427,21 @@ namespace Quotation.Management.Services
                 List<QuotationLineDC> quotationLines = _quotationRepository.GetQuotationLinesDC(currencyDC.QuotationNum, currencyDC.RevNum, _context: context);
 
                 List<QuotationOptCode> optCodeList = _quotationRepository.GetQuotationOptCodes(currencyDC.QuotationNum, currencyDC.RevNum, context);
+                List<QuotationLine> allLines = _quotationRepository.GetQuotationLines(currencyDC.QuotationNum, currencyDC.RevNum, context);
 
                 foreach (var _optCode in optCodeList)
                 {
                     QuotationLineDC quotationLineDC = quotationLines.Where(x => x.LineNum == _optCode.LineNum && x.RevNum == _optCode.RevNum).First();
-                    if(currencyDC.ProductCAFs.Where(x=> x.ProductCode == quotationLineDC.ProdTypeId).Any())
+                    if(currencyDC.productCAFs.Where(x=> x.ProductCode == quotationLineDC.ProdTypeId).Any())
                     {
-                        decimal newCAF = currencyDC.ProductCAFs.Where(x => x.ProductCode == quotationLineDC.ProdTypeId).First().CAF;
-                        _optCode.UnitPrice = (newCAF) * _optCode.UnitPrice;
+                        decimal newCAF = currencyDC.productCAFs.Where(x => x.ProductCode == quotationLineDC.ProdTypeId).First().Caf;
+                        _optCode.UnitPrice = (newCAF) * _optCode.Baseprice;
+                        QuotationLine _quotationLine = allLines.Where(x => x.LineNum == _optCode.LineNum).First();
+                        _quotationLine.Caf = newCAF;
                     }
                     else
                     {
-                        _optCode.UnitPrice = (quotationLineDC.CAF) * _optCode.UnitPrice;
+                        _optCode.UnitPrice = (quotationLineDC.CAF) * _optCode.Baseprice;
                     }                   
                     _quotationRepository.UpdateQuotationOptCodes(_optCode, context);
                 }
@@ -555,7 +637,7 @@ namespace Quotation.Management.Services
             line.RevNum = inputLine.RevNum;
             line.UnitPrice = 0;
             line.TtNetPrice = 0;
-            line.CAF = Math.Round(quotationCurrency!.ConvFactor / brandCurrency!.ConvFactor, 4);
+            line.Caf = Math.Round(quotationCurrency!.ConvFactor / brandCurrency!.ConvFactor, 4);
             if (itemDetails.ProdTypeId == "AHU")
             {
                 if (line.UnitTag == null || line.UnitTag == "")
@@ -576,7 +658,7 @@ namespace Quotation.Management.Services
                 //string currencyCode = header!.CurrencyCode;
                 //CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(currencyCode);
 
-                line.UnitPrice = line.CAF.Value * pricing.First().Price; //currencyCode == itemDetails.CurrencyCode ? pricing.First().Price : CalculatePriceOnCurrency(quotationCurrency!, pricing.First(), itemDetails);
+                line.UnitPrice = line.Caf.Value * pricing.First().Price; //currencyCode == itemDetails.CurrencyCode ? pricing.First().Price : CalculatePriceOnCurrency(quotationCurrency!, pricing.First(), itemDetails);
                 if (itemDetails.IndexConvFactor != null) line.UnitPrice = line.UnitPrice * itemDetails.IndexConvFactor!.Value;
 
                 line.TtNetPrice = line.UnitPrice * line.Mtlp * line.Qty; // BE DEFAULT NO NET IS TAKEN ON LINE INSERT
@@ -588,6 +670,8 @@ namespace Quotation.Management.Services
                 optCode.LineNum = line.LineNum;
                 optCode.UnitPrice = line.UnitPrice;
                 optCode.OptCode = pricing[0].OptCode;
+                optCode.Baseprice = pricing[0].Price;
+                optCode.Version = pricing[0].Version;
                 optCode = _quotationRepository.InsertQuotationOptCode(optCode, context);
                 
             }
@@ -699,9 +783,10 @@ namespace Quotation.Management.Services
                     optCode.QuotationNum = inputLine.QuotationNum;
                     optCode.RevNum = inputLine.RevNum;
                     optCode.LineNum = inputLine.LineNum;
-                    optCode.UnitPrice = quotationLine.CAF * item.Price; //currencyCode == itemCodeDetails.CurrencyCode ? item.Price : CalculatePriceOnCurrency(quotationCurrency!, item, itemCodeDetails);
+                    optCode.UnitPrice = quotationLine.Caf * item.Price; //currencyCode == itemCodeDetails.CurrencyCode ? item.Price : CalculatePriceOnCurrency(quotationCurrency!, item, itemCodeDetails);
                     if (itemCodeDetails.IndexConvFactor != null) optCode.UnitPrice = optCode.UnitPrice * itemCodeDetails.IndexConvFactor.Value;
-
+                    optCode.Baseprice = item.Price;
+                    optCode.Version = item.Version;
                     optCode.OptCode = item.OptCode;
                     optCode.IsNet = item.IsNet;
                     optCode = _quotationRepository.InsertQuotationOptCode(optCode, context);
@@ -805,7 +890,7 @@ namespace Quotation.Management.Services
                 optCode.QuotationNum = optCodeDC.QuotationNum;
                 optCode.RevNum = optCodeDC.RevNum;
                 optCode.LineNum = optCodeDC.LineNum;
-                optCode.UnitPrice = optCodeDC.Price * quotationLine.CAF;//optCodeDC.Price * (itemCodeDetails != null ? Math.Round(quotationCurrency!.ConvFactor / itemCodeDetails.CAF, 4) : 1);
+                optCode.UnitPrice = optCodeDC.Price * quotationLine.Caf;//optCodeDC.Price * (itemCodeDetails != null ? Math.Round(quotationCurrency!.ConvFactor / itemCodeDetails.CAF, 4) : 1);
                 optCode.OptCode = optCodeDC.OptCode;
                 optCode.OptName = optCodeDC.OptName;
                 optCode.Baseprice = optCodeDC.Price;
@@ -918,15 +1003,6 @@ namespace Quotation.Management.Services
                 List<QuotationOptCode> optCodeList = _quotationRepository.GetQuotationOptCodes(quotationLineDC.QuotationNum, quotationLineDC.RevNum,null ,quotationLineDC.LineNum);
                 QuotationLine quotationLine = _quotationRepository.GetQuotationLine(quotationLineDC.QuotationNum, quotationLineDC.LineNum, quotationLineDC.RevNum);
                 jobject.Add("selectedOptons", JsonConvert.SerializeObject(optCodeList));
-                //QuotationHeader? quotationHeader = _quotationRepository.GetQuotation(quotationLineDC.QuotationNum, quotationLineDC.RevNum);
-                //CurrencyMaster? brandCurrency = _itemCodeRepository.GetItemCodeCurrency(quotationLine.ItemCode);
-                //decimal oldConvFactor = brandCurrency!.ConvFactor;
-                //decimal newConvFactor = 0;
-
-
-                //CurrencyMaster? currencyMaster =  _mastersRepository.GetCurrencyByCode(quotationHeader.CurrencyCode);
-                //newConvFactor = currencyMaster!.ConvFactor;
-
                 jobject.Add("allOptions", JsonConvert.SerializeObject(_quotationRepository.GetItemOptions(quotationLine.ItemCode, 1)));//newConvFactor/ oldConvFactor
 
                 return jobject;
@@ -1262,7 +1338,7 @@ namespace Quotation.Management.Services
                     lineDC.Margin = quotationLine.Margin;
                     lineDC.UnitTag = quotationLine.UnitTag;
                     lineDC.Vat = quotationLine.Vat;
-                    lineDC.CAF = quotationLine.CAF.Value;
+                    lineDC.CAF = quotationLine.Caf.Value;
                     lineDC.TtNetPrice = totalNetPrice;
                     lineDC.TtCostPrice = Math.Round(lineDC.TtNetPrice + (lineDC.CostItemLineValue ?? 0), 2);
                     lineDC.TtSlsPrice = Math.Round(CalculatetotalWithMargin(lineDC), 2);
@@ -1674,14 +1750,14 @@ namespace Quotation.Management.Services
                         //string Industry = dt.Rows[i].Field<string>("Industry");
                         string Currency = dt.Rows[i].Field<string>("Currency");
 
-                        CustomerMaster customerMaster = context.CustomerMasters.Where(x => x.Name.ToLower() == Customer.ToLower() && x.CustomerType == (int)MasterEnum.CUSTOMER).FirstOrDefault();
+                        CustomerMaster customerMaster = context.CustomerMasters.Where(x => x.Name.ToLower() == Customer.ToLower() && x.Type == (int)MasterEnum.CUSTOMER).FirstOrDefault();
                         if(customerMaster == null)
                         {
                            int num =context.CustomerMasters.Where(x => x.Code.StartsWith("C"+AreaCode)).Count();
                            customerMaster = new CustomerMaster();
                            customerMaster.Code = "C"+AreaCode + "" + String.Format("{0:0000}", num+1);
                            customerMaster.Name = Customer;
-                            customerMaster.CustomerType = (int)MasterEnum.CUSTOMER;
+                            customerMaster.Type = (int)MasterEnum.CUSTOMER;
                            context.CustomerMasters.Add(customerMaster);
                             //context.SaveChanges();
                         }

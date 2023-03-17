@@ -68,7 +68,7 @@ namespace Quotation.Management.Repositories
                 line.CostItemLineValue = _quotationLine.CostItemLineValue;
                 line.Vat = _quotationLine.Vat;
                 line.TtNetPrice = _quotationLine.TtNetPrice;
-                line.CAF = _quotationLine.CAF;
+                line.Caf = _quotationLine.CAF;
                
                 line.UnitTag = _quotationLine.UnitTag;
                 line.SubItemCode = _quotationLine.SubItemCode;
@@ -423,7 +423,6 @@ namespace Quotation.Management.Repositories
                 return null;
             }
         }
-
         public QuotationLine InsertQuotationLine(QuotationLine _quotationLine, QMTContext? _context = null)
         {
             var context = _context ?? new QMTContext();
@@ -822,7 +821,7 @@ namespace Quotation.Management.Repositories
                                                    Margin = ql.Margin ?? 0,
                                                    CurrencyCode = qh.CurrencyCode,
                                                    TtNetPrice = ql.TtNetPrice,
-                                                   CAF = ql.CAF ?? 1,
+                                                   CAF = ql.Caf ?? 1,
                                                    BrandCode = bm.BrandName,
                                                    ProductCurrencyCode = bm.CurrencyCode,
                                                    CostItemLineValue = ql.CostItemLineValue ?? 0,
