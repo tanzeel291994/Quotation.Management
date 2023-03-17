@@ -91,10 +91,11 @@ namespace QMT_API.Controllers
         [HttpPost("Search")]
         [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult SearchQuotations(QuotationSearchDC quotationSearch)
+        public IActionResult SearchQuotations([FromBody] string json)
         {
             try
             {
+                QuotationSearchDC quotationSearch = JsonConvert.DeserializeObject<QuotationSearchDC>(json);
                 var _data = _quotationService.SearchQuotations(quotationSearch);
                 return Ok(JsonConvert.SerializeObject(_data, new JsonSerializerSettings
                 {
@@ -107,24 +108,24 @@ namespace QMT_API.Controllers
             }
         }
 
-        [HttpPost("dashboard")]
-        [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetDashBoard(QuotationSearchDC quotationSearch)
-        {
-            try
-            {
-                var _data = _quotationService.GetQuotationDashboard(quotationSearch);
-                return Ok(JsonConvert.SerializeObject(_data, new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                }));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-        }
+        //[HttpPost("dashboard")]
+        //[ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        //public IActionResult GetDashBoard(QuotationSearchDC quotationSearch)
+        //{
+        //    try
+        //    {
+        //        var _data = _quotationService.GetQuotationDashboard(quotationSearch);
+        //        return Ok(JsonConvert.SerializeObject(_data, new JsonSerializerSettings
+        //        {
+        //            ContractResolver = new CamelCasePropertyNamesContractResolver()
+        //        }));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        //    }
+        //}
 
         #region Lines
 

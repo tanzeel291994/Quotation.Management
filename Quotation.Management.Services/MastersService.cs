@@ -35,7 +35,9 @@ namespace Quotation.Management.Services
                 jobject.Add(new JProperty("areas", JsonConvert.SerializeObject(_mastersRepository.GetAreas())));
                 jobject.Add(new JProperty("deliveryTerms", JsonConvert.SerializeObject(_mastersRepository.GetDeliveryTerms())));
                 jobject.Add(new JProperty("paymentTerms", JsonConvert.SerializeObject(_mastersRepository.GetPaymentTerms())));
-                jobject.Add(new JProperty("customers", JsonConvert.SerializeObject(_mastersRepository.GetCustomers())));
+                jobject.Add(new JProperty("customers", JsonConvert.SerializeObject(_mastersRepository.GetBuyers((int)MasterEnum.CUSTOMER))));
+                jobject.Add(new JProperty("consultants", JsonConvert.SerializeObject(_mastersRepository.GetBuyers((int)MasterEnum.CONSULTANT))));
+                jobject.Add(new JProperty("clients", JsonConvert.SerializeObject(_mastersRepository.GetBuyers((int)MasterEnum.CLIENT))));
                 jobject.Add(new JProperty("statuses", JsonConvert.SerializeObject(_mastersRepository.GetStatuses())));
                 jobject.Add(new JProperty("currency", JsonConvert.SerializeObject(_mastersRepository.GetCurrency())));
                 jobject.Add(new JProperty("industries", JsonConvert.SerializeObject(_mastersRepository.GetIndustrys())));
@@ -67,6 +69,10 @@ namespace Quotation.Management.Services
         public List<MasterDC> GetAllCustomers()
         {
             return _mastersRepository.GetCustomers();
+        }
+        public List<MasterDC> GetBuyers(int type)
+        {
+            return _mastersRepository.GetBuyers(type);
         }
         public List<MasterDC> GetAllAreas()
         {
@@ -131,7 +137,9 @@ namespace Quotation.Management.Services
             {
                 jobject.Add(new JProperty("users", JsonConvert.SerializeObject(_mastersRepository.GetUsers())));
                 jobject.Add(new JProperty("areas", JsonConvert.SerializeObject(_mastersRepository.GetAreas())));
-                jobject.Add(new JProperty("customers", JsonConvert.SerializeObject(_mastersRepository.GetCustomers())));
+                jobject.Add(new JProperty("customers", JsonConvert.SerializeObject(_mastersRepository.GetBuyers((int)MasterEnum.CUSTOMER))));
+                jobject.Add(new JProperty("consultants", JsonConvert.SerializeObject(_mastersRepository.GetBuyers((int)MasterEnum.CONSULTANT))));
+                jobject.Add(new JProperty("clients", JsonConvert.SerializeObject(_mastersRepository.GetBuyers((int)MasterEnum.CLIENT))));
                 jobject.Add(new JProperty("quotations", JsonConvert.SerializeObject(_mastersRepository.GetStatuses())));
                 jobject.Add(new JProperty("brands", JsonConvert.SerializeObject(_mastersRepository.GetBrands())));
                 jobject.Add(new JProperty("statuses", JsonConvert.SerializeObject(_mastersRepository.GetStatuses())));

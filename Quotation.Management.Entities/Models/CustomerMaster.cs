@@ -7,13 +7,17 @@ namespace Quotation.Management.Entities.Models
     {
         public CustomerMaster()
         {
-            QuotationHeaders = new HashSet<QuotationHeader>();
+            QuotationHeaderClientCodeNavigations = new HashSet<QuotationHeader>();
+            QuotationHeaderConsultantCodeNavigations = new HashSet<QuotationHeader>();
+            QuotationHeaderCustomerCodeNavigations = new HashSet<QuotationHeader>();
         }
 
         public string Code { get; set; } = null!;
         public string Name { get; set; } = null!;
         public int Type { get; set; }
 
-        public virtual ICollection<QuotationHeader> QuotationHeaders { get; set; }
+        public virtual ICollection<QuotationHeader> QuotationHeaderClientCodeNavigations { get; set; }
+        public virtual ICollection<QuotationHeader> QuotationHeaderConsultantCodeNavigations { get; set; }
+        public virtual ICollection<QuotationHeader> QuotationHeaderCustomerCodeNavigations { get; set; }
     }
 }

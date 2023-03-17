@@ -47,6 +47,8 @@ namespace Quotation.Management.Services
                 header.AreaCode = inputHeader.AreaCode;
                 header.CurrencyCode = inputHeader.CurrencyCode;
                 header.CustomerCode = inputHeader.CustomerCode;
+                header.ConsultantCode = inputHeader.ConsultantCode ?? null;
+                header.ClientCode = inputHeader.ClientCode ?? null;
                 header.DeliveryTermId = inputHeader.DeliveryTermId;
                 header.ExpectedDeliveryDate = inputHeader.ExpectedDeliveryDate;
                 header.BookingDate = inputHeader.BookingDate;
@@ -59,6 +61,7 @@ namespace Quotation.Management.Services
                 header.Asp = inputHeader.Asp;
                 header.IndustryId = inputHeader.IndustryId;
                 header.CreatedBy = inputHeader.UserId;
+                header.Remarks = inputHeader.Remarks;
                 header.QuotationNum = inputHeader.QuotationNum ?? GenerateQuotionNum(header.AreaCode, header.Msp, header.QuotationDate.Year);
 
                 header = _quotationRepository.InsertUpdateQuotation(header, inputHeader.UserId);
@@ -150,71 +153,71 @@ namespace Quotation.Management.Services
             }
         }
 
-        public JArray GetQuotationDashboard(QuotationSearchDC quotationSearch)
-        {
-            JArray jArray = new();
-            try
-            {
-                 dynamic brandValue ;
-                 var result = _quotationRepository.GetBrandData(quotationSearch,out brandValue );
+        //public JArray GetQuotationDashboard(QuotationSearchDC quotationSearch)
+        //{
+        //    JArray jArray = new();
+        //    try
+        //    {
+        //         dynamic brandValue ;
+        //         var result = _quotationRepository.GetBrandData(quotationSearch,out brandValue );
 
-                JArray brandList = JArray.Parse(JsonConvert.SerializeObject(brandValue));
-                foreach (var data in  JArray.Parse(JsonConvert.SerializeObject(result)))
-                {
-                    var jobject = new JObject();
-                    if(data["BrandName"] == "Aermec")
-                    {
-                        jobject.Add("TotalOrderValue1", data["TotalOrderValue"]);
-                        jobject.Add("AreaName1", data["AreaName"]);
-                        if(brandList.Any(x => x.Value<string>("BrandName") == "Aermec"))
-                        {
-                            var obj = brandList.Where(x => x.Value<string>("BrandName") == "Aermec").First();
-                            var total = obj.Value<decimal>("TotalOrderValue");
-                            var singleValue = Convert.ToDecimal(data["TotalOrderValue"]);
-                            jobject.Add("perc1", Math.Round(singleValue/ total * 100,2));
-                        }
-                        else
-                            jobject.Add("perc1", 0);
-                    }
-                    if (data["BrandName"] == "Toshiba")
-                    {
-                        jobject.Add("TotalOrderValue2", data["TotalOrderValue"]);
-                        jobject.Add("AreaName2", data["AreaName"]);
-                        if (brandList.Any(x => x.Value<string>("BrandName") == "Toshiba"))
-                        {
-                            var obj = brandList.Where(x => x.Value<string>("BrandName") == "Toshiba").First();
-                            var total = obj.Value<decimal>("TotalOrderValue");
-                            var singleValue = Convert.ToDecimal(data["TotalOrderValue"]);
-                            jobject.Add("perc2", Math.Round(singleValue / total * 100, 2));
-                        }
-                        else
-                            jobject.Add("perc2", 0);
-                    }
-                    if (data["BrandName"] == "Untes")
-                    {
-                        jobject.Add("TotalOrderValue3", data["TotalOrderValue"]);
-                        jobject.Add("AreaName3", data["AreaName"]);
-                        if (brandList.Any(x => x.Value<string>("BrandName") == "Untes"))
-                        {
-                            var obj = brandList.Where(x => x.Value<string>("BrandName") == "Untes").First();
-                            var total = obj.Value<decimal>("TotalOrderValue");
-                            var singleValue = Convert.ToDecimal(data["TotalOrderValue"]);
-                            jobject.Add("perc3", Math.Round(singleValue / total * 100, 2));
-                        }
-                        else
-                            jobject.Add("perc3", 0);
-                    }
-                    jArray.Add(jobject);
-                }
+        //        JArray brandList = JArray.Parse(JsonConvert.SerializeObject(brandValue));
+        //        foreach (var data in  JArray.Parse(JsonConvert.SerializeObject(result)))
+        //        {
+        //            var jobject = new JObject();
+        //            if(data["BrandName"] == "Aermec")
+        //            {
+        //                jobject.Add("TotalOrderValue1", data["TotalOrderValue"]);
+        //                jobject.Add("AreaName1", data["AreaName"]);
+        //                if(brandList.Any(x => x.Value<string>("BrandName") == "Aermec"))
+        //                {
+        //                    var obj = brandList.Where(x => x.Value<string>("BrandName") == "Aermec").First();
+        //                    var total = obj.Value<decimal>("TotalOrderValue");
+        //                    var singleValue = Convert.ToDecimal(data["TotalOrderValue"]);
+        //                    jobject.Add("perc1", Math.Round(singleValue/ total * 100,2));
+        //                }
+        //                else
+        //                    jobject.Add("perc1", 0);
+        //            }
+        //            if (data["BrandName"] == "Toshiba")
+        //            {
+        //                jobject.Add("TotalOrderValue2", data["TotalOrderValue"]);
+        //                jobject.Add("AreaName2", data["AreaName"]);
+        //                if (brandList.Any(x => x.Value<string>("BrandName") == "Toshiba"))
+        //                {
+        //                    var obj = brandList.Where(x => x.Value<string>("BrandName") == "Toshiba").First();
+        //                    var total = obj.Value<decimal>("TotalOrderValue");
+        //                    var singleValue = Convert.ToDecimal(data["TotalOrderValue"]);
+        //                    jobject.Add("perc2", Math.Round(singleValue / total * 100, 2));
+        //                }
+        //                else
+        //                    jobject.Add("perc2", 0);
+        //            }
+        //            if (data["BrandName"] == "Untes")
+        //            {
+        //                jobject.Add("TotalOrderValue3", data["TotalOrderValue"]);
+        //                jobject.Add("AreaName3", data["AreaName"]);
+        //                if (brandList.Any(x => x.Value<string>("BrandName") == "Untes"))
+        //                {
+        //                    var obj = brandList.Where(x => x.Value<string>("BrandName") == "Untes").First();
+        //                    var total = obj.Value<decimal>("TotalOrderValue");
+        //                    var singleValue = Convert.ToDecimal(data["TotalOrderValue"]);
+        //                    jobject.Add("perc3", Math.Round(singleValue / total * 100, 2));
+        //                }
+        //                else
+        //                    jobject.Add("perc3", 0);
+        //            }
+        //            jArray.Add(jobject);
+        //        }
 
-                return jArray;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                throw;
-            }
-        }
+        //        return jArray;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, ex.Message);
+        //        throw;
+        //    }
+        //}
 
         public List<QuotationLineDC> GetQuotationLines(string Id, int revNum)
         {

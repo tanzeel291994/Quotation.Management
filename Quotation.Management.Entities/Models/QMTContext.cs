@@ -139,9 +139,7 @@ namespace Quotation.Management.Entities.Models
             {
                 entity.ToTable("IndustryMaster");
 
-                entity.Property(e => e.Id)
-                    .ValueGeneratedNever()
-                    .HasColumnName("id");
+                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.Name)
                     .HasMaxLength(500)
@@ -467,6 +465,16 @@ namespace Quotation.Management.Entities.Models
                     .HasForeignKey(d => d.Asp)
                     .HasConstraintName("fk_QuotationHeader_asp");
 
+                entity.HasOne(d => d.ClientCodeNavigation)
+                    .WithMany(p => p.QuotationHeaderClientCodeNavigations)
+                    .HasForeignKey(d => d.ClientCode)
+                    .HasConstraintName("FK_ClientCode");
+
+                entity.HasOne(d => d.ConsultantCodeNavigation)
+                    .WithMany(p => p.QuotationHeaderConsultantCodeNavigations)
+                    .HasForeignKey(d => d.ConsultantCode)
+                    .HasConstraintName("FK_ConsultantCode");
+
                 entity.HasOne(d => d.CreatedByNavigation)
                     .WithMany(p => p.QuotationHeaderCreatedByNavigations)
                     .HasForeignKey(d => d.CreatedBy)
@@ -479,7 +487,7 @@ namespace Quotation.Management.Entities.Models
                     .HasConstraintName("FK__Quotation__Curre__245D67DE");
 
                 entity.HasOne(d => d.CustomerCodeNavigation)
-                    .WithMany(p => p.QuotationHeaders)
+                    .WithMany(p => p.QuotationHeaderCustomerCodeNavigations)
                     .HasForeignKey(d => d.CustomerCode)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Quotation__Custo__236943A5");
@@ -493,7 +501,7 @@ namespace Quotation.Management.Entities.Models
                 entity.HasOne(d => d.Industry)
                     .WithMany(p => p.QuotationHeaders)
                     .HasForeignKey(d => d.IndustryId)
-                    .HasConstraintName("fk_QuotationHeader_Industry");
+                    .HasConstraintName("FK_IndustryId");
 
                 entity.HasOne(d => d.LockedForEditingByNavigation)
                     .WithMany(p => p.QuotationHeaderLockedForEditingByNavigations)
@@ -575,7 +583,7 @@ namespace Quotation.Management.Entities.Models
                 entity.HasOne(d => d.CreatedByNavigation)
                     .WithMany(p => p.QuotationLineCreatedByNavigations)
                     .HasForeignKey(d => d.CreatedBy)
-                    .HasConstraintName("fk_Quotationlines_CreatedBy");
+                    .HasConstraintName("FK_CreatedBy");
 
                 entity.HasOne(d => d.ItemCodeNavigation)
                     .WithMany(p => p.QuotationLines)
@@ -586,7 +594,7 @@ namespace Quotation.Management.Entities.Models
                 entity.HasOne(d => d.UpdatedByNavigation)
                     .WithMany(p => p.QuotationLineUpdatedByNavigations)
                     .HasForeignKey(d => d.UpdatedBy)
-                    .HasConstraintName("fk_Quotationlines_UpdatedBy");
+                    .HasConstraintName("FK_UpdatedBy");
 
                 entity.HasOne(d => d.QuotationHeader)
                     .WithMany(p => p.QuotationLines)

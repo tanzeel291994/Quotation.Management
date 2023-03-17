@@ -39,6 +39,8 @@ namespace Quotation.Management.Entities.Models
 
         public virtual SalesArea AreaCodeNavigation { get; set; } = null!;
         public virtual UserMaster? AspNavigation { get; set; }
+        public virtual CustomerMaster? ClientCodeNavigation { get; set; }
+        public virtual CustomerMaster? ConsultantCodeNavigation { get; set; }
         public virtual UserMaster? CreatedByNavigation { get; set; }
         public virtual CurrencyMaster CurrencyCodeNavigation { get; set; } = null!;
         public virtual CustomerMaster CustomerCodeNavigation { get; set; } = null!;

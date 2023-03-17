@@ -116,6 +116,18 @@ namespace Quotation.Management.Repositories
                 }).ToList();
             }
         }
+        public List<MasterDC> GetBuyers(int type)
+        {
+            using (var context = new QMTContext())
+            {
+                return context.CustomerMasters.Where(x=> x.Type == type).Select(x => new
+                MasterDC
+                {
+                    Name = x.Name,
+                    Code = x.Code
+                }).ToList();
+            }
+        }
         public List<MasterDC> GetCustomers(string searchString)
         {
             using (var context = new QMTContext())
@@ -183,7 +195,7 @@ namespace Quotation.Management.Repositories
                 var _data= context.CustomerMasters.Where(x => x.Name.ToLower() == name.ToLower() && x.Type == type).FirstOrDefault();
                 if (_data != null)
                 {
-                    throw new ValidationException(new List<string> { "Customer name already exists" });
+                    throw new ValidationException(new List<string> { "Name already exists" });
                 }
                 string prefix = "";
                 switch ((MasterEnum)type)

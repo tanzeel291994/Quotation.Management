@@ -41,7 +41,7 @@ namespace Quotation.Management.Contracts.Services
 
         dynamic GetProductsFromQuotation(string Id, int revNum);
 
-        JArray GetQuotationDashboard(QuotationSearchDC quotationSearch);
+        //JArray GetQuotationDashboard(QuotationSearchDC quotationSearch);
         void ImportData(DataSet ds);
         void ImportQuotationLines(DataSet ds, string quotationNum, int revNum);
 

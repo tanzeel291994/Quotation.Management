@@ -12,6 +12,9 @@ namespace Quotation.Management.Contracts
         public int RevNum { get; set; }
         public string CustomerCode { get; set; } = null!;
         public string? CustomerName { get; set; } = null!;
+        public string? ClientCode { get; set; }
+        public string? ConsultantCode { get; set; }
+        public string? Remarks { get; set; }
         public string CurrencyCode { get; set; } = null!;
         public int Msp { get; set; }
         public int Asp { get; set; }

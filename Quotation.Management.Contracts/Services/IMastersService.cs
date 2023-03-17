@@ -9,7 +9,7 @@ namespace Quotation.Management.Contracts.Services
         JObject? GetAllMasters();
         JObject? GetAllMastersForSearch();
         CurrencyDC GetCurrencyCode(string curencyCode, string oldCurrencyCode);
-
+        List<MasterDC> GetBuyers(int type);
         void InsertCustomer(string code, string name, int type);
         void InsertMasterData(string code, int type, string name);
         List<MasterDC> GetAllCustomers();

@@ -60,7 +60,7 @@ namespace Quotation.Management.Contracts.Repositories
         QuotationCostItem GetQuotationCostItem(string quotationNum, int revNum, string groupId, QMTContext? _context = null);
         Dictionary<string, decimal> UpdateCostValueOfAllQuotationLine(List<QuotationLine> quotationLines, List<QuotationCostItemLine> costItemLines, List<QuotationCostItem> costItems, Dictionary<string, decimal> groupIdTotalDict, string seaFreightCostCode, string customDutyCode, QMTContext context);
         void UpdateCustomDutyCostItemValue(string quotationNum, int revNum, List<QuotationCostItem> customDutyItems, Dictionary<string, decimal> groupIdTotalDict, QMTContext context);
-        dynamic GetQuotationSearch(QuotationSearchDC input);
+        //dynamic GetQuotationSearch(QuotationSearchDC input);
 
         dynamic GetQuotationLinesSearch(QuotationSearchDC input);
 
@@ -71,7 +71,7 @@ namespace Quotation.Management.Contracts.Repositories
 
         List<QuotationCostItemLine> GetQuotationCostItemLines(string quotationNum, int lineNum, int revNum, QMTContext? _context = null);
 
-        dynamic GetBrandData(QuotationSearchDC input, out dynamic brandValue);
+        //dynamic GetBrandData(QuotationSearchDC input, out dynamic brandValue);
         void SetActiveRevision(string quotationNum, int revNum);
         void DeleteCostItemGroup(string quotationNum, int linenum, int revNum, List<string> costItemGroupIds, QMTContext? _context = null);
     }

@@ -34,7 +34,7 @@ namespace QMT_API.Controllers
             }
         }
 
-        [HttpPost("Customer/add")]
+        [HttpPost("Buyer/add")]
         [ProducesResponseType(typeof(CustomerMaster), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult InsertCustomer(string code, string name, int type)
@@ -50,15 +50,15 @@ namespace QMT_API.Controllers
             }
 
         }
-        [HttpGet("customer/all")]
+        [HttpGet("buyers/all")]
         [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetCustomers()
+        public IActionResult GetBuyers(int type)
         {
             try
             {
-                var _customerList = _mastersService.GetAllCustomers();
-                return Ok(JsonConvert.SerializeObject(_customerList));
+                var _buyerList = _mastersService.GetBuyers(type);
+                return Ok(JsonConvert.SerializeObject(_buyerList));
             }
             catch (Exception ex)
             {
