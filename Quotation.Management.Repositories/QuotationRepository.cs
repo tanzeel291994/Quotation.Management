@@ -781,6 +781,17 @@ namespace Quotation.Management.Repositories
                 return context.QuotationHeaders.Select(x=> x.QuotationNum).Distinct().ToList() ;
             }
         }
+        public void UpdateQuotationStatus(string quotationNum, int revNum, int userId)
+        {
+            using (var context = new QMTContext())
+            {
+                QuotationHeader header = context.QuotationHeaders.Where(x => x.QuotationNum == quotationNum && x.RevNum == revNum).First();
+                if (header.LockedForEditingBy.HasValue)
+                    header.LockedForEditingBy = null;
+                else
+                    header.LockedForEditingBy = userId;
+            }
+        }
         public int GetQuotationLatestNum(string areaCode, int userId, int year)
         {
             using (var context = new QMTContext())
