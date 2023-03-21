@@ -40,7 +40,7 @@ namespace Quotation.Management.Contracts.Services
         void DeleteQuotationLine(QuotationLineDC input);
 
         dynamic GetProductsFromQuotation(string Id, int revNum);
-
+        void UpdateQuotationStatus(string quotationNum, int revNum, int userId);
         //JArray GetQuotationDashboard(QuotationSearchDC quotationSearch);
         void ImportData(DataSet ds);
         void ImportQuotationLines(DataSet ds, string quotationNum, int revNum);

@@ -128,7 +128,19 @@ namespace Quotation.Management.Services
                 throw;
             }
         }
-
+        public void UpdateQuotationStatus(string quotationNum, int revNum, int userId)
+        {
+            try
+            {
+                _quotationRepository.UpdateQuotationStatus(quotationNum, revNum, userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                throw;
+            }
+        }
+        
         public dynamic SearchQuotations(QuotationSearchDC quotationSearch)
         {
             JObject jobject = new();

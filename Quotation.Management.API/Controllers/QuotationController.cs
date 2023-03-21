@@ -88,6 +88,22 @@ namespace QMT_API.Controllers
             }
         }
 
+        [HttpGet("lock")]
+        [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult LockUnlockQuotationByUser(string quotationNum, int revNum,int userId)
+        {
+            try
+            {
+                _quotationService.UpdateQuotationStatus(quotationNum, revNum, userId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
         [HttpPost("Search")]
         [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
