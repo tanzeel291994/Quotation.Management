@@ -259,11 +259,11 @@ namespace Quotation.Management.Services
                     }*/
 
                     //for test update quotation line 
-                    if(_line.CAF == 1) //FOR TESTING ONLY 
-                    {
-                        _line.CAF = Math.Round(quotationCurrency.ConvFactor / itemCodeDetail.CAF, 4);
-                         _quotationRepository.UpdateQuotationLine(_line);
-                    }
+                    //if(_line.CAF == 1) //FOR TESTING ONLY 
+                    //{
+                    //    _line.CAF = Math.Round(quotationCurrency.ConvFactor / itemCodeDetail.CAF, 4);
+                    //     _quotationRepository.UpdateQuotationLine(_line);
+                    //}
 
 
                     //_line.CAF = _line.CAF;//itemCodeDetail != null ? Math.Round(adjustedConvfactor / itemCodeDetail.CAF, 4) : 1;
@@ -310,13 +310,18 @@ namespace Quotation.Management.Services
                 //   USD 				AED  X X+f
                 //   AED                     OMR  Y  (X+f)AED/USD(USD/EUR)(EUR/OMR)
 
-                if (header!.OldCurrencyCode != null)
-                {
-                    currencyDC.ConvFactor = Math.Round(header!.ConvFactor!.Value * oldCurrency!.ConvFactor * (1 / currency!.ConvFactor),4);
-                }
-                else
-                {
+                //if (header!.OldCurrencyCode != null)
+                //{
+                //    currencyDC.ConvFactor = Math.Round(header!.ConvFactor!.Value * oldCurrency!.ConvFactor * (1 / currency!.ConvFactor),4);
+                //}
+                //else
+                //{
                     currencyDC.ConvFactor = Math.Round(currency!.ConvFactor * (1/oldCurrency!.ConvFactor),4);
+                //}
+                if(header!.OldCurrencyCode != null)
+                {
+                    if(header.OldCurrencyCode == currency.CurrencyCode)
+                        currencyDC.ConvFactor = Math.Round(1/ (decimal)header!.ConvFactor, 4);
                 }
 
                 currencyDC.OldCurrencyCode = oldCurrency!.CurrencyCode;
@@ -381,8 +386,13 @@ namespace Quotation.Management.Services
                     QuotationLineDC quotationLineDC = quotationLines.Where(x => x.LineNum == _optCode.LineNum && x.RevNum == _optCode.RevNum).First();
                     if (productCAFCodes.Where(x => x.ProductCode == quotationLineDC.ProdTypeId).Any())
                     {
+                        var prod = productCAFCodes.Where(x => x.ProductCode == quotationLineDC.ProdTypeId).First();
+                        double indexConvFactor = 1;
+                        if (prod.BrandCode == "Aermec")
+                            indexConvFactor = 1.3;
                         decimal newCAF = productCAFCodes.Where(x => x.ProductCode == quotationLineDC.ProdTypeId).First().Caf;
-                        _optCode.UnitPrice = (newCAF) * _optCode.Baseprice;
+                        _optCode.UnitPrice = (newCAF) * _optCode.Baseprice * (decimal)indexConvFactor;
+
                         QuotationLine _quotationLine = allLines.Where(x => x.LineNum == _optCode.LineNum).First();
                         _quotationLine.Caf = newCAF;
                     }
@@ -435,10 +445,21 @@ namespace Quotation.Management.Services
                 foreach (var _optCode in optCodeList)
                 {
                     QuotationLineDC quotationLineDC = quotationLines.Where(x => x.LineNum == _optCode.LineNum && x.RevNum == _optCode.RevNum).First();
-                    if(currencyDC.productCAFs.Where(x=> x.ProductCode == quotationLineDC.ProdTypeId).Any())
+                    
+                    //if (itemCodeDetails.IndexConvFactor != null) 
+                    //    optCode.UnitPrice = optCode.UnitPrice * itemCodeDetails.IndexConvFactor.Value;
+                    
+                    if (currencyDC.productCAFs.Where(x=> x.ProductCode == quotationLineDC.ProdTypeId).Any())
                     {
+                        var prod = currencyDC.productCAFs.Where(x => x.ProductCode == quotationLineDC.ProdTypeId).First();
+                        double indexConvFactor = 1;
+                        if (prod.BrandCode == "Aermec")
+                            indexConvFactor = 1.3;
+
                         decimal newCAF = currencyDC.productCAFs.Where(x => x.ProductCode == quotationLineDC.ProdTypeId).First().Caf;
-                        _optCode.UnitPrice = (newCAF) * _optCode.Baseprice;
+                        
+                        _optCode.UnitPrice = (newCAF) * _optCode.Baseprice * (decimal)indexConvFactor;
+
                         QuotationLine _quotationLine = allLines.Where(x => x.LineNum == _optCode.LineNum).First();
                         _quotationLine.Caf = newCAF;
                     }
@@ -467,7 +488,7 @@ namespace Quotation.Management.Services
 
                 UpdateAllLinesCostItemValue(currencyDC.QuotationNum, currencyDC.RevNum, context);
 
-                _quotationRepository.Commit();
+                 _quotationRepository.Commit();
                 return true;
             }
             catch (Exception ex)
@@ -1330,7 +1351,10 @@ namespace Quotation.Management.Services
                     }
                     QuotationLineDC lineDC = new();
                     lineDC.QuotationNum = quotatioNum;
-                    lineDC.SubItemCode = itemCodeDetailsDC.ProdTypeId != "AHU" ? itemCode : quotationLine.SubItemCode;
+                    if (pricingList == null)
+                        lineDC.SubItemCode = quotationLine.SubItemCode;
+                    else
+                        lineDC.SubItemCode = itemCodeDetailsDC.ProdTypeId != "AHU" ? itemCode : quotationLine.SubItemCode;
                     lineDC.RevNum = revNum;
                     lineDC.LineNum = quotationLine.LineNum;
                     lineDC.UnitPrice = unitPrice;
