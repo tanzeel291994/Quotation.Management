@@ -9,6 +9,8 @@ using Quotation.Management.Services;
 using System.Data;
 using ExcelDataReader;
 using Newtonsoft.Json.Linq;
+using System.Collections.Immutable;
+using System.Dynamic;
 
 namespace QMT_API.Controllers
 {
@@ -112,11 +114,14 @@ namespace QMT_API.Controllers
             try
             {
                 QuotationSearchDC quotationSearch = JsonConvert.DeserializeObject<QuotationSearchDC>(json);
-                var _data = _quotationService.SearchQuotations(quotationSearch);
-                return Ok(JsonConvert.SerializeObject(_data, new JsonSerializerSettings
+                JArray _data = _quotationService.SearchQuotations(quotationSearch);
+                JsonSerializerSettings _camelCase = new JsonSerializerSettings
                 {
                     ContractResolver = new CamelCasePropertyNamesContractResolver()
-                }));
+                };
+                var  r = JsonConvert.SerializeObject(_data,_camelCase);
+                var r1 = JsonConvert.DeserializeObject<List<ExpandoObject>>(r);
+                return Ok(JsonConvert.SerializeObject(r1, _camelCase)); //NED BETTER SOLUTION
             }
             catch (Exception ex)
             {

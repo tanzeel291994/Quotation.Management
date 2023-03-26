@@ -6,6 +6,7 @@ using Quotation.Management.Entities.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Dynamic;
 using System.Linq;
 using System.Net.Mime;
 using System.Text;
@@ -592,7 +593,7 @@ namespace Quotation.Management.Repositories
                                     x.Probability,
                                     x.Industry,
                                     x.Remarks
-                                }).Select(g => new
+                                }).Select(g => new 
                                 {
                                     TotalOrderValue = g.Sum(x => x.TotalOrderValue),
                                     ProjectName =g.Select(x=>x.ProjectName).FirstOrDefault(),
@@ -696,36 +697,41 @@ namespace Quotation.Management.Repositories
         //    }
         //}
 
-        //public dynamic GetQuotationSearch(QuotationSearchDC input)
-        //{
-        //    using (var context = new QMTContext())
-        //    {
+        public dynamic GetQuotationSearch(QuotationSearchDC input)
+        {
+            using (var context = new QMTContext())
+            {
 
-        //        var _data = (from qh in context.QuotationHeaders
-        //                     where (qh.QuotationNum == input.QuotationNum || input.QuotationNum == null) &&
-        //                     (qh.CustomerCode == input.CustomerCode || input.CustomerCode == null) &&
-        //                     (qh.ProjectName == input.ProjectName || input.ProjectName == null) &&
-        //                     (qh.AreaCode == input.AreaCode || input.AreaCode == null) &&
-        //                     (qh.QuotationDate.Year == input.QuotationYear || input.QuotationYear == null) &&
-        //                     (qh.Msp == input.Msp || input.Msp == null) &&
-        //                     (qh.StatusId == input.StatusId || input.StatusId == null) &&
-        //                     (!input.ToBookingDate.HasValue || input.ToBookingDate.Value >= qh.BookingDate) &&
-        //                     (!input.FromBookingDate.HasValue || input.FromBookingDate.Value <= qh.BookingDate)
-        //                     && qh.IsActiveRevision == true
-        //                     select new
-        //                     {
-        //                         QuotationNum = qh.QuotationNum,
-        //                         ProjectName = qh.ProjectName,
-        //                         CustomerName = qh.CustomerCodeNavigation.Name,
-        //                         AreaName = qh.AreaCodeNavigation.AreaName,
-        //                         RevNum = "R"+qh.RevNum,
-        //                         Status = qh.Status.StatusName,
-        //                         QuotationDate = qh.QuotationDate,
-        //                         SalesRep = qh.MspNavigation.FirstName+' '+qh.MspNavigation.LastName
-        //                     }).ToList();
-        //        return _data;
-        //    }
-        //}
+                var _dataNoQuotationLines = (from qh in context.QuotationHeaders
+                                             where (qh.QuotationNum == input.QuotationNum || input.QuotationNum == null) &&
+                                             (qh.CustomerCode == input.CustomerCode || input.CustomerCode == null) &&
+                                             (qh.ProjectName == input.ProjectName || input.ProjectName == null) &&
+                                             (input.AreaCode.Select(x => x).Contains(qh.AreaCode) || input.AreaCode.Count == 0) &&
+                                              (input.QuotationYear.Select(x => x).Contains(qh.QuotationDate.Year) || input.QuotationYear.Count == 0) &&
+                                             (input.Msp.Select(x => x).Contains(qh.Msp) || input.Msp.Count == 0) &&
+                                             (input.StatusId.Select(x => x).Contains(qh.StatusId) || input.StatusId.Count == 0) &&
+                                             (!input.ToBookingDate.HasValue || input.ToBookingDate.Value >= qh.BookingDate) &&
+                                             (!input.FromBookingDate.HasValue || input.FromBookingDate.Value <= qh.BookingDate)
+                                             && qh.IsActiveRevision == true && qh.QuotationLines.Count == 0
+                                             select new
+                                             {
+                                                 QuotationNum = qh.QuotationNum,
+                                                 ProjectName = qh.ProjectName,
+                                                 CustomerName = qh.CustomerCodeNavigation.Name,
+                                                 AreaName = qh.AreaCodeNavigation.AreaName,
+                                                 RevNum = "R" + qh.RevNum,
+                                                 Status = qh.Status.StatusName,
+                                                 QuotationDate = qh.QuotationDate,
+                                                 Probability = qh.Probability,
+                                                 ConsultantName = qh.ConsultantCode != null ? qh.ConsultantCodeNavigation!.Name : "",
+                                                 ClientName = qh.ClientCode != null ? qh.ClientCodeNavigation!.Name : "",
+                                                 SalesRep = qh.MspNavigation.FirstName + ' ' + qh.MspNavigation.LastName,
+                                                 Industry = qh.Industry != null ? qh.Industry!.Name : "",
+                                                 Remarks = qh.Remarks,
+                                             }).ToList();
+                return _dataNoQuotationLines;
+            }
+        }
 
         public QuotationLine? GetLatestQuotationLine(string quotationNum, QMTContext? _context = null)
         {

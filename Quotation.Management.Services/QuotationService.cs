@@ -14,6 +14,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Quotation.Management.Services
 {
@@ -141,22 +142,18 @@ namespace Quotation.Management.Services
             }
         }
         
-        public dynamic SearchQuotations(QuotationSearchDC quotationSearch)
+        public JArray SearchQuotations(QuotationSearchDC quotationSearch)
         {
             JObject jobject = new();
             try
             {
-                dynamic result;
-               // if(!quotationSearch.ItemCodeWise)
-               // {
-                   //  result = _quotationRepository.GetQuotationSearch(quotationSearch);
-               // }
-               // else
-               // {
-                    result = _quotationRepository.GetQuotationLinesSearch(quotationSearch);
-               // }
+                dynamic result1 = _quotationRepository.GetQuotationLinesSearch(quotationSearch); 
+                dynamic result2 = _quotationRepository.GetQuotationSearch(quotationSearch);
 
-                return result;
+                JArray array1 = JsonConvert.DeserializeObject<JArray>(JsonConvert.SerializeObject(result1));
+                JArray array2 = JsonConvert.DeserializeObject<JArray>(JsonConvert.SerializeObject(result2));
+
+                return new JArray(array1.Union(array2));
             }
             catch (Exception ex)
             {
@@ -1444,6 +1441,10 @@ namespace Quotation.Management.Services
                 decimal totalCostValue = 0;
                 decimal totalQty = 0;
                 //decimal totalNetValue = 0;
+                DataTable netOptdt = new();
+                netOptdt.Columns.Add("LineNum");
+                netOptdt.Columns.Add("OptCode");
+                netOptdt.Columns.Add("IsNet");
                 foreach (var productType in productTypes)
                 {
                     ProductPrice productPrice = new();
@@ -1460,8 +1461,10 @@ namespace Quotation.Management.Services
                     }
                     dt.Columns.Add(" ");
                     dt.Columns.Add("ListPrice");
-                    dt.Columns.Add("Qty");
                     dt.Columns.Add("Mlp");
+                    dt.Columns.Add("UnitNet");
+                    dt.Columns.Add("Qty");
+                   
                     dt.Columns.Add("TotalNet");
                     dt.Columns.Add("CostValue");
                     dt.Columns.Add("TotalCost");
@@ -1479,6 +1482,7 @@ namespace Quotation.Management.Services
                     {
                         decimal totalMargin = CalculatetotalWithMargin(lineDC);
                         decimal totalAmt = CalculateTotalValue(lineDC);
+                        decimal unitNet = 0;
                         totalCostPriceProduct += lineDC.TtCostPrice;
                         totalNetValueProduct += lineDC.TtNetPrice;
                         totalCostValueProduct += (lineDC.CostItemLineValue ?? 0);
@@ -1496,10 +1500,20 @@ namespace Quotation.Management.Services
                             QuotationOptCode? pricing = optCodeOfLinePrice.Where(x => x.OptCode == _opt.OptCode).FirstOrDefault();
                             dr[dt.Columns.IndexOf(_opt.OptCode)] = pricing != null ? Math.Round(pricing.UnitPrice!.Value, 2).ToString("#,##0.##") : "";
                         }
+                        foreach (var _opt in optCodeOfLinePrice)
+                        {
+                            DataRow drNetOpt = netOptdt.NewRow();
+                            drNetOpt[netOptdt.Columns.IndexOf("LineNum")] = lineDC.LineNum;
+                            drNetOpt[netOptdt.Columns.IndexOf("OptCode")] = _opt.OptCode;
+                            drNetOpt[netOptdt.Columns.IndexOf("IsNet")] = _opt.IsNet.HasValue ? _opt!.IsNet!.Value : false;
+                            netOptdt.Rows.Add(drNetOpt);
+                            unitNet +=  (_opt!.UnitPrice!.Value * (_opt.IsNet == null ? lineDC.Mtlp : (_opt.IsNet.Value ? 1 : lineDC.Mtlp)));
+                        }
                         dr[dt.Columns.IndexOf(" ")] = " ";
                         dr[dt.Columns.IndexOf("ListPrice")] = Math.Round(lineDC.UnitPrice, 2).ToString("#,##0.##");
                         dr[dt.Columns.IndexOf("Qty")] = lineDC.Qty;
                         dr[dt.Columns.IndexOf("Mlp")] = lineDC.Mtlp;
+                        dr[dt.Columns.IndexOf("UnitNet")] = unitNet.ToString("#,##0.##");
                         dr[dt.Columns.IndexOf("TotalNet")] = lineDC.TtNetPrice;
                         dr[dt.Columns.IndexOf("CostValue")] = lineDC.CostItemLineValue.HasValue? Math.Round(lineDC.CostItemLineValue.Value, 2).ToString("#,##0.##"):0;
                         dr[dt.Columns.IndexOf("TotalCost")] = Math.Round(lineDC.TtCostPrice, 2).ToString("#,##0.##");
@@ -1602,6 +1616,7 @@ namespace Quotation.Management.Services
                 }
 
                 priceBreakDownDC.costItemBreakDownDCs = dtCostTotals;
+                priceBreakDownDC.netOptions = netOptdt;
 
                 DataTable dtTotals = new();
                 dtTotals.Columns.Add("TotalCostValue");

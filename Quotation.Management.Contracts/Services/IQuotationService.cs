@@ -36,7 +36,7 @@ namespace Quotation.Management.Contracts.Services
         QuotationNonStandardOptCodeDC? RemoveNonStandardOption(QuotationNonStandardOptCodeDC optCodeDC);
         QuotationNonStandardOptCodeDC? InsertNonStandardOption(QuotationNonStandardOptCodeDC optCodeDC);
         void SetActiveRevision(string quotationNum, int revNum);
-        dynamic SearchQuotations(QuotationSearchDC quotationSearch);
+        JArray SearchQuotations(QuotationSearchDC quotationSearch);
         void DeleteQuotationLine(QuotationLineDC input);
 
         dynamic GetProductsFromQuotation(string Id, int revNum);

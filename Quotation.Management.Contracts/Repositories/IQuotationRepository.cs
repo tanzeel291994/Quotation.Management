@@ -76,5 +76,7 @@ namespace Quotation.Management.Contracts.Repositories
         void DeleteCostItemGroup(string quotationNum, int linenum, int revNum, List<string> costItemGroupIds, QMTContext? _context = null);
 
         void UpdateQuotationStatus(string quotationNum, int revNum, int userId);
+
+        dynamic GetQuotationSearch(QuotationSearchDC input);
     }
 }

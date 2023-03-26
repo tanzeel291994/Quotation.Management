@@ -15,6 +15,7 @@ namespace Quotation.Management.Contracts
         public List<ProductPrice> productPrices = new();
         public DataTable costItemBreakDownDCs = new();
         public DataTable totalValueDCs = new();
+        public DataTable netOptions = new();
 
     }
 

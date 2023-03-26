@@ -84,7 +84,7 @@ namespace Quotation.Management.Services
             if (type == "CostItems") data = _mastersRepository.GetCostItems();
             else if (type == "PaymentTerms") data = _mastersRepository.GetPaymentTerms();
             else if (type == "DeliveryTerms") data = _mastersRepository.GetDeliveryTerms();
-            else if (type == "Areas") data = _mastersRepository.GetDeliveryTerms();
+            else if (type == "Areas") data = _mastersRepository.GetAreas();
             else if (type == "Currency") data = _mastersRepository.GetCurrency();
             else if (type == "Industry") data = _mastersRepository.GetIndustrys();
             else if (type == "Status") data = _mastersRepository.GetStatuses();
