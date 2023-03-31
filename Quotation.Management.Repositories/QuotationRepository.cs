@@ -1,5 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Quotation.Management.Contracts;
 using Quotation.Management.Contracts.Repositories;
 using Quotation.Management.Entities.Models;
@@ -9,6 +11,7 @@ using System.Data;
 using System.Dynamic;
 using System.Linq;
 using System.Net.Mime;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -75,7 +78,8 @@ namespace Quotation.Management.Repositories
                 line.SubItemCode = _quotationLine.SubItemCode;
                 if(_quotationLine.Margin == line.Margin)
                 {
-                    line.Margin = Math.Round((1 - ((_quotationLine.TtNetPrice + (_quotationLine.CostItemLineValue ?? 0)) / _quotationLine.TtSlsPrice)) * 100,2);
+                    if(_quotationLine.TtSlsPrice != 0) 
+                        line.Margin = Math.Round((1 - ((_quotationLine.TtNetPrice + (_quotationLine.CostItemLineValue ?? 0)) / _quotationLine.TtSlsPrice)) * 100,2);
                 }
                 else
                     line.Margin = _quotationLine.Margin;
@@ -769,15 +773,42 @@ namespace Quotation.Management.Repositories
             return quotationLines;
 
         }
-        public QuotationHeader? GetQuotation(string quotationNum,int? revNum=null)
+        public dynamic? GetQuotation(string quotationNum,int? revNum=null)
         {
 
             using (var context = new QMTContext())
             {
+                IQueryable<QuotationHeader> query ;
                 if (revNum != null)
-                    return context.QuotationHeaders.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.RevNum == revNum).FirstOrDefault();
+                    query = from c in context.QuotationHeaders where c.QuotationNum == quotationNum.ToUpper() && c.RevNum == revNum select c;
+                    //query = context.QuotationHeaders.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.RevNum == revNum);
                 else
-                    return context.QuotationHeaders.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.IsActiveRevision == true).FirstOrDefault();
+                    //query = context.QuotationHeaders.Where(x => x.QuotationNum == quotationNum.ToUpper() && x.IsActiveRevision == true);
+                    query = from c in context.QuotationHeaders where c.QuotationNum == quotationNum.ToUpper() && c.IsActiveRevision == true select c;
+
+                return query.Select(x => new {
+                                    quotationNum = x.QuotationNum,
+                                    revNum = x.RevNum,
+                                    statusId = x.StatusId,
+                                    probability = x.Probability,
+                                    industryId = x.IndustryId,
+                                    areaCode = x.AreaCode,
+                                    deliveryTermId = x.DeliveryTermId,
+                                    paymentTermId = x.PaymentTermId,
+                                    consultantCode = x.ConsultantCode,
+                                    clientCode = x.ClientCode,
+                                    customerCode = x.CustomerCode,
+                                    currencyCode = x.CurrencyCode,
+                                    msp = x.Msp,
+                                    asp = x.Asp,
+                                    bookingDate = x.BookingDate,
+                                    quotationDate = x.QuotationDate,
+                                    expectedDeliveryDate = x.ExpectedDeliveryDate,
+                                    projectName = x.ProjectName,
+                                    convFactor = x.ConvFactor,
+                                    lockedForEditingBy = x.LockedForEditingBy,
+                                    lockedForEditingByName = x.LockedForEditingBy != null ? x.LockedForEditingByNavigation!.FirstName+" "+x.LockedForEditingByNavigation.LastName :"",
+                }).FirstOrDefault();
             }
         }
         public List<string> GetAllQuotationNums()
@@ -796,6 +827,8 @@ namespace Quotation.Management.Repositories
                     header.LockedForEditingBy = null;
                 else
                     header.LockedForEditingBy = userId;
+
+                context.SaveChanges();
             }
         }
         public int GetQuotationLatestNum(string areaCode, int userId, int year)
@@ -830,7 +863,7 @@ namespace Quotation.Management.Repositories
             }
             return data + 1;
         }
-        public List<QuotationLineDC> GetQuotationLinesDC(string quotationNum,int revNum ,List<int>? selectedLines=null,string prodTypeId="", QMTContext? _context=null)
+        public List<QuotationLineDC> GetQuotationLinesDC(string quotationNum,int revNum ,List<int>? selectedLines=null,string prodTypeId="",int? brandId=null, QMTContext? _context=null)
         {
             var context = _context ?? new QMTContext();
             List<QuotationLineDC> lines = (from ql in context.QuotationLines
@@ -840,6 +873,8 @@ namespace Quotation.Management.Repositories
                                                join ig in context.ItemGroupMasters on sm.GroupId equals ig.GroupId
                                                join bm in context.BrandMasters on sm.BrandId equals bm.BrandId
                                                where ql.QuotationNum == quotationNum.ToUpper() && ql.RevNum == revNum
+                                               && (prodTypeId == "" || ig.ProdTypeId == prodTypeId)
+                                               && (brandId == null ||  bm.BrandId == brandId)
                                                select new QuotationLineDC
                                                {
                                                    LineNum = ql.LineNum,
@@ -868,8 +903,8 @@ namespace Quotation.Management.Repositories
                                                }).ToList();
             if (selectedLines != null)
                 lines = lines.Where(x => selectedLines.Contains(x.LineNum)).ToList();
-            if(prodTypeId != "")
-                lines = lines.Where(x => prodTypeId == x.ProdTypeId).ToList();
+            //if(prodTypeId != "")
+             //   lines = lines.Where(x => prodTypeId == x.ProdTypeId).ToList();
             if (_context == null)
             {
                 context.Dispose();
@@ -988,6 +1023,7 @@ namespace Quotation.Management.Repositories
                                                     NoOfContainers = x.NoOfContainers,
                                                     ProdTypeId = x.ProdTypeId,
                                                     RevNum = x.RevNum,
+                                                    Remarks = x.Remarks
                                                 })
                                                .ToList();
                 foreach(var _costItem in quotationCostItems)
@@ -1035,6 +1071,21 @@ namespace Quotation.Management.Repositories
                                                 })
                                                .FirstOrDefault();
                 return quotationHeaderDC;
+            }
+        }
+
+        public dynamic GetQuotationLinesForActiveRevison (string quotationNum)
+        {
+            using (var context = new QMTContext())
+            {
+                return (from qh in context.QuotationHeaders
+                        join ql in context.QuotationLines on new { qh.QuotationNum, qh.RevNum } equals new { ql.QuotationNum, ql.RevNum }
+                        where qh.QuotationNum == quotationNum && qh.IsActiveRevision == true
+                        select new
+                        {
+                            lineNum = ql.LineNum,
+                            itemCode = ql.ItemCode,
+                        }).ToList() ;
             }
         }
     }

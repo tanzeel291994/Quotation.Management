@@ -19,6 +19,7 @@ namespace Quotation.Management.Contracts
         public decimal CostItemValue { get; set; }
         public decimal? FreightRate { get; set; }
         public int? NoOfContainers { get; set; }
+        public string? Remarks { get; set; }
     }
 
     public enum CostItemType

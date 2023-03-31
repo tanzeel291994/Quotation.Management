@@ -58,6 +58,23 @@ namespace QMT_API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+        [HttpGet("lines/activeRev")]
+        [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetQuotationLinesForActiveRevison(string Id)
+        {
+            try
+            {
+                var _quotation = _quotationService.GetQuotationLinesForActiveRevison(Id);
+                return Ok(JsonConvert.SerializeObject(_quotation));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
         [HttpGet("all")]
         [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -81,7 +98,7 @@ namespace QMT_API.Controllers
         {
             try
             {
-                var _products = _quotationService.GetProductsFromQuotation(Id, revNum);
+                var _products = _quotationService.GetProductsFromQuotation(Id, revNum); 
                 return Ok(JsonConvert.SerializeObject(_products));
             }
             catch (Exception ex)
@@ -90,14 +107,15 @@ namespace QMT_API.Controllers
             }
         }
 
-        [HttpGet("lock")]
+        [HttpPost("lockOrUnlock")]
         [ProducesResponseType(typeof(QuotationHeader), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult LockUnlockQuotationByUser(string quotationNum, int revNum,int userId)
+        public IActionResult LockUnlockQuotationByUser([FromBody]string json)
         {
             try
             {
-                _quotationService.UpdateQuotationStatus(quotationNum, revNum, userId);
+                JObject data =  JsonConvert.DeserializeObject<JObject>(json);
+                _quotationService.UpdateQuotationStatus(data["quotationNum"]!.ToString(), Convert.ToInt32(data["revNum"]), Convert.ToInt32(data["userId"]));
                 return Ok();
             }
             catch (Exception ex)
@@ -214,6 +232,80 @@ namespace QMT_API.Controllers
             {
                 _quotationService.DeleteQuotationLine(input);
                 return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        //[HttpPost("line/import")]
+        //[ProducesResponseType(typeof(QuotationCostItem), StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        //public IActionResult ImportQuotationLines(string json)
+        //{
+        //    try
+        //    {
+        //        JObject data = JObject.Parse(json);
+        //        List<int> lineNums = data["lineNums"]!.ToObject<List<int>>();
+        //        string fromQuotationNum = data["fromQuotationNum"]!.ToString();
+        //        int fromRevNum = Convert.ToInt32(data["fromRevNum"]);
+        //        string toQuotationNum = data["toQuotationNum"]!.ToString();
+        //        int toRevNum = Convert.ToInt32(data["toRevNum"]);
+
+        //        _quotationService.ImportFromQuotation(fromQuotationNum,fromRevNum,toQuotationNum,toRevNum,lineNums);
+        //        return Ok();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        //    }
+        //}
+
+        [HttpPost("lines/import/excel")]
+        [ProducesResponseType(typeof(void), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(void), StatusCodes.Status422UnprocessableEntity)]
+        [ProducesResponseType(typeof(void), StatusCodes.Status500InternalServerError)]
+        public IActionResult ReadQuotationlinesFromExcelFile()
+        {
+            try
+            {
+                var httpRequest = HttpContext.Request;
+                List<string> validationMessages = new List<string>();
+                IExcelDataReader? reader = null;
+                DataSet ds = new();
+                if (httpRequest.Form.Files.Count > 0)
+                {
+                    var inputFile = httpRequest.Form.Files[0];
+                    string quotationNum = httpRequest.Form["QuotationNum"][0];
+                    int revNum = Convert.ToInt32(httpRequest.Form["RevNum"][0]);
+                    using (var fileStream = inputFile.OpenReadStream())
+                    {
+                        if (inputFile.FileName.EndsWith(".xls"))
+                            reader = ExcelReaderFactory.CreateBinaryReader(fileStream);
+                        else if (inputFile.FileName.EndsWith(".xlsx"))
+                            reader = ExcelReaderFactory.CreateOpenXmlReader(fileStream);
+                        else
+                            throw new ValidationException(new List<string> { "File format not supported" });
+
+                        ds = reader.AsDataSet(new ExcelDataSetConfiguration()
+                        {
+                            ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
+                            {
+                                UseHeaderRow = true
+                            }
+                        });
+                    }
+                    if (ds != null && ds.Tables.Count > 0 && validationMessages.Count == 0)
+                    {
+                        _quotationService.ImportQuotationLines(ds, quotationNum, revNum);
+                    }
+                }
+                return Ok();
+            }
+            catch (ValidationException ex)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, JsonConvert.SerializeObject(ex._messages));
             }
             catch (Exception ex)
             {
@@ -616,56 +708,6 @@ namespace QMT_API.Controllers
 
         #endregion
 
-        [HttpPost("lines/import/excel")]
-        [ProducesResponseType(typeof(void), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status422UnprocessableEntity)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status500InternalServerError)]
-        public IActionResult ReadQuotationlinesFromExcelFile()
-        {
-            try
-            {
-                var httpRequest = HttpContext.Request;
-                List<string> validationMessages = new List<string>();
-                IExcelDataReader? reader = null;
-                DataSet ds = new();
-                if (httpRequest.Form.Files.Count > 0)
-                {
-                    var inputFile = httpRequest.Form.Files[0];
-                    string quotationNum = httpRequest.Form["QuotationNum"][0];
-                    int revNum = Convert.ToInt32(httpRequest.Form["RevNum"][0]);
-                    using (var fileStream = inputFile.OpenReadStream())
-                    {
-                        if (inputFile.FileName.EndsWith(".xls"))
-                            reader = ExcelReaderFactory.CreateBinaryReader(fileStream);
-                        else if (inputFile.FileName.EndsWith(".xlsx"))
-                            reader = ExcelReaderFactory.CreateOpenXmlReader(fileStream);
-                        else
-                            throw new ValidationException(new List<string> { "File format not supported" });
-
-                        ds = reader.AsDataSet(new ExcelDataSetConfiguration()
-                        {
-                            ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
-                            {
-                                UseHeaderRow = true
-                            }
-                        });
-                    }
-                    if (ds != null && ds.Tables.Count > 0 && validationMessages.Count == 0)
-                    {
-                        _quotationService.ImportQuotationLines(ds, quotationNum,revNum);
-                    }
-                }
-                return Ok();
-            }
-            catch (ValidationException ex)
-            {
-                return StatusCode(StatusCodes.Status422UnprocessableEntity, JsonConvert.SerializeObject(ex._messages));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-        }
 
         [HttpPost("import/header")]
         [ProducesResponseType(typeof(ItemMaster), StatusCodes.Status200OK)]

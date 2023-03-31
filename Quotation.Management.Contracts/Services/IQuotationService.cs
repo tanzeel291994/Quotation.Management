@@ -11,7 +11,7 @@ namespace Quotation.Management.Contracts.Services
          List<string> GetAllQuotationNums();
          QuotationHeader? InsertQuotationHeader(QuotationHeaderDC inputHeader);
          QuotationLineDC? InsertQuotationLine(QuotationLineDC inputLine);
-         QuotationHeader? GetQuotation(string Id, int? revNum = null);
+        dynamic? GetQuotation(string Id, int? revNum = null);
          QuotationLineDC? UpdateQuotationLine(QuotationLineDC inputLine);
          JObject? GetQuotationOptCodes(QuotationLineDC quotationLineDC);
          bool CopyOptionLine(QuotationCopyOptionDC input);
@@ -47,6 +47,7 @@ namespace Quotation.Management.Contracts.Services
 
         List<ProductCAFCode> GetProductCAF(string quotationNum, int revNum);
         bool UpdateProductCAF(List<ProductCAFCode> currencyDC, string quotationNum, int revNum);
+        dynamic GetQuotationLinesForActiveRevison(string quotationNum);
         //List<QuotationLine> UpdateUnitPriceFromOptions(string quotatioNum, int revNum, List<int> lineNums, QMTContext context);
     }
 }

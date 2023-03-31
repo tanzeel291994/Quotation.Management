@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Quotation.Management.Repositories
 {
@@ -179,6 +180,13 @@ namespace Quotation.Management.Repositories
                 }).ToList();
             }
         }
+        public List<UserMaster> GetAllUsers()
+        {
+            using (var context = new QMTContext())
+            {
+                return context.UserMasters.ToList();
+            }
+        }
 
         public UserMaster? GetCurrentUserDetails(string email)
         {
@@ -221,7 +229,7 @@ namespace Quotation.Management.Repositories
             }
         }
 
-        public void InsertMaster(string code, string name, MasterEnum type)
+        public void InsertMaster(string code, string name, MasterEnum type, decimal? convFactor)
         {
             using (var context = new QMTContext())
             {
@@ -238,7 +246,7 @@ namespace Quotation.Management.Repositories
                     tobeInserted.StatusName = name;
                     context.QuotationStatusMasters.Add(tobeInserted);
                 }
-                else if (type == MasterEnum.DELIVERY_TERM)
+                else if (type == MasterEnum.DELIVERYTERMS)
                 {
                     var _data = context.DeliveryTermMasters.Where(x => x.DeliveryTermName.ToLower() == name.ToLower()).FirstOrDefault();
                     if (_data != null)
@@ -251,7 +259,7 @@ namespace Quotation.Management.Repositories
                     tobeInserted.DeliveryTermName = name;
                     context.DeliveryTermMasters.Add(tobeInserted);
                 }
-                else if (type == MasterEnum.SALES_AREA)
+                else if (type == MasterEnum.AREAS)
                 {
                     var _data = context.SalesAreas.Where(x => x.AreaName.ToLower() == name.ToLower()).FirstOrDefault();
                     if (_data != null)
@@ -263,14 +271,30 @@ namespace Quotation.Management.Repositories
                     tobeInserted.AreaName = name;
                     context.SalesAreas.Add(tobeInserted);
                 }
-                else if (type == MasterEnum.PAYMENT_TERM)
+                else if (type == MasterEnum.CURRENCY)
+                {
+                    var _data = context.CurrencyMasters.Where(x => x.CurrencyCode.ToLower() == code.ToLower()).FirstOrDefault();
+                    if (_data != null)
+                    {
+                        throw new ValidationException(new List<string> { "Currency already exists" });
+                    }
+                    if(convFactor == null)
+                    {
+                        throw new ValidationException(new List<string> { "convFactor should be not empty" });
+                    }
+                    CurrencyMaster tobeInserted = new();
+                    tobeInserted.CurrencyCode = name;
+                    tobeInserted.ConvFactor = convFactor.Value;
+                    context.CurrencyMasters.Add(tobeInserted);
+                }
+                else if (type == MasterEnum.PAYMENTTERMS)
                 {
                     var _data = context.PaymentTermMasters.Where(x => x.PaymentTermName.ToLower() == name.ToLower()).FirstOrDefault();
                     if (_data != null)
                     {
                         throw new ValidationException(new List<string> { "PaymentTermName already exists" });
                     }
-                    int num = context.DeliveryTermMasters.Select(x => x.Id).Max();
+                    int num = context.PaymentTermMasters.Select(x => x.Id).Max();
                     PaymentTermMaster tobeInserted = new();
                     tobeInserted.Id = (num + 1);
                     tobeInserted.PaymentTermName = name;
@@ -306,7 +330,38 @@ namespace Quotation.Management.Repositories
                 context.SaveChanges();
             }
         }
-        
+
+        public void InsertUser(UserMaster user)
+        {
+            using (var context = new QMTContext())
+            {
+                var _data = context.UserMasters.Where(x => x.Email.ToLower() == user.Email.ToLower()).FirstOrDefault();
+                if (_data != null)
+                {
+                    throw new ValidationException(new List<string> { "User already exists" });
+                }
+                int num = context.UserMasters.Select(x => x.Id).Max();
+                user.Id = num + 1;
+                context.UserMasters.Add(user);
+                context.SaveChanges();
+            }
+        }
+        public void UpdateUser(UserMaster user)
+        {
+            using (var context = new QMTContext())
+            {
+                var _data = context.UserMasters.Where(x => x.Id == user.Id).First();
+
+                _data.FirstName = user.FirstName;
+                _data.LastName = user.LastName;
+                _data.Email = user.Email;
+                _data.Role = user.Role;
+                _data.IsActive = user.IsActive;
+
+                context.SaveChanges();
+            }
+        }
+
         public List<MasterDC> GetProducts()
         {
             using (var context = new QMTContext())
@@ -342,7 +397,8 @@ namespace Quotation.Management.Repositories
                 MasterDC
                 {
                     Name = x.CurrencyCode,
-                    Code = x.CurrencyCode
+                    Code = x.CurrencyCode,
+                    ConvFactor = x.ConvFactor
                 }).ToList();
             }
         }

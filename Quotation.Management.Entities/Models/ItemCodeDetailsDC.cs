@@ -14,6 +14,7 @@ namespace Quotation.Management.Entities.Models
         public string BrandName { get; set; } = null!;
         public string ProdName { get; set; } = null!;
         public string ProdTypeId { get; set; } = null!;
+        public int BrandId { get; set; }
         public string CurrencyCode { get; set; } = null!;
         public decimal CAF { get; set; }
         public decimal? IndexConvFactor { get; set; }

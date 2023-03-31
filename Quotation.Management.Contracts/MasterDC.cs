@@ -12,6 +12,7 @@ namespace Quotation.Management.Contracts
         public string Code { get; set; } = null!;
         public int Id { get; set; }
         public string Type="";
+        public decimal? ConvFactor;
     }
 
     public partial class CurrencyDC
@@ -36,15 +37,16 @@ namespace Quotation.Management.Contracts
 
     public enum MasterEnum
     {
-        DELIVERY_TERM=1,
-        PAYMENT_TERM=2,
-        SALES_AREA=3,
+        DELIVERYTERMS=1,
+        PAYMENTTERMS=2,
+        AREAS = 3,
         CUSTOMER=4,
         CLIENT=5,
         CONSULTANT=6,
         INDUSTRY =7,
         COSTITEMS=8,
-        STATUS =9
+        STATUS =9,
+        CURRENCY =10
     }
 
 }

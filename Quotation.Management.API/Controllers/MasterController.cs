@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using Quotation.Management.Contracts;
 using Quotation.Management.Contracts.Services;
 using Quotation.Management.Entities.Models;
@@ -29,6 +30,24 @@ namespace QMT_API.Controllers
                 return Ok(JsonConvert.SerializeObject(_masterList));
             }
             catch(Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+        [HttpGet("users")]
+        [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetUsers()
+        {
+            try
+            {
+                var _masterList = _mastersService.GetAllUsers();
+                return Ok(JsonConvert.SerializeObject(_masterList, new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                }));
+            }
+            catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
@@ -98,11 +117,17 @@ namespace QMT_API.Controllers
         [HttpPost("insert")]
         [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult InsertMasterData(string code,int type,string name)
+        public IActionResult InsertMasterData([FromBody] string json)
         {
             try
             {
-                 _mastersService.InsertMasterData(code,type, name);
+                JObject data = JObject.Parse(json);
+                var code = data["code"] ?? "";
+                var type = data["type"];
+                var name = data["name"];
+                var convFactor = data["convFactor"] ?? null;
+                MasterEnum typeEnum = ((MasterEnum) Enum.Parse(typeof(MasterEnum), type.ToString().ToUpper()));
+                _mastersService.InsertMasterData(code.ToString(), (int)typeEnum, name.ToString(), (decimal?) convFactor);
                 return Ok();
             }
             catch (ValidationException ex)
@@ -114,6 +139,47 @@ namespace QMT_API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+        [HttpPost("insert/user")]
+        [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult InsertUser([FromBody]UserMaster user)
+        {
+            try
+            {
+                _mastersService.InsertUser(user);
+                return Ok();
+            }
+            catch (ValidationException ex)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, JsonConvert.SerializeObject(ex._messages));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpPost("update/user")]
+        [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult UpdateUser([FromBody] UserMaster user)
+        {
+            try
+            {
+                _mastersService.UpdateUser(user);
+                return Ok();
+            }
+            catch (ValidationException ex)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, JsonConvert.SerializeObject(ex._messages));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
         [HttpGet("customer/filter")]
         [ProducesResponseType(typeof(JObject), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

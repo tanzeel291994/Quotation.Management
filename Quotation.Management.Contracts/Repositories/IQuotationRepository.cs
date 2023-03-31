@@ -17,8 +17,8 @@ namespace Quotation.Management.Contracts.Repositories
          QuotationOptCode InsertQuotationOptCode(QuotationOptCode _quotationOptCode, QMTContext? _context = null);
         //PricingMaster? GetPricingOptCode(string itemCode, string optCode);
         QuotationLine? GetLatestQuotationLine(string quotationNum, QMTContext? _context = null);
-         QuotationHeader? GetQuotation(string quotationNum, int? revNum=null);
-        List<QuotationLineDC> GetQuotationLinesDC(string quotationNum, int revNum, List<int>? selectedLines = null, string prodTypeId = "", QMTContext? _context = null);
+        dynamic? GetQuotation(string quotationNum, int? revNum=null);
+        List<QuotationLineDC> GetQuotationLinesDC(string quotationNum, int revNum, List<int>? selectedLines = null, string prodTypeId = "", int? brandId = null, QMTContext? _context = null);
         int GetNewRevNum(string quotationNum, QMTContext? _context = null);
         string GenerateItemCode(QuotationLineDC _quotationLine, QMTContext? _context = null);
         QuotationOptCode? GetQuotationOptCode(string quotationNum, int revNum, int lineNum, string optCode, QMTContext? _context = null);
@@ -78,5 +78,7 @@ namespace Quotation.Management.Contracts.Repositories
         void UpdateQuotationStatus(string quotationNum, int revNum, int userId);
 
         dynamic GetQuotationSearch(QuotationSearchDC input);
+
+        dynamic GetQuotationLinesForActiveRevison(string quotationNum);
     }
 }

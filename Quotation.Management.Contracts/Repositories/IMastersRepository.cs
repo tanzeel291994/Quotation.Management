@@ -30,6 +30,9 @@ namespace Quotation.Management.Contracts.Repositories
         List<MasterDC> GetBuyers(int type);
         UserMaster? GetCurrentUserDetails(string email);
         void InsertCustomer(string code, string name, int type);
-        void InsertMaster(string code, string name, MasterEnum type);
+        void InsertUser(UserMaster user);
+        List<UserMaster> GetAllUsers();
+        void UpdateUser(UserMaster user);
+        void InsertMaster(string code, string name, MasterEnum type, decimal? convFactor);
     }
 }

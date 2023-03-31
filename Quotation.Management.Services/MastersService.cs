@@ -78,6 +78,10 @@ namespace Quotation.Management.Services
         {
             return _mastersRepository.GetAreas();
         }
+        public List<UserMaster> GetAllUsers()
+        {
+            return _mastersRepository.GetAllUsers();
+        }
         public List<MasterDC> GetMasterData(string type)
         {
             List<MasterDC> data = new();
@@ -92,7 +96,7 @@ namespace Quotation.Management.Services
 
             return data;
         }
-        public void InsertMasterData(string code,int type,string name)
+        public void InsertMasterData(string code,int type,string name,decimal? convFactor)
         {
             try
             {
@@ -105,9 +109,31 @@ namespace Quotation.Management.Services
                 //else if (type == "Industry") _mastersRepository.InsertIndustry(name);
                 //else if (type == "Status")  _mastersRepository.InsertStatus(name);
                 //else data = new();
-                _mastersRepository.InsertMaster(code, name, (MasterEnum)type);
+                _mastersRepository.InsertMaster(code, name, (MasterEnum)type, convFactor);
             }
              catch (ValidationException ex)
+            {
+                throw;
+            }
+        }
+        public void InsertUser(UserMaster user)
+        {
+            try
+            {
+                _mastersRepository.InsertUser(user);
+            }
+            catch (ValidationException ex)
+            {
+                throw;
+            }
+        }
+        public void UpdateUser(UserMaster user)
+        {
+            try
+            {
+                _mastersRepository.UpdateUser(user);
+            }
+            catch (ValidationException ex)
             {
                 throw;
             }
