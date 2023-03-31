@@ -37,7 +37,7 @@ namespace Quotation.Management.Repositories
             }
         }
 
-        public OptionMaster InsertOptCodeIfNotExist(OptionMaster _optCodeMaster, QMTContext? _context = null)
+        public OptionMaster InsertOrUpdateOptCodeIfNotExist(OptionMaster _optCodeMaster, QMTContext? _context = null)
         {
             //using (var context = _context  ?? new QMTContext())
             //{
@@ -49,7 +49,13 @@ namespace Quotation.Management.Repositories
                 context.SaveChanges();
                 return _optCodeMaster;
             }
-            return optionMaster;
+            else
+            {
+                optionMaster.OptName = _optCodeMaster.OptName;
+                context.SaveChanges();            
+                return optionMaster;
+            }
+            
             //}
         }
 

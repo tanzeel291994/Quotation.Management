@@ -87,8 +87,16 @@ namespace Quotation.Management.Repositories
             var pricingMasterList = context.PricingMasters.Where(x => x.ItemCode == _pricingMaster.ItemCode && x.OptCode == _pricingMaster.OptCode).ToList();
             if (pricingMasterList.Count > 0)
             {
-                context.PricingMasters.RemoveRange(pricingMasterList);
-                context.SaveChanges();
+                //CHECK IF NO EXISTING QUOTATION USING IT 
+                var quotationsUsingOptCodes = (from ql in context.QuotationLines
+                                               join qo in context.QuotationOptCodes on new { ql.QuotationNum, ql.RevNum, ql.LineNum } equals new { qo.QuotationNum, qo.RevNum, qo.LineNum }
+                                               where ql.ItemCode == _pricingMaster.ItemCode && qo.OptCode == _pricingMaster.OptCode
+                                               select ql).Count();
+                if (quotationsUsingOptCodes == 0)
+                {
+                    context.PricingMasters.RemoveRange(pricingMasterList);
+                    context.SaveChanges();
+                }
             }
             return _pricingMaster;
         }

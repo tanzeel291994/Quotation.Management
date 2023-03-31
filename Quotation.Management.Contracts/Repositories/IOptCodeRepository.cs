@@ -12,7 +12,7 @@ namespace Quotation.Management.Contracts.Repositories
         List<OptionMaster> GetAll();
         OptionMaster InsertOptCode(OptionMaster brand);
         OptionMaster? GetOptCode(string optName);
-        OptionMaster InsertOptCodeIfNotExist(OptionMaster _optCodeMaster, QMTContext? _context = null);
+        OptionMaster InsertOrUpdateOptCodeIfNotExist(OptionMaster _optCodeMaster, QMTContext? _context = null);
         bool MultipleInsertOptCodes(List<OptionMaster> itemCodes);
 
     }

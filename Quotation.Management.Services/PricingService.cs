@@ -280,6 +280,13 @@ namespace Quotation.Management.Services
                         }
                         foreach(var itemCode in itemCodes)
                         {
+
+                            OptionMaster optionMaster = new();
+                            optionMaster.OptCode = optCode;
+                            optionMaster.OptName = optName ?? optCode;
+
+                            optionMaster = _optCodeRepository.InsertOrUpdateOptCodeIfNotExist(optionMaster, context);
+
                             string? pricing = Convert.ToString(dt.Rows[i].Field<object>(itemCode));
                             if (pricing == null || pricing == "")
                             {
@@ -306,12 +313,6 @@ namespace Quotation.Management.Services
                                 continue;
                             else
                                 version = "V1";
-
-                            OptionMaster optionMaster = new();
-                            optionMaster.OptCode = optCode;
-                            optionMaster.OptName =optName ?? optCode;
-
-                            optionMaster = _optCodeRepository.InsertOptCodeIfNotExist(optionMaster,context);
 
                             PricingMaster pricingMaster = new PricingMaster();
                             pricingMaster.ItemCode = itemCode;
