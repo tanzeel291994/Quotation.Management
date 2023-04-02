@@ -73,7 +73,7 @@ namespace Quotation.Management.Repositories
                 line.Vat = _quotationLine.Vat;
                 line.TtNetPrice = _quotationLine.TtNetPrice;
                 line.Caf = _quotationLine.CAF;
-               
+                line.UpdatedBy = _quotationLine.UpdatedBy;
                 line.UnitTag = _quotationLine.UnitTag;
                 line.SubItemCode = _quotationLine.SubItemCode;
                 if(_quotationLine.Margin == line.Margin)

@@ -29,6 +29,8 @@ namespace Quotation.Management.Entities.Models
         public int? UpdatedBy { get; set; }
         public decimal? SeaFreightValue { get; set; }
         public decimal? Caf { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         public virtual UserMaster? CreatedByNavigation { get; set; }
         public virtual ItemMaster ItemCodeNavigation { get; set; } = null!;

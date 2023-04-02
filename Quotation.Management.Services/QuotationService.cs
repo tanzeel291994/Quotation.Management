@@ -694,6 +694,7 @@ namespace Quotation.Management.Services
             line.RevNum = inputLine.RevNum;
             line.UnitPrice = 0;
             line.TtNetPrice = 0;
+            line.CreatedBy = inputLine.CreatedBy;
             line.Caf = quotationLineDC != null ? quotationLineDC.CAF : Math.Round(quotationCurrency!.ConvFactor / brandCurrency!.ConvFactor, 4); //Check for existing CAF from the lines with same value 
             if (itemDetails.ProdTypeId == "AHU")
             {

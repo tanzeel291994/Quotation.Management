@@ -34,6 +34,8 @@ namespace Quotation.Management.Contracts
         public string? ProductCurrencyCode { get; set; }
         public string? UnitTag { get; set; }
         public string? optCodes { get; set; } = null!;
+        public int? CreatedBy { get; set; }
+        public int? UpdatedBy { get; set; }
     }
 
     public class QuotationCopyOptionDC

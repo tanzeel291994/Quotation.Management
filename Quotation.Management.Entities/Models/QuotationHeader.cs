@@ -36,6 +36,7 @@ namespace Quotation.Management.Entities.Models
         public string? ClientCode { get; set; }
         public string? ConsultantCode { get; set; }
         public int? LockedForEditingBy { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         public virtual SalesArea AreaCodeNavigation { get; set; } = null!;
         public virtual UserMaster? AspNavigation { get; set; }

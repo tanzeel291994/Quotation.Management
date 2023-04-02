@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.Extensions.Configuration;
+
 namespace Quotation.Management.Entities.Models
 {
     public partial class QMTContext : DbContext
@@ -15,7 +15,7 @@ namespace Quotation.Management.Entities.Models
             : base(options)
         {
         }
-        public DbSet<ItemCodeDetailsDC> ItemCodeDetailsDCs { get; set; }
+
         public virtual DbSet<BrandMaster> BrandMasters { get; set; } = null!;
         public virtual DbSet<CostItemCode> CostItemCodes { get; set; } = null!;
         public virtual DbSet<CurrencyMaster> CurrencyMasters { get; set; } = null!;
@@ -45,12 +45,8 @@ namespace Quotation.Management.Entities.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                IConfigurationRoot configuration = new ConfigurationBuilder()
-                   .SetBasePath(Directory.GetCurrentDirectory())
-                   .AddJsonFile("appsettings.json")
-                   .Build();
-                var connectionString = configuration.GetConnectionString("DefaultConnection");
-                optionsBuilder.UseSqlServer(connectionString);
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+                optionsBuilder.UseSqlServer("Server=.\\SQLExpress;Database=QMT;User ID=admin;Password=1234567;Trusted_Connection=True;");
             }
         }
 
@@ -262,12 +258,21 @@ namespace Quotation.Management.Entities.Models
                     .IsUnicode(false)
                     .HasColumnName("Version_");
 
+                entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+
                 entity.Property(e => e.Price).HasColumnType("money");
 
                 entity.Property(e => e.Status)
                     .HasMaxLength(20)
                     .IsUnicode(false)
                     .HasColumnName("Status_");
+
+                entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+
+                entity.HasOne(d => d.CreatedByNavigation)
+                    .WithMany(p => p.PricingMasters)
+                    .HasForeignKey(d => d.CreatedBy)
+                    .HasConstraintName("FK__PricingMaster__CreatedBy");
 
                 entity.HasOne(d => d.OptCodeNavigation)
                     .WithMany(p => p.PricingMasters)
@@ -313,6 +318,8 @@ namespace Quotation.Management.Entities.Models
 
                 entity.Property(e => e.CostItemValue).HasColumnType("decimal(18, 2)");
 
+                entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+
                 entity.Property(e => e.FreightRate).HasColumnType("decimal(18, 2)");
 
                 entity.Property(e => e.ProdTypeId)
@@ -324,6 +331,8 @@ namespace Quotation.Management.Entities.Models
                     .IsUnicode(false);
 
                 entity.Property(e => e.Remarks).HasMaxLength(1000);
+
+                entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
                 entity.HasOne(d => d.CostItem)
                     .WithMany(p => p.QuotationCostItems)
@@ -365,15 +374,29 @@ namespace Quotation.Management.Entities.Models
 
                 entity.Property(e => e.CostItemLineValue).HasColumnType("decimal(18, 2)");
 
+                entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+
                 entity.Property(e => e.QuotationNum)
                     .HasMaxLength(200)
                     .IsUnicode(false);
+
+                entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+
+                entity.HasOne(d => d.CreatedByNavigation)
+                    .WithMany(p => p.QuotationCostItemLineCreatedByNavigations)
+                    .HasForeignKey(d => d.CreatedBy)
+                    .HasConstraintName("FK__Quotation__Creat__60083D91");
 
                 entity.HasOne(d => d.QuotationCostItemGroup)
                     .WithMany(p => p.QuotationCostItemLines)
                     .HasForeignKey(d => d.QuotationCostItemGroupId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Quotation__Quota__214BF109");
+
+                entity.HasOne(d => d.UpdatedByNavigation)
+                    .WithMany(p => p.QuotationCostItemLineUpdatedByNavigations)
+                    .HasForeignKey(d => d.UpdatedBy)
+                    .HasConstraintName("FK__Quotation__Updat__60FC61CA");
 
                 entity.HasOne(d => d.QuotationLine)
                     .WithMany(p => p.QuotationCostItemLines)
@@ -453,6 +476,8 @@ namespace Quotation.Management.Entities.Models
                 entity.Property(e => e.QuotationDate).HasColumnType("datetime");
 
                 entity.Property(e => e.Remarks).HasMaxLength(1000);
+
+                entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
                 entity.HasOne(d => d.AreaCodeNavigation)
                     .WithMany(p => p.QuotationHeaders)
@@ -552,6 +577,8 @@ namespace Quotation.Management.Entities.Models
 
                 entity.Property(e => e.CostItemLineValue).HasColumnType("decimal(18, 2)");
 
+                entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+
                 entity.Property(e => e.ItemCode)
                     .HasMaxLength(100)
                     .IsUnicode(false);
@@ -575,6 +602,8 @@ namespace Quotation.Management.Entities.Models
                 entity.Property(e => e.UnitTag)
                     .HasMaxLength(100)
                     .IsUnicode(false);
+
+                entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
                 entity.Property(e => e.Vat)
                     .HasColumnType("decimal(6, 2)")
@@ -620,6 +649,8 @@ namespace Quotation.Management.Entities.Models
 
                 entity.Property(e => e.Baseprice).HasColumnType("decimal(18, 2)");
 
+                entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+
                 entity.Property(e => e.OptName)
                     .HasMaxLength(500)
                     .IsUnicode(false);
@@ -630,10 +661,22 @@ namespace Quotation.Management.Entities.Models
 
                 entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
 
+                entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+
                 entity.Property(e => e.Version)
                     .HasMaxLength(10)
                     .IsUnicode(false)
                     .HasColumnName("Version_");
+
+                entity.HasOne(d => d.CreatedByNavigation)
+                    .WithMany(p => p.QuotationOptCodeCreatedByNavigations)
+                    .HasForeignKey(d => d.CreatedBy)
+                    .HasConstraintName("FK__Quotation__CreatedBy");
+
+                entity.HasOne(d => d.UpdatedByNavigation)
+                    .WithMany(p => p.QuotationOptCodeUpdatedByNavigations)
+                    .HasForeignKey(d => d.UpdatedBy)
+                    .HasConstraintName("FK__Quotation__UpdatedBy");
 
                 entity.HasOne(d => d.QuotationLine)
                     .WithMany(p => p.QuotationOptCodes)

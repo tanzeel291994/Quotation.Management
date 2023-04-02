@@ -51,8 +51,11 @@ namespace Quotation.Management.Repositories
             }
             else
             {
-                optionMaster.OptName = _optCodeMaster.OptName;
-                context.SaveChanges();            
+                if (optionMaster.OptName != _optCodeMaster.OptName)
+                {
+                    optionMaster.OptName = _optCodeMaster.OptName;
+                    context.SaveChanges();
+                }
                 return optionMaster;
             }
             

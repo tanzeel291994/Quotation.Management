@@ -22,6 +22,8 @@ namespace Quotation.Management.Entities.Models
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
         public string? Remarks { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         public virtual CostItemCode CostItem { get; set; } = null!;
         public virtual UserMaster? CreatedByNavigation { get; set; }
