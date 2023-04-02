@@ -715,6 +715,9 @@ namespace Quotation.Management.Services
                         optCode.OptCode = _optCode.OptCode;
                         optCode.Baseprice = _optCode.Baseprice;
                         optCode.Version = _optCode.Version;
+                        optCode.OptName = _optCode.OptName;
+                        optCode.IsNet = _optCode.IsNet;
+                        optCode.OptType = _optCode.OptType;
                         optCode = _quotationRepository.InsertQuotationOptCode(optCode, context);
                     }
                 }
@@ -742,6 +745,8 @@ namespace Quotation.Management.Services
                     optCode.OptCode = pricing[0].OptCode;
                     optCode.Baseprice = pricing[0].Price;
                     optCode.Version = pricing[0].Version;
+                    optCode.IsNet = pricing[0].IsNet;
+                    optCode.OptType = OptionType.Standard.ToString();
                     optCode = _quotationRepository.InsertQuotationOptCode(optCode, context);
                 }
                 else 
@@ -758,6 +763,9 @@ namespace Quotation.Management.Services
                         optCode.OptCode = _optCode.OptCode;
                         optCode.Baseprice = _optCode.Baseprice;
                         optCode.Version = _optCode.Version;
+                        optCode.OptName = _optCode.OptName;
+                        optCode.IsNet = _optCode.IsNet;
+                        optCode.OptType = _optCode.OptType;
                         optCode = _quotationRepository.InsertQuotationOptCode(optCode, context);
                     }
                 
@@ -831,9 +839,10 @@ namespace Quotation.Management.Services
                             optCode.Baseprice = pricing.Price;
                             optCode.UnitPrice = pricing.Price * caf;
                             optCode.Version = pricing.Version;
+                            optCode.OptType = OptionType.Standard.ToString();
                             //optCode.UnitPrice = //currencyCode == itemCodeDetail.CurrencyCode ? pricing.Price : CalculatePriceOnCurrency(quotationCurrency!, pricing, itemCodeDetail);
                             //if (itemCodeDetail.IndexConvFactor != null) optCode.UnitPrice = optCode.UnitPrice * itemCodeDetail.IndexConvFactor.Value;
-                            
+
                             optCode.OptCode = pricing.OptCode;
                             optCode = _quotationRepository.InsertQuotationOptCode(optCode, context);
                         }
