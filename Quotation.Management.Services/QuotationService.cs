@@ -1778,17 +1778,17 @@ namespace Quotation.Management.Services
                     List<QuotationLine> addedLines = new();
                     for (int i = 0; i < dt.Rows.Count; i++)
                     {
-                        string? itemCode = dt.Rows[i].Field<string>("ItemCode");
+                        string? itemCode = dt.Rows[i].Field<string>("Item Code");
                         //string? quotationNum = dt.Rows[i].Field<string>("QuotationNum");
                         //string? revNum = Convert.ToString(dt.Rows[i].Field<object>("RevNum"));
-                        string? unitTag = dt.Rows[i].Field<string>("UnitTag");
+                        string? unitTag = dt.Rows[i].Field<string>("Unit Tag");
                         string? qty = Convert.ToString(dt.Rows[i].Field<object>("Qty"));
                         string? mtlp = Convert.ToString(dt.Rows[i].Field<object>("Mtlp"));
-                        string? vat =  Convert.ToString(dt.Rows[i].Field<object>("Vat%"));
-                        string? margin = Convert.ToString(dt.Rows[i].Field<object>("Margin"));
+                        string? vat =  Convert.ToString(dt.Rows[i].Field<object>("Vat"));
+                        string? margin = Convert.ToString(dt.Rows[i].Field<object>("Margin%"));
 
 
-                        ValidateCellValue(itemCode, "ItemCode",i,false,out string? message);
+                        ValidateCellValue(itemCode, "Item Code",i,false,out string? message);
                         if (message != null) validationMessages.Add(message);
                         ItemCodeDetailsDC? detailsDC = itemCodeDetails.Where(x => x.ItemCode == itemCode).FirstOrDefault();
                         if (detailsDC == null) validationMessages.Add(itemCode + " ItemCode on Index " + i + " is missing.");
@@ -1802,7 +1802,7 @@ namespace Quotation.Management.Services
                         ValidateCellValue(revNum, "RevNum", i, true, out string? message5);
                         if (message5 != null) validationMessages.Add(message5);*/
 
-                        ValidateCellValue(vat, "Vat%", i, true, out string? message2);
+                        ValidateCellValue(vat, "Vat", i, true, out string? message2);
                         if (message2 != null) validationMessages.Add(message2);
 
                         if(detailsDC!.Mtlp == null)
@@ -1814,7 +1814,7 @@ namespace Quotation.Management.Services
                         {
                             if(detailsDC!.ProdTypeId == "AHU")
                             {
-                                ValidateCellValue(unitTag, "UnitTag", i, false, out string? message3);
+                                ValidateCellValue(unitTag, "Unit Tag", i, false, out string? message3);
                                 if (message3 != null) validationMessages.Add(message3);
                             }
                         }
