@@ -604,7 +604,6 @@ namespace Quotation.Management.Services
                 }
 
                 UpdateUnitPriceFromOptions(input.ToQuotationNum, input.ToRevNum, addedLines.Select(x=>x.LineNum).ToList(), context);
-                UpdateAllLinesCostItemValue(input.ToQuotationNum, input.ToRevNum, context);
 
                 _quotationRepository.Commit();
                 return true;
@@ -1763,8 +1762,8 @@ namespace Quotation.Management.Services
                     DataTable dt = ds.Tables[index];
                     var columnNames = dt.Columns.Cast<DataColumn>().Select(x => x.ColumnName).ToArray().ToList();
                     List<string> validItemCodes = new();
-                    List<string?> allItemCodes = dt.Rows.Cast<DataRow>().Select(x => x.Field<string>("ItemCode")).ToArray().ToList();
-                    List<string> requiredColumns = new List<string>() { "ItemCode", "UnitTag","Qty", "Mtlp", "Margin", "Vat%" };
+                    List<string?> allItemCodes = dt.Rows.Cast<DataRow>().Select(x => x.Field<string>("Item Code")).ToArray().ToList();
+                    List<string> requiredColumns = new List<string>() { "Item Code", "Unit Tag","Qty", "Mtlp", "Margin%", "Vat" };
                     foreach(var col in requiredColumns)
                     {
                         if (!columnNames.Contains(col)) validationMessages.Add(col+" column is not existing in the file");
@@ -1840,7 +1839,6 @@ namespace Quotation.Management.Services
 
                     }
                     UpdateUnitPriceFromOptions(quotationNum, revNum, addedLines.Select(x => x.LineNum).ToList(), context);
-                    UpdateAllLinesCostItemValue(quotationNum, revNum, context);
 
                     _quotationRepository.Commit();
                 }
