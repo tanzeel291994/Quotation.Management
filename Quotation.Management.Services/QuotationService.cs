@@ -1775,6 +1775,7 @@ namespace Quotation.Management.Services
                     
                     QMTContext context = _quotationRepository.BeginTransaction();
                     List<ItemCodeDetailsDC> itemCodeDetails = _itemCodeRepository.GetItemCodeDetails(allItemCodes, context);
+                    List<QuotationLine> addedLines = new();
                     for (int i = 0; i < dt.Rows.Count; i++)
                     {
                         string? itemCode = dt.Rows[i].Field<string>("ItemCode");
@@ -1835,9 +1836,12 @@ namespace Quotation.Management.Services
                         inputLine.UnitTag = unitTag;
                         inputLine.RevNum = revNum;//Convert.ToInt32(revNum);
 
-                        AddQuotationLine(inputLine, detailsDC!,context);
+                        addedLines.Add(AddQuotationLine(inputLine, detailsDC!,context));
 
                     }
+                    UpdateUnitPriceFromOptions(quotationNum, revNum, addedLines.Select(x => x.LineNum).ToList(), context);
+                    UpdateAllLinesCostItemValue(quotationNum, revNum, context);
+
                     _quotationRepository.Commit();
                 }
             }
