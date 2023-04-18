@@ -80,5 +80,7 @@ namespace Quotation.Management.Contracts.Repositories
         dynamic GetQuotationSearch(QuotationSearchDC input);
 
         dynamic GetQuotationLinesForActiveRevison(string quotationNum);
+
+        QuotationOptCode UpdateQuotationOptCode(QuotationOptCode _quotationOptCode, QMTContext? _context = null);
     }
 }

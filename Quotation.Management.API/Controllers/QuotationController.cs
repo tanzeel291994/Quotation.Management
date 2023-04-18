@@ -687,6 +687,22 @@ namespace QMT_API.Controllers
             }
         }
 
+        [HttpPost("line/nonstandard/options/update")]
+        [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult UpdateNonStandadOption(QuotationNonStandardOptCodeDC nonStandardOptCodeDC)
+        {
+            try
+            {
+                var result = _quotationService.UpdateNonStandardOption(nonStandardOptCodeDC);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
         [HttpGet("line/nonstandard/options")]
         [ProducesResponseType(typeof(QuotationOptCode), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

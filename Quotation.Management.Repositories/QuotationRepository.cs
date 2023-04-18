@@ -499,6 +499,21 @@ namespace Quotation.Management.Repositories
             return optCode;
         }
 
+        public QuotationOptCode UpdateQuotationOptCode(QuotationOptCode _quotationOptCode, QMTContext? _context = null)
+        {
+            var context = _context ?? new QMTContext();
+            var optCode = context.QuotationOptCodes.Where(x => x.QuotationNum == _quotationOptCode.QuotationNum.ToUpper() && x.RevNum == _quotationOptCode.RevNum
+                 && x.LineNum == _quotationOptCode.LineNum && _quotationOptCode.OptCode == x.OptCode).FirstOrDefault();
+            if (optCode != null)
+            {
+                optCode.IsNet = _quotationOptCode.IsNet;
+                optCode.Baseprice = _quotationOptCode.Baseprice;
+                optCode.UnitPrice = _quotationOptCode.UnitPrice;
+                context.SaveChanges();
+            }
+            return optCode;
+        }
+
         public List<PricingMasterDC> GetPricingOptCode(string itemCode, List<string> optCode)
         {
             using (var context = new QMTContext())

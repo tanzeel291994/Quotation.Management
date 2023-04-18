@@ -1053,6 +1053,41 @@ namespace Quotation.Management.Services
             }
         }
 
+        public QuotationNonStandardOptCodeDC? UpdateNonStandardOption(QuotationNonStandardOptCodeDC optCodeDC)
+        {
+            try
+            {
+               
+                QMTContext context = _quotationRepository.BeginTransaction();
+                QuotationLine quotationLine = _quotationRepository.GetQuotationLine(optCodeDC.QuotationNum, optCodeDC.LineNum, optCodeDC.RevNum, context);
+                QuotationOptCode optCode = new();
+                optCode.QuotationNum = optCodeDC.QuotationNum;
+                optCode.RevNum = optCodeDC.RevNum;
+                optCode.LineNum = optCodeDC.LineNum;
+                optCode.OptCode = optCodeDC.OptCode;
+                optCode.IsNet = optCodeDC.IsNet;
+                optCode.Baseprice = optCodeDC.Price;
+                optCode.UnitPrice = optCodeDC.Price * quotationLine.Caf;
+                _quotationRepository.UpdateQuotationOptCode(optCode, context);
+
+                UpdateUnitPriceFromOptions(optCodeDC.QuotationNum, optCodeDC.RevNum, new List<int> { optCodeDC.LineNum }, context);
+                UpdateAllLinesCostItemValue(optCodeDC.QuotationNum, optCodeDC.RevNum, context);
+
+                _quotationRepository.Commit();
+                return optCodeDC;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                _quotationRepository.RollBack();
+                throw;
+            }
+            finally
+            {
+                _quotationRepository.DisposeConnection();
+            }
+        }
+
         public List<QuotationOptCodeDC>? GetQuotationLinesNonStandardOptCodes(string Id, int revNum,int lineNum)
         {
             try

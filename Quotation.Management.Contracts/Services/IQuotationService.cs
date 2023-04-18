@@ -20,7 +20,7 @@ namespace Quotation.Management.Contracts.Services
          QuotationLineDC? RemoveQuotationOptions(QuotationLineDC inputLine);
         int CreateRevision(string quotationNum, int revNum, int userId);
         List<QuotationOptCodeDC>? GetQuotationLinesOptCodes(string Id, int revNum);
-
+        QuotationNonStandardOptCodeDC? UpdateNonStandardOption(QuotationNonStandardOptCodeDC optCodeDC);
         List<QuotationOptCodeDC>? GetQuotationLinesNonStandardOptCodes(string Id, int revNum, int lineNum);
         List<QuotationCostItemDC> InsertQuotationCostItem(List<QuotationCostItemDC> input);
         bool CopyQuotationLinesFromQuotation(CopyQuotationLineDC input);
