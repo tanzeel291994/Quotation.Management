@@ -694,6 +694,7 @@ namespace Quotation.Management.Services
             line.UnitPrice = 0;
             line.TtNetPrice = 0;
             line.CreatedBy = inputLine.CreatedBy;
+            line.CreatedAt = DateTime.Now;
             line.Caf = quotationLineDC != null ? quotationLineDC.CAF : Math.Round(quotationCurrency!.ConvFactor / brandCurrency!.ConvFactor, 4); //Check for existing CAF from the lines with same value 
             if (itemDetails.ProdTypeId == "AHU")
             {
@@ -1502,6 +1503,7 @@ namespace Quotation.Management.Services
             }
             catch (Exception ex)
             {
+                if(ex.StackTrace != null) _logger.LogError(ex, ex.StackTrace);
                 _logger.LogError(ex, ex.Message);
                 throw;
 
