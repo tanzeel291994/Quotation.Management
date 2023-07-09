@@ -43,12 +43,16 @@ namespace Quotation.Management.Repositories
                 header.Asp = _quotationHeader.Asp;
                 header.Remarks = _quotationHeader.Remarks;
                 header.ClientCode = _quotationHeader.ClientCode;
+                header.CustomerCode = _quotationHeader.CustomerCode;
                 header.ConsultantCode = _quotationHeader.ConsultantCode;
                 header.CurrencyCode = _quotationHeader.CurrencyCode; // tHIS is used when no lines ecist and header changed 
                 header.UpdatedBy = updatedBy;
             }
             else
+            {
+                _quotationHeader.RevNum = 0;
                 context.QuotationHeaders.Add(_quotationHeader);
+            }
             context.SaveChanges();
             if (_context == null)
             {

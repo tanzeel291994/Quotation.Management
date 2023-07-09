@@ -44,7 +44,7 @@ namespace Quotation.Management.Services
             try
             {
                 QuotationHeader header = new QuotationHeader();
-                header.RevNum = 0;    // need to add revnum
+                header.RevNum = inputHeader.RevNum;    // need to add revnum
                 header.QuotationDate = DateTime.Now;
                 header.AreaCode = inputHeader.AreaCode;
                 header.CurrencyCode = inputHeader.CurrencyCode;
