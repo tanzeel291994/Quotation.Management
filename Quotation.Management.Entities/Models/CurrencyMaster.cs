@@ -10,6 +10,7 @@ namespace Quotation.Management.Entities.Models
             BrandMasters = new HashSet<BrandMaster>();
             QuotationHeaderCurrencyCodeNavigations = new HashSet<QuotationHeader>();
             QuotationHeaderOldCurrencyCodeNavigations = new HashSet<QuotationHeader>();
+            WarrantyHeaders = new HashSet<WarrantyHeader>();
         }
 
         public string CurrencyCode { get; set; } = null!;
@@ -18,5 +19,6 @@ namespace Quotation.Management.Entities.Models
         public virtual ICollection<BrandMaster> BrandMasters { get; set; }
         public virtual ICollection<QuotationHeader> QuotationHeaderCurrencyCodeNavigations { get; set; }
         public virtual ICollection<QuotationHeader> QuotationHeaderOldCurrencyCodeNavigations { get; set; }
+        public virtual ICollection<WarrantyHeader> WarrantyHeaders { get; set; }
     }
 }

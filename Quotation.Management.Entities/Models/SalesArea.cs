@@ -8,6 +8,7 @@ namespace Quotation.Management.Entities.Models
         public SalesArea()
         {
             QuotationHeaders = new HashSet<QuotationHeader>();
+            WarrantyHeaders = new HashSet<WarrantyHeader>();
         }
 
         public string AreaCode { get; set; } = null!;
@@ -15,5 +16,6 @@ namespace Quotation.Management.Entities.Models
         public string? Frequency { get; set; }
 
         public virtual ICollection<QuotationHeader> QuotationHeaders { get; set; }
+        public virtual ICollection<WarrantyHeader> WarrantyHeaders { get; set; }
     }
 }

@@ -40,6 +40,8 @@ namespace Quotation.Management.Entities.Models
         public virtual DbSet<SeriesMaster> SeriesMasters { get; set; } = null!;
         public virtual DbSet<SeriesOption> SeriesOptions { get; set; } = null!;
         public virtual DbSet<UserMaster> UserMasters { get; set; } = null!;
+        public virtual DbSet<WarrantyHeader> WarrantyHeaders { get; set; } = null!;
+        public virtual DbSet<WarrantyLine> WarrantyLines { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -53,7 +55,7 @@ namespace Quotation.Management.Entities.Models
                 optionsBuilder.UseSqlServer(connectionString);
             }
         }
-
+    
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<BrandMaster>(entity =>
@@ -794,6 +796,165 @@ namespace Quotation.Management.Entities.Models
                 entity.Property(e => e.Role)
                     .HasMaxLength(500)
                     .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<WarrantyHeader>(entity =>
+            {
+                entity.HasKey(e => e.JobDetailsId)
+                    .HasName("PK__Warranty__D136C00078C1D889");
+
+                entity.ToTable("WarrantyHeader");
+
+                entity.Property(e => e.JobDetailsId).ValueGeneratedNever();
+
+                entity.Property(e => e.AreaCode)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ClientCode)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ConsultantCode)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+
+                entity.Property(e => e.CustomerCode)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CustomersOrderReference).HasMaxLength(255);
+
+                entity.Property(e => e.JobReference).HasMaxLength(255);
+
+                entity.Property(e => e.PaymentStatus).HasMaxLength(255);
+
+                entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+
+                entity.Property(e => e.WarrantyProvisionCurrency)
+                    .HasMaxLength(10)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.WarrantyProvisionLabourBalance).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.WarrantyProvisionLabourReversed).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.WarrantyProvisionLabourTotal).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.WarrantyProvisionLabourUtilized).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.WarrantyProvisionPartsBalance).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.WarrantyProvisionPartsReversed).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.WarrantyProvisionPartsTotal).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.WarrantyProvisionPartsUtilized).HasColumnType("decimal(18, 2)");
+
+                entity.HasOne(d => d.AreaCodeNavigation)
+                    .WithMany(p => p.WarrantyHeaders)
+                    .HasForeignKey(d => d.AreaCode)
+                    .HasConstraintName("FK__WarrantyH__AreaC__77DFC722");
+
+                entity.HasOne(d => d.ClientCodeNavigation)
+                    .WithMany(p => p.WarrantyHeaderClientCodeNavigations)
+                    .HasForeignKey(d => d.ClientCode)
+                    .HasConstraintName("FK__WarrantyH__Clien__740F363E");
+
+                entity.HasOne(d => d.ConsultantCodeNavigation)
+                    .WithMany(p => p.WarrantyHeaderConsultantCodeNavigations)
+                    .HasForeignKey(d => d.ConsultantCode)
+                    .HasConstraintName("FK__WarrantyH__Consu__75035A77");
+
+                entity.HasOne(d => d.CreatedByNavigation)
+                    .WithMany(p => p.WarrantyHeaderCreatedByNavigations)
+                    .HasForeignKey(d => d.CreatedBy)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__WarrantyH__Creat__7D98A078");
+
+                entity.HasOne(d => d.CustomerCodeNavigation)
+                    .WithMany(p => p.WarrantyHeaderCustomerCodeNavigations)
+                    .HasForeignKey(d => d.CustomerCode)
+                    .HasConstraintName("FK__WarrantyH__Custo__119F9925");
+
+                entity.HasOne(d => d.PaymentTerms)
+                    .WithMany(p => p.WarrantyHeaders)
+                    .HasForeignKey(d => d.PaymentTermsId)
+                    .HasConstraintName("FK__WarrantyH__Payme__76EBA2E9");
+
+                entity.HasOne(d => d.SalesRepresentative)
+                    .WithMany(p => p.WarrantyHeaderSalesRepresentatives)
+                    .HasForeignKey(d => d.SalesRepresentativeId)
+                    .HasConstraintName("FK__WarrantyH__Sales__78D3EB5B");
+
+                entity.HasOne(d => d.UpdatedByNavigation)
+                    .WithMany(p => p.WarrantyHeaderUpdatedByNavigations)
+                    .HasForeignKey(d => d.UpdatedBy)
+                    .HasConstraintName("FK__WarrantyH__Updat__7E8CC4B1");
+
+                entity.HasOne(d => d.WarrantyProvisionCurrencyNavigation)
+                    .WithMany(p => p.WarrantyHeaders)
+                    .HasForeignKey(d => d.WarrantyProvisionCurrency)
+                    .HasConstraintName("FK__WarrantyH__Warra__79C80F94");
+            });
+
+            modelBuilder.Entity<WarrantyLine>(entity =>
+            {
+                entity.HasKey(e => e.OurDoreference)
+                    .HasName("PK__Warranty__76879365F952B5AC");
+
+                entity.Property(e => e.OurDoreference)
+                    .HasMaxLength(255)
+                    .HasColumnName("OurDOReference");
+
+                entity.Property(e => e.CommissioningDate).HasColumnType("datetime");
+
+                entity.Property(e => e.Dodate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("DODate");
+
+                entity.Property(e => e.InvoiceDate).HasColumnType("datetime");
+
+                entity.Property(e => e.InvoiceReference).HasMaxLength(255);
+
+                entity.Property(e => e.Manufacturer).HasMaxLength(255);
+
+                entity.Property(e => e.ManufacturersInvoiceDate).HasColumnType("datetime");
+
+                entity.Property(e => e.ManufacturersInvoiceReference).HasMaxLength(255);
+
+                entity.Property(e => e.ManufacturersOrderReference).HasMaxLength(255);
+
+                entity.Property(e => e.ManufacturersWarrantyPeriodComponentsEndDate).HasColumnType("datetime");
+
+                entity.Property(e => e.ManufacturersWarrantyPeriodComponentsStartDate).HasColumnType("datetime");
+
+                entity.Property(e => e.ManufacturersWarrantyPeriodUnitEndDate).HasColumnType("datetime");
+
+                entity.Property(e => e.ManufacturersWarrantyPeriodUnitStartDate).HasColumnType("datetime");
+
+                entity.Property(e => e.Model).HasMaxLength(255);
+
+                entity.Property(e => e.Product).HasMaxLength(255);
+
+                entity.Property(e => e.ProductSerialNumber).HasMaxLength(255);
+
+                entity.Property(e => e.WarrantyCommitment).HasMaxLength(255);
+
+                entity.Property(e => e.WarrantyPeriodComponentsEndDate).HasColumnType("datetime");
+
+                entity.Property(e => e.WarrantyPeriodComponentsStartDate).HasColumnType("datetime");
+
+                entity.Property(e => e.WarrantyPeriodUnitEndDate).HasColumnType("datetime");
+
+                entity.Property(e => e.WarrantyPeriodUnitStartDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.JobDetails)
+                    .WithMany(p => p.WarrantyLines)
+                    .HasForeignKey(d => d.JobDetailsId)
+                    .HasConstraintName("FK__WarrantyL__JobDe__7CA47C3F");
             });
 
             OnModelCreatingPartial(modelBuilder);

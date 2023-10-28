@@ -56,6 +56,7 @@ builder.Services.AddScoped<IPricingService, PricingService>();
 builder.Services.AddScoped<IMastersService, MastersService>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
 builder.Services.AddScoped<IIssueService, IssueService>();
+builder.Services.AddScoped<IWarrantyService, WarrantyService>();
 #endregion
 
 #region Repositories
@@ -69,8 +70,9 @@ builder.Services.AddScoped<IPricingRepository<PricingMaster>, PricingRepository>
 builder.Services.AddScoped<IMastersRepository, MastersRepository>();
 builder.Services.AddScoped<IQuotationRepository, QuotationRepository>();
 builder.Services.AddScoped<IIssueRepository<Issue>, IssueRepository>();
+builder.Services.AddScoped<IWarrantyRepository, WarrantyRepository>();
 #endregion
- 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

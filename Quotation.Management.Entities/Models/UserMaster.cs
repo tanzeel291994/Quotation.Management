@@ -22,6 +22,9 @@ namespace Quotation.Management.Entities.Models
             QuotationLineUpdatedByNavigations = new HashSet<QuotationLine>();
             QuotationOptCodeCreatedByNavigations = new HashSet<QuotationOptCode>();
             QuotationOptCodeUpdatedByNavigations = new HashSet<QuotationOptCode>();
+            WarrantyHeaderCreatedByNavigations = new HashSet<WarrantyHeader>();
+            WarrantyHeaderSalesRepresentatives = new HashSet<WarrantyHeader>();
+            WarrantyHeaderUpdatedByNavigations = new HashSet<WarrantyHeader>();
         }
 
         public int Id { get; set; }
@@ -46,5 +49,8 @@ namespace Quotation.Management.Entities.Models
         public virtual ICollection<QuotationLine> QuotationLineUpdatedByNavigations { get; set; }
         public virtual ICollection<QuotationOptCode> QuotationOptCodeCreatedByNavigations { get; set; }
         public virtual ICollection<QuotationOptCode> QuotationOptCodeUpdatedByNavigations { get; set; }
+        public virtual ICollection<WarrantyHeader> WarrantyHeaderCreatedByNavigations { get; set; }
+        public virtual ICollection<WarrantyHeader> WarrantyHeaderSalesRepresentatives { get; set; }
+        public virtual ICollection<WarrantyHeader> WarrantyHeaderUpdatedByNavigations { get; set; }
     }
 }
