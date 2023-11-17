@@ -40,7 +40,7 @@ namespace QMT_API.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(WarrantyHeader), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetWarranty(int id)
+        public IActionResult GetWarranty(string id)
         {
             try
             {

@@ -81,14 +81,14 @@ namespace Quotation.Management.Repositories
             return _warrantyLine;
         }
 
-        public WarrantyHeader? GetWarranty(int _id)
+        public WarrantyHeader? GetWarranty(string _id)
         {
             using (var context = new QMTContext())
             {
                 return context.WarrantyHeaders.Where(x => x.JobDetailsId == _id).FirstOrDefault();
             }
         }
-        public List<WarrantyLine> GetWarrantyLines(int _id)
+        public List<WarrantyLine> GetWarrantyLines(string _id)
         {
             using (var context = new QMTContext())
             {
@@ -99,7 +99,7 @@ namespace Quotation.Management.Repositories
         {
             using (var context = new QMTContext())
             {
-                return context.WarrantyHeaders.Select(x => x.JobReference).Distinct().ToList();
+                return context.WarrantyHeaders.Select(x => x.SalesOrderReference).Distinct().ToList();
             }
         }
         public dynamic GetWarrantySearch(WarrantySearchDC input)
@@ -109,7 +109,7 @@ namespace Quotation.Management.Repositories
 
                 var _data = (from qh in context.WarrantyHeaders
                              join ql in context.WarrantyLines on  qh.JobDetailsId equals  ql.JobDetailsId 
-                             where (qh.JobReference == input.JobReference || input.JobReference == null) &&
+                             where (qh.SalesOrderReference == input.SalesOrderReference || input.SalesOrderReference == null) &&
                             (qh.CustomerCode == input.CustomerCode || input.CustomerCode == null) &&
                             (qh.ClientCode == input.ClientCode || input.ClientCode == null) &&
                             (qh.ConsultantCode == input.ConsultantCode || input.ConsultantCode == null) &&
@@ -118,7 +118,7 @@ namespace Quotation.Management.Repositories
                              select new
                              {
                                  JobDetailsId = qh.JobDetailsId,
-                                 JobReference = qh.JobReference,
+                                 SalesOrderReference = qh.SalesOrderReference,
                                  CustomerName = qh.CustomerCodeNavigation.Name,
                                  ConsultantName = qh.ConsultantCodeNavigation != null ? qh.ConsultantCodeNavigation!.Name : "",
                                  ClientName = qh.ClientCodeNavigation != null ? qh.ClientCodeNavigation!.Name : "",
@@ -145,7 +145,7 @@ namespace Quotation.Management.Repositories
                                  WarrantyProvisionLabourBalance = qh.WarrantyProvisionLabourBalance,
 
 
-                                }).ToList();
+                                }).Distinct().ToList();
 
                 return _data;
             }

@@ -6,7 +6,7 @@ namespace Quotation.Management.Entities.Models
     public partial class WarrantyLine
     {
         public string OurDoreference { get; set; } = null!;
-        public int? JobDetailsId { get; set; }
+        public string? JobDetailsId { get; set; }
         public DateTime? Dodate { get; set; }
         public string? InvoiceReference { get; set; }
         public DateTime? InvoiceDate { get; set; }

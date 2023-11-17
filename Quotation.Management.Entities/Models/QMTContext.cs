@@ -55,7 +55,7 @@ namespace Quotation.Management.Entities.Models
                 optionsBuilder.UseSqlServer(connectionString);
             }
         }
-    
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<BrandMaster>(entity =>
@@ -805,7 +805,7 @@ namespace Quotation.Management.Entities.Models
 
                 entity.ToTable("WarrantyHeader");
 
-                entity.Property(e => e.JobDetailsId).ValueGeneratedNever();
+                entity.Property(e => e.JobDetailsId).HasMaxLength(255);
 
                 entity.Property(e => e.AreaCode)
                     .HasMaxLength(100)
@@ -827,9 +827,11 @@ namespace Quotation.Management.Entities.Models
 
                 entity.Property(e => e.CustomersOrderReference).HasMaxLength(255);
 
-                entity.Property(e => e.JobReference).HasMaxLength(255);
+                entity.Property(e => e.SalesOrderReference).HasMaxLength(255);
 
                 entity.Property(e => e.PaymentStatus).HasMaxLength(255);
+
+                entity.Property(e => e.ProjectName).HasMaxLength(255);
 
                 entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
@@ -918,6 +920,8 @@ namespace Quotation.Management.Entities.Models
                 entity.Property(e => e.InvoiceDate).HasColumnType("datetime");
 
                 entity.Property(e => e.InvoiceReference).HasMaxLength(255);
+
+                entity.Property(e => e.JobDetailsId).HasMaxLength(255);
 
                 entity.Property(e => e.Manufacturer).HasMaxLength(255);
 

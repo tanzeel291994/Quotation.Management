@@ -11,7 +11,7 @@ namespace Quotation.Management.Contracts.Services
     {
         WarrantyHeader? InsertWarrantyHeader(WarrantyHeaderDC inputHeader);
         void InsertWarrantyLine(WarrantyLineDC inputLine);
-        dynamic? GetWarranty(int Id);
+        dynamic? GetWarranty(string Id);
         dynamic SearchQuotations(WarrantySearchDC warrantySearch);
         List<string> GetAllJobRefs();
     }

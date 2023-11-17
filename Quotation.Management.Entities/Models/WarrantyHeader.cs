@@ -10,8 +10,9 @@ namespace Quotation.Management.Entities.Models
             WarrantyLines = new HashSet<WarrantyLine>();
         }
 
-        public int JobDetailsId { get; set; }
-        public string? JobReference { get; set; }
+        public string JobDetailsId { get; set; } = null!;
+        public string? SalesOrderReference { get; set; }
+        public string? ProjectName { get; set; }
         public string? ClientCode { get; set; }
         public string? ConsultantCode { get; set; }
         public string? CustomerCode { get; set; }

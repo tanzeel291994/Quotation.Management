@@ -9,7 +9,7 @@ namespace Quotation.Management.Contracts
     public class WarrantySearchDC
     {
         public int JobDetailsId { get; set; } // Primary key
-        public string JobReference { get; set; }
+        public string SalesOrderReference { get; set; }
         public string ClientCode { get; set; }
         public string ConsultantCode { get; set; }
         public string CustomerCode { get; set; }

@@ -34,7 +34,8 @@ namespace Quotation.Management.Services
             {
                 WarrantyHeader header = new ();
                 header.JobDetailsId = inputHeader.JobDetailsId;
-                header.JobReference = inputHeader.JobReference;
+                header.ProjectName = inputHeader.ProjectName;
+                header.SalesOrderReference = inputHeader.SalesOrderReference;
                 header.ClientCode = inputHeader.ClientCode;
                 header.ConsultantCode = inputHeader.ConsultantCode;
                 header.CustomerCode = inputHeader.CustomerCode;
@@ -105,7 +106,7 @@ namespace Quotation.Management.Services
         }
         #endregion
 
-        public dynamic? GetWarranty(int Id)
+        public dynamic? GetWarranty(string Id)
         {
             JObject jobject = new();
             try
