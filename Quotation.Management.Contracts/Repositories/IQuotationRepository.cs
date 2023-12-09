@@ -14,7 +14,9 @@ namespace Quotation.Management.Contracts.Repositories
         List<string> GetAllQuotationNums();
          QuotationHeader InsertUpdateQuotation(QuotationHeader _quotationHeader, int? updatedBy, QMTContext? _context = null);
          QuotationLine InsertQuotationLine(QuotationLine _quotationLine, QMTContext? _context = null);
+        List<QuotationLine> InsertQuotationLines(List<QuotationLine> _quotationLines, QMTContext? _context = null);
          QuotationOptCode InsertQuotationOptCode(QuotationOptCode _quotationOptCode, QMTContext? _context = null);
+        List<QuotationOptCode> InsertQuotationOptCodes(List<QuotationOptCode> _quotationOptCodes, QMTContext? _context = null);
         //PricingMaster? GetPricingOptCode(string itemCode, string optCode);
         QuotationLine? GetLatestQuotationLine(string quotationNum, QMTContext? _context = null);
         dynamic? GetQuotation(string quotationNum, int? revNum=null);

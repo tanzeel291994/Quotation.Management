@@ -19,4 +19,10 @@ namespace Quotation.Management.Contracts
         public List<string> AreaCode = new();
         public List<int> SalesRepresentativeId = new();
     }
+
+    public class TableData
+    {
+        public List<string> Headers { get; set; }
+        public List<List<string>> Rows { get; set; }
+    }
 }

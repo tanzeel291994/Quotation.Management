@@ -444,7 +444,17 @@ namespace Quotation.Management.Repositories
             }
             return _quotationLine;
         }
-
+        public List<QuotationLine> InsertQuotationLines(List<QuotationLine> _quotationLines, QMTContext? _context = null)
+        {
+            var context = _context ?? new QMTContext();
+            context.QuotationLines.AddRange(_quotationLines);
+            context.SaveChanges();
+            if (_context == null)
+            {
+                context.Dispose();
+            }
+            return _quotationLines;
+        }
         public QuotationCostItem InsertQuotationCostItemLine(QuotationCostItem _quotationCostItem, QMTContext? _context = null)
         {
             var context = _context ?? new QMTContext();
@@ -489,6 +499,19 @@ namespace Quotation.Management.Repositories
                 context.Dispose();
             }
             return _quotationOptCode;
+        }
+
+        public List<QuotationOptCode> InsertQuotationOptCodes(List<QuotationOptCode> _quotationOptCodes, QMTContext? _context = null)
+        {
+            var context = _context ?? new QMTContext();
+            context.QuotationOptCodes.AddRange(_quotationOptCodes);
+            context.SaveChanges();
+            
+            if (_context == null)
+            {
+                context.Dispose();
+            }
+            return _quotationOptCodes;
         }
 
         public QuotationOptCode RemoveQuotationOptCode(QuotationOptCode _quotationOptCode, QMTContext? _context = null)
@@ -818,6 +841,7 @@ namespace Quotation.Management.Repositories
                                     consultantCode = x.ConsultantCode,
                                     clientCode = x.ClientCode,
                                     customerCode = x.CustomerCode,
+                                    customerName = x.CustomerCodeNavigation.Name,
                                     currencyCode = x.CurrencyCode,
                                     msp = x.Msp,
                                     asp = x.Asp,

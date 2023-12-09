@@ -6,12 +6,13 @@ namespace Quotation.Management.Contracts.Services
 {
     public interface IQuotationService
     {
-
+         List<string> AddAHULinesList(DataSet ds, string quotationNum, int revNum, int createdBy);
+         byte[] GenerateQuotationWord(string quotationNum);
          bool UpdateMultipleLines(UpdateMultipleLinesDC data);
          List<string> GetAllQuotationNums();
          QuotationHeader? InsertQuotationHeader(QuotationHeaderDC inputHeader);
          QuotationLineDC? InsertQuotationLine(QuotationLineDC inputLine);
-        dynamic? GetQuotation(string Id, int? revNum = null);
+         dynamic? GetQuotation(string Id, int? revNum = null);
          QuotationLineDC? UpdateQuotationLine(QuotationLineDC inputLine);
          JObject? GetQuotationOptCodes(QuotationLineDC quotationLineDC);
          bool CopyOptionLine(QuotationCopyOptionDC input);

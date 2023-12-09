@@ -46,6 +46,7 @@ builder.Services.AddCors(options =>
                       });
 });
 #region Services
+builder.Services.AddTransient<IWordDocumentService, WordDocumentService>();
 builder.Services.AddScoped<IProductMasterService, ProductMasterService>();
 builder.Services.AddScoped<IItemGroupService, ItemGroupService>();
 builder.Services.AddScoped<IBrandService, BrandService>();
@@ -57,6 +58,7 @@ builder.Services.AddScoped<IMastersService, MastersService>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
 builder.Services.AddScoped<IIssueService, IssueService>();
 builder.Services.AddScoped<IWarrantyService, WarrantyService>();
+
 #endregion
 
 #region Repositories

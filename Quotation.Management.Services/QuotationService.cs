@@ -1,4 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.InkML;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -13,6 +19,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
@@ -27,8 +34,11 @@ namespace Quotation.Management.Services
         private readonly IProductMasterRepository<ProductMaster> _productMasterRepository;
         private readonly IItemCodeRepository<ItemMaster> _itemCodeRepository;
         private readonly ILogger<QuotationService> _logger;
-        public QuotationService(IItemCodeRepository<ItemMaster> itemCodeRepository, IItemCodeService itemCodeService, IMastersRepository mastersRepository, IProductMasterRepository<ProductMaster> productMasterRepository, IQuotationRepository quotationRepository, ILogger<QuotationService> logger)
+        private readonly IWordDocumentService _wordDocumentService;
+
+        public QuotationService(IWordDocumentService wordDocumentService, IItemCodeRepository<ItemMaster> itemCodeRepository, IItemCodeService itemCodeService, IMastersRepository mastersRepository, IProductMasterRepository<ProductMaster> productMasterRepository, IQuotationRepository quotationRepository, ILogger<QuotationService> logger)
         {
+            _wordDocumentService = wordDocumentService;
             _quotationRepository = quotationRepository ?? throw new ArgumentNullException(nameof(quotationRepository));
             _mastersRepository = mastersRepository ?? throw new ArgumentNullException(nameof(mastersRepository));
             _productMasterRepository = productMasterRepository ?? throw new ArgumentNullException(nameof(productMasterRepository));
@@ -775,6 +785,197 @@ namespace Quotation.Management.Services
             return line;
         }
         
+        public List<string> AddAHULinesList (DataSet ds,string quotationNum , int revNum, int createdBy )
+        {
+            try
+            {
+                int index = 0;
+                List<string> validationMessages = new List<string>();
+                List<AHULineDC> linesList = new();
+                if (index != -1)
+                {
+                    DataTable dt = ds.Tables[index];
+
+                    //QMTContext context = _quotationRepository.BeginTransaction();
+                    for (int i = 1; i < dt.Rows.Count; i++)
+                    {
+                        AHULineDC ahuLine = new AHULineDC();
+                        string? itemCode = dt.Rows[i].Field<string>("Model");
+                        string? unitTag = dt.Rows[i].Field<string>("Customer reference");
+                        string? price = Convert.ToString(dt.Rows[i].Field<object>("Price"));
+                        string? optName = dt.Rows[i].Field<string>("OptName");
+                        string? vat = Convert.ToString(dt.Rows[i].Field<object>("Vat"));
+                        string? margin = Convert.ToString(dt.Rows[i].Field<object>("Margin"));
+
+                        if (itemCode == null)
+                        {
+                            validationMessages.Add("Model missing on Index " + i);
+                            continue;
+                        }
+                        if (unitTag == null)
+                        {
+                            validationMessages.Add("unitTag missing on Index " + i);
+                            continue;
+                        }
+                        if (price == null)
+                        {
+                            validationMessages.Add("price missing on Index " + i);
+                            continue;
+                        }
+                        if (optName == null)
+                        {
+                            validationMessages.Add("optName missing on Index " + i);
+                            continue;
+                        }
+                        bool isPricingDataType = decimal.TryParse(price.Replace(",", "."), out decimal pricingValue);
+                        if (!isPricingDataType)
+                        {
+                            validationMessages.Add("Pricing is not number on row index " + i + " for itemCode:" + itemCode);
+                            continue;
+                        }
+
+                        ahuLine.ItemCode = itemCode;
+                        ahuLine.UnitTag = unitTag;
+                        ahuLine.UnitPrice = pricingValue;
+                        ahuLine.Optname = optName;
+                        ahuLine.Margin = (margin == null || margin == "") ? 10 : Convert.ToDecimal(margin);
+                        ahuLine.Vat = (vat == null || vat == "") ? 5 : Convert.ToInt32(vat);
+                        linesList.Add(ahuLine);
+
+
+                        //context.QuotationHeaders.Add(quotationHeader);
+                        //context.SaveChanges();
+                    }
+
+                    if (validationMessages.Count > 0) return validationMessages;
+
+                    if (linesList.Count > 0)
+                    {
+                        linesList = linesList
+                           .GroupBy(line => line, new AHULineDCEqualityComparer())
+                           .Select(group =>
+                           {
+                               var firstLine = group.First();
+                               firstLine.Qty = group.Count(); // Or another logic to sum up or adjust Qty
+                               return firstLine;
+                           }).ToList();
+
+                        List<QuotationOptCode> optCodesToBeAdded = new();
+                        AddAHULines(linesList, quotationNum, revNum, createdBy);
+
+
+
+                    }
+                    else
+                        return new List<string>() { "No Lines are found" };
+                }
+                else
+                    return new List<string>() { "No excel worksheet found" };
+
+                return new List<string>();
+            }
+            catch(Exception e)
+            {
+                return new List<string>() {"Lines couldnot be saved," +e.Message};
+            }
+        }
+    
+
+        private void AddAHULines(List<AHULineDC> lines,string quotationNum,int revNum,int createdBy)
+        {
+            try
+            {
+                List<QuotationLine> linesToBeAdded = new();
+                List<QuotationOptCode> optCodesToBeAdded = new();
+                List<string> allItemCodes = lines.Select(x => x.ItemCode).Distinct().ToList(); ;
+                List<ItemCodeDetailsDC> itemCodeDetails = _itemCodeRepository.GetItemCodeDetails(allItemCodes);
+                QuotationHeader? quotationHeader = _quotationRepository.GetQuotation(quotationNum, revNum);
+                QuotationLine? latestLine = _quotationRepository.GetLatestQuotationLine(quotationHeader!.QuotationNum);
+                int lineNum = latestLine != null ? latestLine.LineNum : 0;
+                foreach (var ahuLine in lines)
+                {
+                    ItemCodeDetailsDC details = itemCodeDetails.Where(x => x.ItemCode == ahuLine.ItemCode).FirstOrDefault();
+                    QuotationLine line = new();
+                    CurrencyMaster? quotationCurrency = _mastersRepository.GetCurrencyByCode(quotationHeader.CurrencyCode);
+                    CurrencyMaster? brandCurrency = _mastersRepository.GetCurrencyByCode(details!.CurrencyCode);
+                    var quotationLineDC = _quotationRepository.GetQuotationLinesDC(quotationHeader.QuotationNum, quotationHeader.RevNum, prodTypeId: details.ProdTypeId, brandId: details.BrandId).FirstOrDefault();
+                    line.QuotationNum = quotationHeader.QuotationNum;
+                    line.ActiveLine = true; // BY DEFAULT ALL LINES ARE ACTIVE WHEN INSERTED
+                    line.Qty = ahuLine.Qty;
+                    line.Mtlp = 1;// ahuLine.Mtlp;
+
+                    line.ItemCode = ahuLine.ItemCode;
+                    line.Vat = ahuLine.Vat ?? 5;
+                    line.Margin = ahuLine.Margin ?? 10;
+                    line.UnitTag = ahuLine.UnitTag;
+                    line.LineNum = ++lineNum;
+                    line.RevNum = quotationHeader.RevNum;
+                    line.UnitPrice = 0;
+                    line.TtNetPrice = 0;
+                    line.CreatedBy = createdBy;
+                    line.CreatedAt = DateTime.Now;
+                    line.Caf = quotationLineDC != null ? quotationLineDC.CAF : Math.Round(quotationCurrency!.ConvFactor / brandCurrency!.ConvFactor, 4); //Check for existing CAF from the lines with same value 
+                    if (line.UnitTag == null || line.UnitTag == "")
+                        throw new ValidationException(new List<string> { "UnitTag cannot be empty for AHUs" + ahuLine.ItemCode });
+                    line.SubItemCode = _quotationRepository.GenerateItemCode(quotationLineDC);
+                    line.UnitPrice = ahuLine.UnitPrice * line.Caf.Value;
+                    linesToBeAdded.Add(line);
+                    //line = _quotationRepository.InsertQuotationLine(line, context);
+                    //inputLine.ItemCode = line.SubItemCode;
+                    QuotationOptCode optCode = new();
+                    optCode.QuotationNum = line.QuotationNum;
+                    optCode.RevNum = line.RevNum;
+                    optCode.LineNum = line.LineNum;
+                    optCode.UnitPrice = ahuLine.UnitPrice * line.Caf.Value;
+                    optCode.OptCode = ahuLine.Optname;
+                    optCode.Baseprice = ahuLine.UnitPrice;
+                    //optCode.Version = _optCode.Version;
+                    optCode.OptName = ahuLine.Optname;
+                    optCode.IsNet = ahuLine.IsNet ?? false;
+                    optCode.OptType = OptionType.NonStandard.ToString();
+                    //optCode = _quotationRepository.InsertQuotationOptCode(optCode, context);
+                    optCodesToBeAdded.Add(optCode);
+                }
+                QMTContext context = _quotationRepository.BeginTransaction();
+                _quotationRepository.InsertQuotationLines(linesToBeAdded, context);
+                _quotationRepository.InsertQuotationOptCodes(optCodesToBeAdded, context);
+                UpdateUnitPriceFromOptions(quotationNum, revNum, linesToBeAdded.Select(x => x.LineNum).ToList(), context);
+
+                _quotationRepository.Commit();
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+        }
+
+        public class AHULineDCEqualityComparer : IEqualityComparer<AHULineDC>
+        {
+            public bool Equals(AHULineDC x, AHULineDC y)
+            {
+                // Adjust the logic here based on which properties define equality
+                return x.ItemCode == y.ItemCode && x.UnitTag == y.UnitTag && x.UnitPrice == y.UnitPrice; ;
+            }
+
+            public int GetHashCode(AHULineDC obj)
+            {
+                // Adjust the hash code generation logic based on properties used in Equals
+                return obj.ItemCode.GetHashCode() ^ obj.UnitTag.GetHashCode() ^ obj.UnitPrice.GetHashCode();
+            }
+        }
+
+        public class AHULineDC
+        {
+            public string ItemCode;
+            public string UnitTag;
+            public int Qty;
+            public int Mtlp;
+            public int? Vat;
+            public bool? IsNet;
+            public decimal? Margin;
+            public decimal UnitPrice;
+            public string? Optname; //by default BASIC
+        }
         public QuotationLineDC? UpdateQuotationLine(QuotationLineDC inputLine)
         {
             try
@@ -1754,6 +1955,72 @@ namespace Quotation.Management.Services
                 throw;
             }
         }
+        public void CreateExcelFile(PriceBreakDownDC data, string filePath)
+        {
+            using (var workbook = new XLWorkbook())
+            {
+                // Create a worksheet for each DataTable in your PriceBreakDownDC
+                if (data.productPrices.Any())
+                {
+                    foreach (var productPrice in data.productPrices)
+                    {
+                        var worksheet = workbook.Worksheets.Add(productPrice.productType);
+                        // Add productPrice.optionsPricing to the worksheet
+                        AddDataTableToWorksheet(worksheet, productPrice.optionsPricing, "Options Pricing");
+                        // Add any other tables like productPrice.costItemProductWise, etc.
+                    }
+                }
+
+                if (data.costItemBreakDownDCs != null)
+                {
+                    var costItemSheet = workbook.Worksheets.Add("Cost Item Breakdown");
+                    AddDataTableToWorksheet(costItemSheet, data.costItemBreakDownDCs, "Cost Item Breakdown");
+                }
+
+                // Add other DataTables and data as needed
+
+                // Save the workbook to a file
+                workbook.SaveAs(filePath);
+            }
+        }
+
+        private void AddDataTableToWorksheet(IXLWorksheet worksheet, DataTable dataTable, string title)
+        {
+            // Assuming the first row of the DataTable contains column names
+            for (int col = 0; col < dataTable.Columns.Count; col++)
+            {
+                worksheet.Cell(1, col + 1).Value = dataTable.Columns[col].ColumnName;
+            }
+
+            for (int row = 0; row < dataTable.Rows.Count; row++)
+            {
+                for (int col = 0; col < dataTable.Columns.Count; col++)
+                {
+                    var cell = worksheet.Cell(row + 2, col + 1);
+                    var value = dataTable.Rows[row][col];
+
+                    if (value is DateTime)
+                    {
+                        cell.Value = ((DateTime)value).ToString("yyyy-MM-dd"); // or any other date format
+                        cell.Style.DateFormat.Format = "yyyy-MM-dd"; // this sets the Excel date format
+                    }
+                    else if (value is decimal || value is double || value is int)
+                    {
+                        if(value is decimal)
+                            cell.Value = Convert.ToDecimal(value.ToString());
+                        else if (value is double)
+                            cell.Value = Convert.ToDouble(value.ToString());
+                        else if (value is int)
+                            cell.Value = Convert.ToInt32(value.ToString());
+                    }
+                    else
+                    {
+                        cell.Value = value.ToString();
+                    }
+                }
+            }
+        }
+
 
         public void ImportFromQuotation(string toQuotationNum , int toRevNum ,string fromQuotationNum , int fromRevNum , List<int> lineNums)
         {
@@ -2020,6 +2287,48 @@ namespace Quotation.Management.Services
             {
                 _quotationRepository.DisposeConnection();
             }
+        }
+
+
+        public byte[] GenerateQuotationWord(string quotationNum)
+        {
+            dynamic? header = _quotationRepository.GetQuotation(quotationNum);
+            int revNum = (int)header!.GetType().GetProperty("revNum").GetValue(header, null);
+            List <QuotationLineDC> lines = GetQuotationLines(quotationNum, revNum);
+            TableData tableData = new();
+            tableData.Headers = new();
+            tableData.Rows = new();
+            bool headerRow = true;
+            decimal totalAmount = 0;
+            foreach (var line in lines)
+            {
+                if(headerRow)
+                {
+                    tableData.Headers.Add("LNo");
+                    tableData.Headers.Add("Code");
+                    tableData.Headers.Add(nameof(line.Qty));
+                    tableData.Headers.Add("Sales Price");
+                    tableData.Headers.Add("VAT Percent");
+                    tableData.Headers.Add("Total Amt");
+                    headerRow = false;
+                }
+
+                    List<string> data = new();
+                    data.Add(line.LineNum.ToString());
+                    data.Add(line.ItemCode);
+                    data.Add(line.Qty.ToString("#,##0"));
+                    data.Add(line.TtSlsPrice.ToString("#,##0.##"));
+                    data.Add(line.Vat.ToString("#,##0.##"));
+                    data.Add(line.TtSlsPriceWTVat.ToString("#,##0.##"));
+                    totalAmount += line.TtSlsPriceWTVat;
+
+
+                    tableData.Rows.Add(data);
+                
+            }
+
+            
+            return _wordDocumentService.CreateWordDocument(header!, tableData, totalAmount);
         }
     }
 }

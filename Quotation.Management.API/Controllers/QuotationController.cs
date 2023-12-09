@@ -769,5 +769,65 @@ namespace QMT_API.Controllers
             }
         }
 
+
+
+        [HttpPost("import/ahulines")]
+        [ProducesResponseType(typeof(ItemMaster), StatusCodes.Status200OK)]
+        public IActionResult ReadAHULinesExcelFromFile()
+        {
+            try
+            {
+                var httpRequest = HttpContext.Request;
+                List<string> validationMessages = new List<string>();
+                IExcelDataReader? reader = null;
+                DataSet ds = new();
+                if (httpRequest.Form.Files.Count > 0)
+                {
+                    var inputFile = httpRequest.Form.Files[0];
+                    int createdby = Convert.ToInt32(httpRequest.Form["CreatedBy"].ToString());
+                    string quotationNum = httpRequest.Form["QuotationNum"].ToString();
+                    int revNum = Convert.ToInt32(httpRequest.Form["RevNum"].ToString());
+
+                    using (var fileStream = inputFile.OpenReadStream())
+                    {
+                        if (inputFile.FileName.EndsWith(".xls"))
+                            reader = ExcelReaderFactory.CreateBinaryReader(fileStream);
+                        else if (inputFile.FileName.EndsWith(".xlsx"))
+                            reader = ExcelReaderFactory.CreateOpenXmlReader(fileStream);
+                        else
+                            validationMessages.Add("File format not supported");
+
+                        ds = reader.AsDataSet(new ExcelDataSetConfiguration()
+                        {
+                            ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
+                            {
+                                UseHeaderRow = true
+                            }
+                        });
+                    }
+                    if (ds != null && ds.Tables.Count > 0 && validationMessages.Count == 0)
+                    {
+                        validationMessages.AddRange(_quotationService.AddAHULinesList(ds,quotationNum,revNum,createdby));
+                        if(validationMessages.Count > 0)
+                            return StatusCode(StatusCodes.Status422UnprocessableEntity, JsonConvert.SerializeObject(validationMessages));
+                    }
+
+                }
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+
+        [HttpPost("generate/word")]
+        public IActionResult CreateDocument([FromBody] dynamic requestBody)
+        {
+            var quotationNum = requestBody.GetProperty("quotationNum").GetString();
+            var wordDocument = _quotationService.GenerateQuotationWord(quotationNum);
+            return File(wordDocument, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "For_"+quotationNum + ".docx");
+        }
     }
 }
