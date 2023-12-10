@@ -834,6 +834,8 @@ namespace Quotation.Management.Services
                             continue;
                         }
 
+                        ahuLine.QuotationNum = quotationNum;
+                        ahuLine.RevNum = revNum;
                         ahuLine.ItemCode = itemCode;
                         ahuLine.UnitTag = unitTag;
                         ahuLine.UnitPrice = pricingValue;
@@ -917,7 +919,7 @@ namespace Quotation.Management.Services
                     line.Caf = quotationLineDC != null ? quotationLineDC.CAF : Math.Round(quotationCurrency!.ConvFactor / brandCurrency!.ConvFactor, 4); //Check for existing CAF from the lines with same value 
                     if (line.UnitTag == null || line.UnitTag == "")
                         throw new ValidationException(new List<string> { "UnitTag cannot be empty for AHUs" + ahuLine.ItemCode });
-                    line.SubItemCode = _quotationRepository.GenerateItemCode(quotationLineDC);
+                    line.SubItemCode = _quotationRepository.GenerateItemCode(ahuLine);
                     line.UnitPrice = ahuLine.UnitPrice * line.Caf.Value;
                     linesToBeAdded.Add(line);
                     //line = _quotationRepository.InsertQuotationLine(line, context);
@@ -949,33 +951,9 @@ namespace Quotation.Management.Services
             }
         }
 
-        public class AHULineDCEqualityComparer : IEqualityComparer<AHULineDC>
-        {
-            public bool Equals(AHULineDC x, AHULineDC y)
-            {
-                // Adjust the logic here based on which properties define equality
-                return x.ItemCode == y.ItemCode && x.UnitTag == y.UnitTag && x.UnitPrice == y.UnitPrice; ;
-            }
+        
 
-            public int GetHashCode(AHULineDC obj)
-            {
-                // Adjust the hash code generation logic based on properties used in Equals
-                return obj.ItemCode.GetHashCode() ^ obj.UnitTag.GetHashCode() ^ obj.UnitPrice.GetHashCode();
-            }
-        }
-
-        public class AHULineDC
-        {
-            public string ItemCode;
-            public string UnitTag;
-            public int Qty;
-            public int Mtlp;
-            public int? Vat;
-            public bool? IsNet;
-            public decimal? Margin;
-            public decimal UnitPrice;
-            public string? Optname; //by default BASIC
-        }
+       
         public QuotationLineDC? UpdateQuotationLine(QuotationLineDC inputLine)
         {
             try

@@ -119,6 +119,27 @@ namespace Quotation.Management.Repositories
                 throw;
             }
         }
+        public string GenerateItemCode(AHULineDC _quotationLine, QMTContext? _context = null)
+        {
+            try
+            {
+                var context = _context ?? new QMTContext();
+                int count = context.QuotationLines.Where(x => x.QuotationNum == _quotationLine.QuotationNum.ToUpper() && x.RevNum == _quotationLine.RevNum
+                && x.ItemCode == _quotationLine.ItemCode).Count();
+                char suffix = (char)(count + 65);
+                string itemCode = _quotationLine.QuotationNum + _quotationLine.ItemCode + _quotationLine.UnitTag + suffix;
+                if (_context == null)
+                {
+                    context.Dispose();
+                }
+                return itemCode;
+            }
+            catch (Exception ex)
+            {
+                //_logger.LogError(ex, ex.Message);
+                throw;
+            }
+        }
         public void UpdateMultipleLines(List<QuotationLine> quotationLines,decimal? inputValue,string updateType, QMTContext _context)
         {
             foreach(var line in quotationLines)

@@ -23,6 +23,8 @@ namespace Quotation.Management.Contracts.Repositories
         List<QuotationLineDC> GetQuotationLinesDC(string quotationNum, int revNum, List<int>? selectedLines = null, string prodTypeId = "", int? brandId = null, QMTContext? _context = null);
         int GetNewRevNum(string quotationNum, QMTContext? _context = null);
         string GenerateItemCode(QuotationLineDC _quotationLine, QMTContext? _context = null);
+
+        string GenerateItemCode(AHULineDC _quotationLine, QMTContext? _context = null);
         QuotationOptCode? GetQuotationOptCode(string quotationNum, int revNum, int lineNum, string optCode, QMTContext? _context = null);
         List<QuotationOptCode> GetQuotationOptCodes(string quotationNum, int revNum, QMTContext? _context, int? lineNum = null);
 
