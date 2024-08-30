@@ -1,6 +1,7 @@
 ﻿using Quotation.Management.Entities.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,5 +15,6 @@ namespace Quotation.Management.Contracts.Services
         dynamic? GetWarranty(string Id);
         dynamic SearchQuotations(WarrantySearchDC warrantySearch);
         List<string> GetAllJobRefs();
+        List<string> ImportWarrantyData(DataSet ds, int userId);
     }
 }

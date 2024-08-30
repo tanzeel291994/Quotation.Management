@@ -133,7 +133,7 @@ namespace Quotation.Management.Repositories
                                  //ProductSerialNumber = ql.ProductSerialNumber,
                                  CurrencyCode = qh.WarrantyProvisionCurrency,
                                  //Status = qh.Status.StatusName,
-                                 SalesRep = qh.SalesRepresentative.FirstName + ' ' + qh.SalesRepresentative.LastName,
+                                 SalesRep = (qh.SalesRepresentative.FirstName ?? "") + ' ' + (qh.SalesRepresentative.LastName ?? ""),
                                  //Remarks = ql.Remarks,
                                  WarrantyProvisionPartsTotal = qh.WarrantyProvisionPartsTotal,
                                  WarrantyProvisionPartsUtilized = qh.WarrantyProvisionPartsUtilized,
