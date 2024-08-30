@@ -1717,7 +1717,7 @@ namespace Quotation.Management.Services
             return "CRH"+user.FirstName.ToUpper()[0]+user.LastName.ToUpper()[0]+areaCode+year.ToString().Substring(2,2)+ String.Format("{0:0000}", num);
         }
 
-
+        #region PBD
         public PriceBreakDownDC GetQuotationPBD(string quotationNum, int revNum)
         {
             try
@@ -1933,35 +1933,51 @@ namespace Quotation.Management.Services
                 throw;
             }
         }
-        public void CreateExcelFile(PriceBreakDownDC data, string filePath)
+       /* public byte[] CreateExcelFilePBD(PriceBreakDownDC data)
         {
-            using (var workbook = new XLWorkbook())
+            try
             {
-                // Create a worksheet for each DataTable in your PriceBreakDownDC
-                if (data.productPrices.Any())
+                using (var workbook = new XLWorkbook())
                 {
-                    foreach (var productPrice in data.productPrices)
+                    // Create a worksheet for each DataTable in your PriceBreakDownDC
+                    var worksheet = workbook.Worksheets.Add("Pricing");
+                    if (data.productPrices.Any())
                     {
-                        var worksheet = workbook.Worksheets.Add(productPrice.productType);
-                        // Add productPrice.optionsPricing to the worksheet
-                        AddDataTableToWorksheet(worksheet, productPrice.optionsPricing, "Options Pricing");
-                        // Add any other tables like productPrice.costItemProductWise, etc.
+                        foreach (var productPrice in data.productPrices)
+                        {
+
+                            // Add productPrice.optionsPricing to the worksheet
+                            AddDataTableToWorksheet(worksheet, productPrice.optionsPricing, productPrice.productType);
+                            // Add any other tables like productPrice.costItemProductWise, etc.
+                        }
+                    }
+
+                    if (data.costItemBreakDownDCs != null)
+                    {
+                        //var costItemSheet = workbook.Worksheets.Add("Cost Item Breakdown");
+                        AddDataTableToWorksheet(worksheet, data.costItemBreakDownDCs, "Cost Item Summary");
+                    }
+                    if (data.totalValueDCs != null)
+                    {
+                        //var costItemSheet = workbook.Worksheets.Add("Cost Item Breakdown");
+                        AddDataTableToWorksheet(worksheet, data.totalValueDCs, "Total Summary");
+                    }
+
+                    // Add other DataTables and data as needed
+
+                    // Save the workbook to a file
+                    using (var stream = new MemoryStream())
+                    {
+                        workbook.SaveAs(stream);
+                        return stream.ToArray(); // Convert the MemoryStream to byte array and return
                     }
                 }
-
-                if (data.costItemBreakDownDCs != null)
-                {
-                    var costItemSheet = workbook.Worksheets.Add("Cost Item Breakdown");
-                    AddDataTableToWorksheet(costItemSheet, data.costItemBreakDownDCs, "Cost Item Breakdown");
-                }
-
-                // Add other DataTables and data as needed
-
-                // Save the workbook to a file
-                workbook.SaveAs(filePath);
             }
-        }
-
+            catch(Exception e)
+            {
+                throw;
+            }
+        }*/
         private void AddDataTableToWorksheet(IXLWorksheet worksheet, DataTable dataTable, string title)
         {
             // Assuming the first row of the DataTable contains column names
@@ -1998,8 +2014,9 @@ namespace Quotation.Management.Services
                 }
             }
         }
-
-
+        #endregion
+        
+        
         public void ImportFromQuotation(string toQuotationNum , int toRevNum ,string fromQuotationNum , int fromRevNum , List<int> lineNums)
         {
             var qmtContext = _quotationRepository.BeginTransaction();

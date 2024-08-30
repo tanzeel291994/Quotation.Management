@@ -28,7 +28,7 @@ namespace Quotation.Management.Contracts.Services
          CurrencyDC GetCurrencyCode(string curencyCode, string oldCurrencyCode, string quotationNum, int revNum);
          bool UpdateQuotationCurrency(CurrencyDC currencyDC);
         QuotationCostItemDC UpdateQuotationCostItem(QuotationCostItemDC input);
-
+        //byte[] CreateExcelFilePBD(PriceBreakDownDC data);
         PriceBreakDownDC GetQuotationPBD(string quotationNum, int revNum);
         QuotationCostItemDC DeleteQuotationCostItem(QuotationCostItemDC input);
         List<QuotationCostItemDC> GetQuotationCostLines(string quotationNum, int revNum);

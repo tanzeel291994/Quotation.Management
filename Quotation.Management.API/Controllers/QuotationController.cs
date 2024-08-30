@@ -822,6 +822,8 @@ namespace QMT_API.Controllers
         }
 
 
+        #region Downloads
+
         [HttpPost("generate/word")]
         public IActionResult CreateDocument([FromBody] dynamic requestBody)
         {
@@ -829,5 +831,17 @@ namespace QMT_API.Controllers
             var wordDocument = _quotationService.GenerateQuotationWord(quotationNum);
             return File(wordDocument, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "For_"+quotationNum + ".docx");
         }
+
+        /*[HttpPost("generate/excel/pbd")]
+        public IActionResult CreateExcelPBD([FromBody] dynamic requestBody)
+        {
+            var quotationNum = requestBody.GetProperty("quotationNum").GetString();
+            var revNum = requestBody.GetProperty("revNum").GetInt32();
+            PriceBreakDownDC priceBreakDownDC = _quotationService.GetQuotationPBD(quotationNum,revNum);
+            var excelDocument = _quotationService.CreateExcelFilePBD(priceBreakDownDC);
+            return File(excelDocument, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "PBD_" + quotationNum + "-R"+revNum+ ".xlsx");
+        }*/
+
+        #endregion
     }
 }
